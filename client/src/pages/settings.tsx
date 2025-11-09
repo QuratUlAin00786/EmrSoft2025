@@ -1155,20 +1155,6 @@ function MyProfileContent({ user }: { user: any }) {
               { value: "Prefer not to say", label: "Prefer not to say" }
             ])}
             {renderField("Phone", "phone", "tel")}
-            {renderSelectField("Insurance Provider", "insuranceProvider", [
-              { value: "NHS", label: "NHS" },
-              { value: "Bupa", label: "Bupa" },
-              { value: "AXA Health", label: "AXA Health" },
-              { value: "Vitality Health", label: "Vitality Health" },
-              { value: "Aviva", label: "Aviva" },
-              { value: "Cigna", label: "Cigna" },
-              { value: "WPA", label: "WPA" },
-              { value: "Benenden Health", label: "Benenden Health" },
-              { value: "The Exeter", label: "The Exeter" },
-              { value: "Freedom Health", label: "Freedom Health" },
-              { value: "Other", label: "Other" },
-              { value: "None", label: "None" }
-            ])}
             <div className="space-y-2">
               <Label>Email</Label>
               <Input
@@ -1230,7 +1216,21 @@ function MyProfileContent({ user }: { user: any }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {renderField("Insurance Provider", "insuranceProvider")}
+            {renderSelectField("Insurance Provider", "insuranceProvider", [
+              { value: "NHS (National Health Service)", label: "NHS (National Health Service)" },
+              { value: "Bupa", label: "Bupa" },
+              { value: "AXA PPP Healthcare", label: "AXA PPP Healthcare" },
+              { value: "Vitality Health", label: "Vitality Health" },
+              { value: "Aviva Health", label: "Aviva Health" },
+              { value: "Simply Health", label: "Simply Health" },
+              { value: "WPA", label: "WPA" },
+              { value: "Benenden Health", label: "Benenden Health" },
+              { value: "Healix Health Services", label: "Healix Health Services" },
+              { value: "Sovereign Health Care", label: "Sovereign Health Care" },
+              { value: "Exeter Friendly Society", label: "Exeter Friendly Society" },
+              { value: "Self-Pay", label: "Self-Pay" },
+              { value: "Other", label: "Other" }
+            ])}
             {renderField("Insurance Number", "insuranceNumber")}
           </div>
         </CardContent>
