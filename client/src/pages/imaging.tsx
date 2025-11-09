@@ -321,6 +321,7 @@ export default function ImagingPage() {
   const [patients, setPatients] = useState<any[]>([]);
   const [patientsLoading, setPatientsLoading] = useState(false);
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
+  const [uploadPatientSearchOpen, setUploadPatientSearchOpen] = useState(false);
   const [reportFindings, setReportFindings] = useState("");
   const [reportImpression, setReportImpression] = useState("");
   const [reportRadiologist, setReportRadiologist] = useState("");
@@ -5512,35 +5513,78 @@ export default function ImagingPage() {
                   </span>
                 </div>
               ) : (
-                <Select
-                  value={uploadFormData.patientId}
-                  onValueChange={(value) =>
-                    setUploadFormData({ ...uploadFormData, patientId: value })
-                  }
+                <Popover
+                  open={uploadPatientSearchOpen}
+                  onOpenChange={setUploadPatientSearchOpen}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select patient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {patientsLoading ? (
-                      <SelectItem value="loading">Loading patients...</SelectItem>
-                    ) : patients.length === 0 ? (
-                      <SelectItem value="no-patients">
-                        No patients available
-                      </SelectItem>
-                    ) : (
-                      patients.map((patient) => (
-                        <SelectItem
-                          key={patient.id}
-                          value={patient.id.toString()}
-                        >
-                          {patient.firstName} {patient.lastName} (
-                          {patient.patientId})
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={uploadPatientSearchOpen}
+                      className="w-full justify-between"
+                    >
+                      {uploadFormData.patientId
+                        ? patients.find(
+                            (patient: any) => patient.id.toString() === uploadFormData.patientId
+                          )
+                          ? `${
+                              patients.find(
+                                (patient: any) => patient.id.toString() === uploadFormData.patientId
+                              )?.firstName
+                            } ${
+                              patients.find(
+                                (patient: any) => patient.id.toString() === uploadFormData.patientId
+                              )?.lastName
+                            } (${
+                              patients.find(
+                                (patient: any) => patient.id.toString() === uploadFormData.patientId
+                              )?.patientId
+                            })`
+                          : "Select patient"
+                        : patientsLoading
+                        ? "Loading patients..."
+                        : "Select patient"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search patients..." />
+                      <CommandEmpty>No patient found.</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {patientsLoading ? (
+                          <CommandItem disabled>Loading patients...</CommandItem>
+                        ) : patients.length > 0 ? (
+                          patients.map((patient: any) => (
+                            <CommandItem
+                              key={patient.id}
+                              value={`${patient.firstName} ${patient.lastName} ${patient.patientId}`}
+                              onSelect={() => {
+                                setUploadFormData((prev) => ({
+                                  ...prev,
+                                  patientId: patient.id.toString(),
+                                }));
+                                setUploadPatientSearchOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  uploadFormData.patientId === patient.id.toString()
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              />
+                              {patient.firstName} {patient.lastName} ({patient.patientId})
+                            </CommandItem>
+                          ))
+                        ) : (
+                          <CommandItem disabled>No patients found</CommandItem>
+                        )}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               )}
             </div>
 
