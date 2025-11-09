@@ -2143,6 +2143,7 @@ export default function BillingPage() {
   const [reportRole, setReportRole] = useState("all");
   const [reportUserName, setReportUserName] = useState("all");
   const [reportGenerated, setReportGenerated] = useState(false);
+  const [displayedReportData, setDisplayedReportData] = useState<any>(null);
   
   // Searchable dropdown states
   const [insuranceSearchOpen, setInsuranceSearchOpen] = useState(false);
@@ -5328,8 +5329,10 @@ export default function BillingPage() {
                           <Button 
                             className="w-full" 
                             onClick={() => {
+                              const reportData = buildReportDataset();
+                              const breakdown = getRevenueBreakdown();
+                              setDisplayedReportData({ ...reportData, breakdown });
                               setReportGenerated(true);
-                              exportRevenuePDF();
                             }}
                             data-testid="button-generate-report"
                           >
@@ -5341,78 +5344,145 @@ export default function BillingPage() {
                     </CardContent>
                   </Card>
 
-                  {/* Revenue Breakdown - Current Month */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Revenue Breakdown - Current Month</CardTitle>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={exportRevenueCSV}
-                          data-testid="button-export-csv"
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Export CSV
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={exportRevenuePDF}
-                          data-testid="button-export-pdf"
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          Export PDF
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                              <th className="text-left p-3">Service Type</th>
-                              <th className="text-left p-3">Procedures</th>
-                              <th className="text-left p-3">Revenue</th>
-                              <th className="text-left p-3">Insurance</th>
-                              <th className="text-left p-3">Self-Pay</th>
-                              <th className="text-left p-3">Collection Rate</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {getRevenueBreakdown().map((item, index) => (
-                              <tr 
-                                key={index} 
-                                className={`border-b ${item.serviceName === 'Total' ? 'bg-gray-50 dark:bg-gray-800 font-semibold' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
-                              >
-                                <td className="p-3 font-medium">{item.serviceName}</td>
-                                <td className="p-3">{item.procedures}</td>
-                                <td className="p-3 font-semibold">{formatCurrency(item.revenue)}</td>
-                                <td className="p-3">{formatCurrency(item.insurance)}</td>
-                                <td className="p-3">{formatCurrency(item.selfPay)}</td>
-                                <td className="p-3">
-                                  <Badge className={`${
-                                    item.collectionRate >= 90 ? 'bg-green-100 text-green-800' :
-                                    item.collectionRate >= 75 ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-red-100 text-red-800'
-                                  }`}>
-                                    {item.collectionRate}%
-                                  </Badge>
-                                </td>
-                              </tr>
-                            ))}
-                            {getRevenueBreakdown().length === 0 && (
-                              <tr>
-                                <td colSpan={6} className="p-8 text-center text-gray-500 dark:text-gray-400">
-                                  No revenue data available for the current month
-                                </td>
-                              </tr>
+                  {/* Generated Report Display */}
+                  {reportGenerated && displayedReportData && (
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="flex items-center gap-2">
+                            <FileBarChart className="h-5 w-5" />
+                            Generated Report
+                          </CardTitle>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={exportRevenueCSV}
+                              data-testid="button-download-csv"
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Download CSV
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              onClick={exportRevenuePDF}
+                              data-testid="button-download-pdf"
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Download PDF
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setReportGenerated(false);
+                                setDisplayedReportData(null);
+                              }}
+                              data-testid="button-close-report"
+                            >
+                              Close
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {/* Report Header */}
+                        <div className="border-b pb-4">
+                          <h3 className="text-lg font-semibold mb-2">Custom Revenue Report</h3>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">
+                            <p><strong>Period:</strong> {format(displayedReportData.dateRange.start, 'MMM d, yyyy')} - {format(displayedReportData.dateRange.end, 'MMM d, yyyy')}</p>
+                            <p><strong>Generated:</strong> {format(new Date(), 'MMM d, yyyy HH:mm')}</p>
+                          </div>
+                        </div>
+
+                        {/* Patient Information (if specific patient selected) */}
+                        {displayedReportData.patientInfo && (
+                          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                            <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                              <User className="h-5 w-5" />
+                              Patient Information
+                            </h4>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div><strong>Name:</strong> {displayedReportData.patientInfo.name}</div>
+                              <div><strong>Patient ID:</strong> {displayedReportData.patientInfo.patientId}</div>
+                              <div><strong>Insurance Provider:</strong> {displayedReportData.patientInfo.insurance}</div>
+                              <div><strong>Insurance Number:</strong> {displayedReportData.patientInfo.insuranceNumber}</div>
+                              <div><strong>Phone:</strong> {displayedReportData.patientInfo.phone}</div>
+                              <div><strong>Email:</strong> {displayedReportData.patientInfo.email}</div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Applied Filters */}
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                          <h4 className="font-semibold mb-2">Applied Filters</h4>
+                          <div className="text-sm space-y-1">
+                            <p><strong>Date Range:</strong> {reportDateRange.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                            {displayedReportData.filters.insuranceType !== 'all' && (
+                              <p><strong>Insurance Type:</strong> {displayedReportData.filters.insuranceType}</p>
                             )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </CardContent>
-                  </Card>
+                            {displayedReportData.filters.role !== 'all' && (
+                              <p><strong>Role:</strong> {displayedReportData.filters.role}</p>
+                            )}
+                            {displayedReportData.filters.userName !== 'all' && !displayedReportData.patientInfo && (
+                              <p><strong>User:</strong> {users.find((u: any) => String(u.id) === displayedReportData.filters.userName)?.firstName} {users.find((u: any) => String(u.id) === displayedReportData.filters.userName)?.lastName}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Revenue Breakdown Table */}
+                        <div>
+                          <h4 className="font-semibold text-lg mb-3">Revenue Breakdown by Service Type</h4>
+                          <div className="overflow-x-auto border rounded-lg">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                                  <th className="text-left p-3">Service Type</th>
+                                  <th className="text-left p-3">Procedures</th>
+                                  <th className="text-left p-3">Revenue</th>
+                                  <th className="text-left p-3">Insurance</th>
+                                  <th className="text-left p-3">Self-Pay</th>
+                                  <th className="text-left p-3">Collection Rate</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {displayedReportData.breakdown && displayedReportData.breakdown.length > 0 ? (
+                                  displayedReportData.breakdown.map((item: any, index: number) => (
+                                    <tr 
+                                      key={index} 
+                                      className={`border-b ${item.serviceName === 'Total' ? 'bg-gray-50 dark:bg-gray-800 font-semibold' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                                    >
+                                      <td className="p-3 font-medium">{item.serviceName}</td>
+                                      <td className="p-3">{item.procedures}</td>
+                                      <td className="p-3 font-semibold">{formatCurrency(item.revenue)}</td>
+                                      <td className="p-3">{formatCurrency(item.insurance)}</td>
+                                      <td className="p-3">{formatCurrency(item.selfPay)}</td>
+                                      <td className="p-3">
+                                        <Badge className={`${
+                                          item.collectionRate >= 90 ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                                          item.collectionRate >= 75 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                                          'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                        }`}>
+                                          {item.collectionRate}%
+                                        </Badge>
+                                      </td>
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <tr>
+                                    <td colSpan={6} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                                      No data available for the selected filters
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
               )}
 
