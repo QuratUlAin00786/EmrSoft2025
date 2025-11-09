@@ -3370,6 +3370,148 @@ export default function BillingPage() {
     return [...breakdown, totals];
   };
 
+  // Export Revenue Breakdown as CSV
+  const exportRevenueCSV = () => {
+    const data = getRevenueBreakdown();
+    
+    if (data.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No revenue data available to export.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Create CSV content
+    const headers = ['Service Type', 'Procedures', 'Revenue', 'Insurance', 'Self-Pay', 'Collection Rate'];
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => [
+        `"${row.serviceName}"`,
+        row.procedures,
+        row.revenue.toFixed(2),
+        row.insurance.toFixed(2),
+        row.selfPay.toFixed(2),
+        `${row.collectionRate}%`
+      ].join(','))
+    ].join('\n');
+
+    // Create and download the CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `revenue-breakdown-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "CSV Exported",
+      description: "Revenue breakdown has been exported successfully.",
+    });
+  };
+
+  // Export Revenue Breakdown as PDF
+  const exportRevenuePDF = () => {
+    const data = getRevenueBreakdown();
+    
+    if (data.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No revenue data available to export.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    
+    // Add title
+    pdf.setFontSize(18);
+    pdf.text('Revenue Breakdown Report', pageWidth / 2, 20, { align: 'center' });
+    
+    // Add date range
+    pdf.setFontSize(12);
+    pdf.text(`Generated: ${format(new Date(), 'MMM d, yyyy')}`, pageWidth / 2, 30, { align: 'center' });
+    pdf.text(`Period: ${reportDateRange.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}`, pageWidth / 2, 38, { align: 'center' });
+    
+    // Add filters if applied
+    let yPos = 48;
+    if (reportInsuranceType !== 'all') {
+      pdf.setFontSize(10);
+      pdf.text(`Insurance Type: ${reportInsuranceType}`, 14, yPos);
+      yPos += 6;
+    }
+    if (reportRole !== 'all') {
+      pdf.setFontSize(10);
+      pdf.text(`Role: ${reportRole}`, 14, yPos);
+      yPos += 6;
+    }
+    if (reportUserName !== 'all') {
+      const userName = users.find((u: any) => String(u.id) === reportUserName);
+      if (userName) {
+        pdf.setFontSize(10);
+        pdf.text(`User: ${userName.firstName} ${userName.lastName}`, 14, yPos);
+        yPos += 6;
+      }
+    }
+    
+    yPos += 10;
+    
+    // Table headers
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Service Type', 14, yPos);
+    pdf.text('Procedures', 80, yPos);
+    pdf.text('Revenue', 110, yPos);
+    pdf.text('Insurance', 140, yPos);
+    pdf.text('Self-Pay', 170, yPos);
+    pdf.text('Rate', 195, yPos);
+    
+    yPos += 2;
+    pdf.line(14, yPos, 200, yPos);
+    yPos += 6;
+    
+    // Table data
+    pdf.setFont('helvetica', 'normal');
+    data.forEach((row) => {
+      if (yPos > 270) {
+        pdf.addPage();
+        yPos = 20;
+      }
+      
+      const isTotal = row.serviceName === 'Total';
+      if (isTotal) {
+        pdf.setFont('helvetica', 'bold');
+      }
+      
+      pdf.text(row.serviceName.substring(0, 25), 14, yPos);
+      pdf.text(String(row.procedures), 80, yPos);
+      pdf.text(`£${row.revenue.toFixed(2)}`, 110, yPos);
+      pdf.text(`£${row.insurance.toFixed(2)}`, 140, yPos);
+      pdf.text(`£${row.selfPay.toFixed(2)}`, 170, yPos);
+      pdf.text(`${row.collectionRate}%`, 195, yPos);
+      
+      if (isTotal) {
+        pdf.setFont('helvetica', 'normal');
+      }
+      
+      yPos += 8;
+    });
+    
+    // Save the PDF
+    pdf.save(`revenue-breakdown-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+
+    toast({
+      title: "PDF Exported",
+      description: "Revenue breakdown has been exported successfully.",
+    });
+  };
+
   if (invoicesLoading) {
     return (
       <div className="space-y-6">
@@ -5004,11 +5146,21 @@ export default function BillingPage() {
                     <CardHeader>
                       <CardTitle>Revenue Breakdown - Current Month</CardTitle>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={exportRevenueCSV}
+                          data-testid="button-export-csv"
+                        >
                           <Download className="h-4 w-4 mr-2" />
                           Export CSV
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={exportRevenuePDF}
+                          data-testid="button-export-pdf"
+                        >
                           <FileText className="h-4 w-4 mr-2" />
                           Export PDF
                         </Button>
