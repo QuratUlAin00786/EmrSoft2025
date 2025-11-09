@@ -9,10 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Users, CalendarCheck, ChevronLeft, ChevronRight, UserCheck, Trash2, Edit, Settings, Plus } from "lucide-react";
+import { Calendar, Clock, Users, CalendarCheck, ChevronLeft, ChevronRight, UserCheck, Trash2, Edit, Settings, Plus, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { isDoctorLike } from "@/lib/role-utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 export default function ShiftsPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -47,6 +50,8 @@ export default function ShiftsPage() {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showDeleteSingleConfirmModal, setShowDeleteSingleConfirmModal] = useState(false);
   const [shiftToDelete, setShiftToDelete] = useState<any>(null);
+  const [rolePopoverOpen, setRolePopoverOpen] = useState(false);
+  const [staffPopoverOpen, setStaffPopoverOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -1074,18 +1079,49 @@ export default function ShiftsPage() {
               <UserCheck className="h-6 w-6 text-blue-600" />
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select Role</h2>
             </div>
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger className="w-full h-12">
-                <SelectValue placeholder="Choose a role..." />
-              </SelectTrigger>
-              <SelectContent>
-                {roleOptions.map((role) => (
-                  <SelectItem key={role.value} value={role.value}>
-                    {role.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={rolePopoverOpen} onOpenChange={setRolePopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={rolePopoverOpen}
+                  className="w-full h-12 justify-between"
+                >
+                  {selectedRole
+                    ? roleOptions.find((role) => role.value === selectedRole)?.label
+                    : "Choose a role..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search roles..." />
+                  <CommandList>
+                    <CommandEmpty>No role found.</CommandEmpty>
+                    <CommandGroup>
+                      {roleOptions.map((role) => (
+                        <CommandItem
+                          key={role.value}
+                          value={role.label}
+                          onSelect={() => {
+                            setSelectedRole(role.value);
+                            setRolePopoverOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedRole === role.value ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {role.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
@@ -1093,36 +1129,66 @@ export default function ShiftsPage() {
               <Users className="h-6 w-6 text-blue-600" />
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select Name</h2>
             </div>
-            <Select 
-              value={selectedStaffId} 
-              onValueChange={setSelectedStaffId}
-              disabled={!selectedRole}
-            >
-              <SelectTrigger className="w-full h-12">
-                <SelectValue placeholder={!selectedRole ? "Select a role first" : "Choose a staff member..."} />
-              </SelectTrigger>
-              <SelectContent>
-                {staffLoading ? (
-                  <SelectItem value="loading" disabled>Loading staff...</SelectItem>
-                ) : filteredStaff.length > 0 ? (
-                  filteredStaff.map((member: any) => (
-                    <SelectItem key={member.id} value={member.id.toString()}>
-                      {isDoctorLike(member.role) ? 'Dr.' : ''} {member.firstName} {member.lastName}
-                    </SelectItem>
-                  ))
-                ) : selectedRole ? (
-                  <SelectItem value="no-staff" disabled>
-                    No {
-                      selectedRole === 'lab_technician' ? 'lab technicians' : 
-                      selectedRole === 'sample_taker' ? 'sample takers' :
-                      `${selectedRole}s`
-                    } found
-                  </SelectItem>
-                ) : (
-                  <SelectItem value="select-role" disabled>Please select a role first</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
+            <Popover open={staffPopoverOpen} onOpenChange={setStaffPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={staffPopoverOpen}
+                  className="w-full h-12 justify-between"
+                  disabled={!selectedRole}
+                >
+                  {selectedStaffId
+                    ? (() => {
+                        const staff = filteredStaff.find((m: any) => m.id.toString() === selectedStaffId);
+                        return staff ? `${isDoctorLike(staff.role) ? 'Dr.' : ''} ${staff.firstName} ${staff.lastName}` : "Choose a staff member...";
+                      })()
+                    : !selectedRole ? "Select a role first" : "Choose a staff member..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search staff..." />
+                  <CommandList>
+                    {staffLoading ? (
+                      <CommandEmpty>Loading staff...</CommandEmpty>
+                    ) : filteredStaff.length > 0 ? (
+                      <CommandGroup>
+                        {filteredStaff.map((member: any) => (
+                          <CommandItem
+                            key={member.id}
+                            value={`${member.firstName} ${member.lastName}`}
+                            onSelect={() => {
+                              setSelectedStaffId(member.id.toString());
+                              setStaffPopoverOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedStaffId === member.id.toString() ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {isDoctorLike(member.role) ? 'Dr.' : ''} {member.firstName} {member.lastName}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ) : selectedRole ? (
+                      <CommandEmpty>
+                        No {
+                          selectedRole === 'lab_technician' ? 'lab technicians' : 
+                          selectedRole === 'sample_taker' ? 'sample takers' :
+                          `${selectedRole}s`
+                        } found
+                      </CommandEmpty>
+                    ) : (
+                      <CommandEmpty>Please select a role first</CommandEmpty>
+                    )}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       )}
