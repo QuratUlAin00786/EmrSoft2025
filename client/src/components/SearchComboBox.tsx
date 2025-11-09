@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
@@ -30,11 +30,13 @@ export function SearchComboBox({
 }: SearchComboBoxProps) {
   const [open, setOpen] = useState(false);
   const [debouncedValue, setDebouncedValue] = useState(value);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedValue(value);
+      setOpen(value.length >= 2); // Auto-open when typing
     }, 300);
 
     return () => clearTimeout(timer);
@@ -67,9 +69,47 @@ export function SearchComboBox({
     staleTime: 30000,
   });
 
+  // Reset highlighted index when suggestions change
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [suggestions]);
+
   const handleSelect = (selectedValue: string) => {
     onValueChange(selectedValue);
     setOpen(false);
+  };
+
+  // Handle keyboard navigation and auto-complete
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open && e.key !== 'Escape') {
+      setOpen(true);
+      return;
+    }
+
+    if (suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'Enter':
+        e.preventDefault();
+        if (suggestions[highlightedIndex]) {
+          handleSelect(suggestions[highlightedIndex].searchValue);
+        }
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex((prev) => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setOpen(false);
+        break;
+    }
   };
 
   return (
@@ -81,6 +121,7 @@ export function SearchComboBox({
             type="text"
             value={value}
             onChange={(e) => onValueChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             onFocus={() => setOpen(true)}
             placeholder={placeholder}
             className={cn(
@@ -106,11 +147,15 @@ export function SearchComboBox({
             )}
             {!isLoading && suggestions.length > 0 && (
               <CommandGroup>
-                {suggestions.map((suggestion) => (
+                {suggestions.map((suggestion, index) => (
                   <CommandItem
                     key={`${suggestion.type}-${suggestion.value}`}
                     value={suggestion.searchValue}
                     onSelect={() => handleSelect(suggestion.searchValue)}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                    className={cn(
+                      highlightedIndex === index && "bg-accent"
+                    )}
                   >
                     <Check
                       className={cn(
