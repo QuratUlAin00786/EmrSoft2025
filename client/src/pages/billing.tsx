@@ -2139,6 +2139,7 @@ export default function BillingPage() {
   const [reportInsuranceType, setReportInsuranceType] = useState("all");
   const [reportRole, setReportRole] = useState("all");
   const [reportUserName, setReportUserName] = useState("all");
+  const [reportGenerated, setReportGenerated] = useState(false);
 
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [activeTab, setActiveTab] = useState("invoices");
@@ -3216,20 +3217,76 @@ export default function BillingPage() {
       return [];
     }
 
-    // Get current month invoices
+    // Get date range based on reportDateRange filter
     const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
+    let startDate = new Date();
+    let endDate = new Date();
     
-    const currentMonthInvoices = invoices.filter((invoice: any) => {
+    switch (reportDateRange) {
+      case 'today':
+        startDate = new Date(currentDate.setHours(0, 0, 0, 0));
+        endDate = new Date(currentDate.setHours(23, 59, 59, 999));
+        break;
+      case 'this-week':
+        const day = currentDate.getDay();
+        startDate = new Date(currentDate);
+        startDate.setDate(currentDate.getDate() - day);
+        endDate = new Date();
+        break;
+      case 'this-month':
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        break;
+      case 'last-month':
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+        break;
+      case 'this-quarter':
+        const quarter = Math.floor(currentDate.getMonth() / 3);
+        startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
+        endDate = new Date(currentDate.getFullYear(), quarter * 3 + 3, 0);
+        break;
+      case 'this-year':
+        startDate = new Date(currentDate.getFullYear(), 0, 1);
+        endDate = new Date(currentDate.getFullYear(), 11, 31);
+        break;
+      default:
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    }
+    
+    const filteredInvoices = invoices.filter((invoice: any) => {
       const invoiceDate = new Date(invoice.dateOfService);
-      return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
+      
+      // Date range filter
+      const matchesDateRange = invoiceDate >= startDate && invoiceDate <= endDate;
+      
+      // Insurance type filter
+      const matchesInsurance = reportInsuranceType === 'all' || 
+        invoice.insurance?.provider === reportInsuranceType ||
+        (reportInsuranceType === 'Self-Pay' && (!invoice.insurance || !invoice.insurance.provider));
+      
+      // Role filter - find user ID from invoices (providerId or userId)
+      let matchesRole = reportRole === 'all';
+      if (reportRole !== 'all' && users && users.length > 0) {
+        const invoiceUser = users.find((u: any) => 
+          u.id === invoice.providerId || u.id === invoice.userId
+        );
+        matchesRole = invoiceUser?.role === reportRole;
+      }
+      
+      // User name filter
+      const matchesUser = reportUserName === 'all' || 
+        invoice.providerId === parseInt(reportUserName) ||
+        invoice.userId === parseInt(reportUserName);
+      
+      return matchesDateRange && matchesInsurance && matchesRole && matchesUser;
     });
 
     // Group invoices by service name from doctors fee table
     const serviceMap: Record<string, any> = {};
 
-    currentMonthInvoices.forEach((invoice: any) => {
+    filteredInvoices.forEach((invoice: any) => {
       // Try to match invoice service with doctors fee by service name or service type
       const matchingFee = doctorsFees.find((fee: any) => 
         fee.serviceName === invoice.serviceType || 
@@ -4828,9 +4885,10 @@ export default function BillingPage() {
                           <Button 
                             className="w-full" 
                             onClick={() => {
+                              setReportGenerated(true);
                               toast({
                                 title: "Report Generated",
-                                description: `Custom report for ${reportDateRange} has been generated successfully.`,
+                                description: `Custom report has been generated successfully with selected filters.`,
                               });
                             }}
                             data-testid="button-generate-report"
