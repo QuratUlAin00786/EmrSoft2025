@@ -47,6 +47,7 @@ import {
   LayoutGrid,
   List
 } from "lucide-react";
+import { SearchComboBox } from "@/components/SearchComboBox";
 
 interface Invoice {
   id: number;
@@ -3365,27 +3366,21 @@ export default function BillingPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           {user?.role === 'doctor' ? (
-                            <div className="relative">
-                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                              <Input
-                                placeholder="Search all invoice fields..."
-                                value={universalSearch}
-                                onChange={(e) => setUniversalSearch(e.target.value)}
-                                className="pl-9 w-80"
-                                data-testid="input-universal-search"
-                              />
-                            </div>
+                            <SearchComboBox
+                              value={universalSearch}
+                              onValueChange={setUniversalSearch}
+                              placeholder="Search all invoice fields..."
+                              className="w-80"
+                              testId="input-universal-search"
+                            />
                           ) : (
-                            <div className="relative">
-                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                              <Input
-                                placeholder="Search by Invoice ID, Patient ID or Name..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 w-80"
-                                data-testid="input-search-invoices"
-                              />
-                            </div>
+                            <SearchComboBox
+                              value={searchQuery}
+                              onValueChange={setSearchQuery}
+                              placeholder="Search by Invoice ID, Patient ID or Name..."
+                              className="w-80"
+                              testId="input-search-invoices"
+                            />
                           )}
                           
                           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -3802,15 +3797,13 @@ export default function BillingPage() {
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="relative">
-                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                              <Input
-                                placeholder="Search by Invoice ID, Patient ID or Name..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 w-80"
-                              />
-                            </div>
+                            <SearchComboBox
+                              value={searchQuery}
+                              onValueChange={setSearchQuery}
+                              placeholder="Search by Invoice ID, Patient ID or Name..."
+                              className="w-80"
+                              testId="input-search-invoices-doctor-fees"
+                            />
                             
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
                               <SelectTrigger className="w-40">

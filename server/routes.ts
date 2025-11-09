@@ -21,7 +21,7 @@ import { gdprComplianceService } from "./services/gdpr-compliance";
 import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema, doctorsFee, invoices, labResults, insertMessageTemplateSchema, passwordResetTokens } from "../shared/schema";
 import * as schema from "../shared/schema";
 import { db, pool } from "./db";
-import { and, eq, sql, desc, isNull, isNotNull } from "drizzle-orm";
+import { and, eq, sql, desc, isNull, isNotNull, or } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
 import { emailService } from "./services/email";
@@ -2076,6 +2076,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Billing history fetch error:", error);
       res.status(500).json({ error: "Failed to fetch billing history" });
+    }
+  });
+
+  // Get search suggestions for billing search
+  app.get("/api/billing/search-suggestions", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const query = (req.query.query as string || "").toLowerCase().trim();
+      
+      if (query.length < 2) {
+        return res.json([]);
+      }
+
+      const organizationId = req.tenant!.id;
+      
+      // Query invoices for suggestions
+      const invoices = await db
+        .select({
+          invoiceNumber: schema.invoices.invoiceNumber,
+          patientId: schema.invoices.patientId,
+          patientName: schema.invoices.patientName,
+        })
+        .from(schema.invoices)
+        .where(
+          and(
+            eq(schema.invoices.organizationId, organizationId),
+            or(
+              sql`LOWER(${schema.invoices.invoiceNumber}) LIKE ${`%${query}%`}`,
+              sql`LOWER(CAST(${schema.invoices.patientId} AS TEXT)) LIKE ${`%${query}%`}`,
+              sql`LOWER(${schema.invoices.patientName}) LIKE ${`%${query}%`}`
+            )
+          )
+        )
+        .limit(30);
+
+      // Build suggestions array with deduplication
+      const suggestions: Array<{
+        type: 'invoice_id' | 'patient_id' | 'patient_name';
+        value: string;
+        display: string;
+        searchValue: string;
+      }> = [];
+      
+      const seenValues = new Set<string>();
+
+      // Add invoice number suggestions
+      invoices.forEach(inv => {
+        if (inv.invoiceNumber && inv.invoiceNumber.toLowerCase().includes(query)) {
+          const key = `invoice:${inv.invoiceNumber}`;
+          if (!seenValues.has(key)) {
+            seenValues.add(key);
+            suggestions.push({
+              type: 'invoice_id',
+              value: inv.invoiceNumber,
+              display: `Invoice: ${inv.invoiceNumber}`,
+              searchValue: inv.invoiceNumber
+            });
+          }
+        }
+      });
+
+      // Add patient ID suggestions
+      invoices.forEach(inv => {
+        if (inv.patientId && String(inv.patientId).toLowerCase().includes(query)) {
+          const key = `patient_id:${inv.patientId}`;
+          if (!seenValues.has(key)) {
+            seenValues.add(key);
+            suggestions.push({
+              type: 'patient_id',
+              value: String(inv.patientId),
+              display: `Patient ID: ${inv.patientId}`,
+              searchValue: String(inv.patientId)
+            });
+          }
+        }
+      });
+
+      // Add patient name suggestions
+      invoices.forEach(inv => {
+        if (inv.patientName && inv.patientName.toLowerCase().includes(query)) {
+          const key = `patient_name:${inv.patientName}`;
+          if (!seenValues.has(key)) {
+            seenValues.add(key);
+            suggestions.push({
+              type: 'patient_name',
+              value: inv.patientName,
+              display: `Patient: ${inv.patientName}`,
+              searchValue: inv.patientName
+            });
+          }
+        }
+      });
+
+      // Return top 10 suggestions
+      res.json(suggestions.slice(0, 10));
+    } catch (error) {
+      console.error("Search suggestions fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch search suggestions" });
     }
   });
 
