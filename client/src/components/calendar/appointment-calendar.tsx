@@ -994,6 +994,22 @@ Medical License: [License Number]
     console.log(`[TIME SLOTS] Generated ${allSlots.length} slots for provider ${selectedProviderId}:`, allSlots);
     console.log(`[TIME SLOTS] From ${providerShifts.length} shifts:`, providerShifts);
 
+    // Filter out past time slots if the selected date is today
+    const now = new Date();
+    const todayStr = format(now, 'yyyy-MM-dd');
+    
+    if (selectedDateStr === todayStr) {
+      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      const filteredSlots = allSlots.filter(slot => {
+        const slot24h = timeSlotTo24Hour(slot);
+        return slot24h > currentTime;
+      });
+      
+      console.log(`[TIME SLOTS] Filtered past time slots. Before: ${allSlots.length}, After: ${filteredSlots.length}`);
+      return filteredSlots;
+    }
+
     return allSlots;
   }, [selectedProviderId, newAppointmentDate, shiftsData, defaultShiftsData, selectedDuration]);
 
@@ -2762,6 +2778,19 @@ Medical License: [License Number]
                   hour24 = 0;
                 }
                 
+                // Validate that the appointment time is not in the past
+                const now = new Date();
+                const appointmentDateTime = new Date(`${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00`);
+                
+                if (appointmentDateTime < now) {
+                  toast({
+                    title: "Invalid Appointment Time",
+                    description: "Cannot schedule appointments in the past. Please select a current or future time slot.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
                 const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
                 
                 // Generate title from patient and provider names
@@ -3063,6 +3092,19 @@ Medical License: [License Number]
                     hour24 += 12;
                   } else if (period === 'AM' && hour24 === 12) {
                     hour24 = 0;
+                  }
+                  
+                  // Validate that the appointment time is not in the past
+                  const now = new Date();
+                  const appointmentDateTime = new Date(`${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00`);
+                  
+                  if (appointmentDateTime < now) {
+                    toast({
+                      title: "Invalid Appointment Time",
+                      description: "Cannot schedule appointments in the past. Please select a current or future time slot.",
+                      variant: "destructive",
+                    });
+                    return;
                   }
                   
                   const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
