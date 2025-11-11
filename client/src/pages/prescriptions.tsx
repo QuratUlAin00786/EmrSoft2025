@@ -64,7 +64,6 @@ import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { useLocation } from "wouter";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
 import { cn } from "@/lib/utils";
-import { SearchComboBox } from "@/components/SearchComboBox";
 
 interface Prescription {
   id: string;
@@ -429,10 +428,14 @@ export default function PrescriptionsPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [universalSearch, setUniversalSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [prescriptionIdFilter, setPrescriptionIdFilter] = useState<string>("all");
   const [prescriptionIdPopoverOpen, setPrescriptionIdPopoverOpen] = useState(false);
+  
+  // Doctor-specific filters
+  const [doctorPrescriptionIdFilter, setDoctorPrescriptionIdFilter] = useState<string>("all");
+  const [doctorPrescriptionIdPopoverOpen, setDoctorPrescriptionIdPopoverOpen] = useState(false);
+  const [doctorPatientSearch, setDoctorPatientSearch] = useState("");
   const [selectedPrescription, setSelectedPrescription] =
     useState<Prescription | null>(null);
   const [showNewPrescription, setShowNewPrescription] = useState(false);
@@ -2700,17 +2703,27 @@ export default function PrescriptionsPage() {
       .filter((id: string | undefined) => id !== undefined && id !== null && id !== "");
     return Array.from(new Set(ids)).sort();
   }, [prescriptions]);
+  
+  // Compute unique prescription IDs for doctors (filtered to this doctor's prescriptions only)
+  const doctorPrescriptionIds = useMemo(() => {
+    if (!Array.isArray(prescriptions) || user?.role !== 'doctor') return [];
+    const ids = prescriptions
+      .filter((p: any) => p.doctorId === user.id || p.prescriptionCreatedBy === user.id)
+      .map((p: any) => p.prescriptionNumber)
+      .filter((id: string | undefined) => id !== undefined && id !== null && id !== "");
+    return Array.from(new Set(ids)).sort();
+  }, [prescriptions, user]);
 
   // For summary statistics - only apply search filter, not status filter
   const searchFilteredPrescriptions = Array.isArray(prescriptions)
     ? prescriptions.filter((prescription: any) => {
-        // For doctors: Universal search across patient name and prescription ID
-        if (user?.role === 'doctor' && universalSearch) {
-          const searchLower = universalSearch.toLowerCase();
-          const matchesUniversalSearch = 
+        // For doctors: Search by patient name and patient ID
+        if (user?.role === 'doctor' && doctorPatientSearch) {
+          const searchLower = doctorPatientSearch.toLowerCase();
+          const matchesDoctorPatientSearch = 
             prescription.patientName?.toLowerCase().includes(searchLower) ||
-            String(prescription.prescriptionNumber || '').toLowerCase().includes(searchLower);
-          return matchesUniversalSearch;
+            String(prescription.patientId || '').toLowerCase().includes(searchLower);
+          return matchesDoctorPatientSearch;
         }
         
         // For other roles: search by patient name and medication name
@@ -2730,24 +2743,35 @@ export default function PrescriptionsPage() {
   // For display area - apply search, status, and prescription ID filters
   const filteredPrescriptions = Array.isArray(prescriptions)
     ? prescriptions.filter((prescription: any) => {
-        // For doctors: Universal search across patient name and prescription ID
-        let matchesSearch = true;
-        if (user?.role === 'doctor' && universalSearch) {
-          const searchLower = universalSearch.toLowerCase();
-          matchesSearch = 
-            prescription.patientName?.toLowerCase().includes(searchLower) ||
-            String(prescription.prescriptionNumber || '').toLowerCase().includes(searchLower);
-        } else {
-          // For other roles: search by patient name and medication name
-          matchesSearch =
-            !searchQuery ||
-            prescription.patientName
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            prescription.medications.some((med: any) =>
-              med.name.toLowerCase().includes(searchQuery.toLowerCase()),
-            );
+        // For doctors: Separate filtering logic
+        if (user?.role === 'doctor') {
+          // Filter by patient name/ID search
+          const matchesPatientSearch =
+            !doctorPatientSearch ||
+            prescription.patientName?.toLowerCase().includes(doctorPatientSearch.toLowerCase()) ||
+            String(prescription.patientId || '').toLowerCase().includes(doctorPatientSearch.toLowerCase());
+          
+          // Filter by prescription ID dropdown
+          const matchesPrescriptionId =
+            doctorPrescriptionIdFilter === "all" || 
+            prescription.prescriptionNumber === doctorPrescriptionIdFilter;
+          
+          // Filter by status
+          const matchesStatus =
+            statusFilter === "all" || prescription.status === statusFilter;
+          
+          return matchesPatientSearch && matchesPrescriptionId && matchesStatus;
         }
+        
+        // For other roles: search by patient name and medication name
+        const matchesSearch =
+          !searchQuery ||
+          prescription.patientName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          prescription.medications.some((med: any) =>
+            med.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          );
 
         const matchesStatus =
           statusFilter === "all" || prescription.status === statusFilter;
@@ -2886,13 +2910,82 @@ export default function PrescriptionsPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
                 {user?.role === 'doctor' ? (
-                  <SearchComboBox
-                    value={universalSearch}
-                    onValueChange={setUniversalSearch}
-                    placeholder="Search by patient name or prescription ID..."
-                    className="flex-1 max-w-sm"
-                    testId="input-universal-search"
-                  />
+                  <>
+                    {/* Doctor: Search by patient name/ID */}
+                    <div className="relative flex-1 max-w-sm">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search by patient name or patient ID..."
+                        value={doctorPatientSearch}
+                        onChange={(e) => setDoctorPatientSearch(e.target.value)}
+                        className="pl-9"
+                        data-testid="input-doctor-patient-search"
+                      />
+                    </div>
+                    
+                    {/* Doctor: Prescription ID dropdown */}
+                    {doctorPrescriptionIds.length > 0 && (
+                      <Popover open={doctorPrescriptionIdPopoverOpen} onOpenChange={setDoctorPrescriptionIdPopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={doctorPrescriptionIdPopoverOpen}
+                            className="w-64 justify-between"
+                            data-testid="button-doctor-prescription-filter"
+                          >
+                            {doctorPrescriptionIdFilter === "all"
+                              ? "All Prescription IDs"
+                              : doctorPrescriptionIdFilter}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search prescription ID..." />
+                            <CommandList>
+                              <CommandEmpty>No prescription ID found.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandItem
+                                  value="all"
+                                  onSelect={() => {
+                                    setDoctorPrescriptionIdFilter("all");
+                                    setDoctorPrescriptionIdPopoverOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      doctorPrescriptionIdFilter === "all" ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  All Prescription IDs
+                                </CommandItem>
+                                {doctorPrescriptionIds.map((prescriptionId: string) => (
+                                  <CommandItem
+                                    key={prescriptionId}
+                                    value={prescriptionId}
+                                    onSelect={() => {
+                                      setDoctorPrescriptionIdFilter(prescriptionId);
+                                      setDoctorPrescriptionIdPopoverOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        doctorPrescriptionIdFilter === prescriptionId ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {prescriptionId}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </>
                 ) : (
                   <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
