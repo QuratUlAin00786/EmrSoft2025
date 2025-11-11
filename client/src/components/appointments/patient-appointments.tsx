@@ -928,6 +928,16 @@ export default function PatientAppointments({
                 data-testid={`appointment-${appointment.id}`}
               >
                 <CardContent className="p-6">
+                  {user?.role === 'patient' && appointment.appointmentId && (
+                    <div className="mb-3">
+                      <Badge 
+                        variant="outline" 
+                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-medium"
+                      >
+                        {appointment.appointmentId}
+                      </Badge>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <div className="space-y-3 flex-1">
                       <div className="flex items-center justify-between">
