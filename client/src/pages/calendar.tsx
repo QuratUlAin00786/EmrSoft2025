@@ -831,6 +831,22 @@ export default function CalendarPage() {
       return timeA.localeCompare(timeB);
     });
 
+    // Filter out past time slots if the selected date is today
+    const now = new Date();
+    const todayStr = format(now, 'yyyy-MM-dd');
+    
+    if (selectedDateStr === todayStr) {
+      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      const filteredSlots = allSlots.filter(slot => {
+        const slot24h = timeSlotTo24Hour(slot);
+        return slot24h > currentTime;
+      });
+      
+      console.log(`[TIME SLOTS] Filtered past time slots. Before: ${allSlots.length}, After: ${filteredSlots.length}`);
+      return filteredSlots;
+    }
+
     return allSlots;
   }, [selectedProviderId, selectedDate, shiftsData, defaultShiftsData]);
 
@@ -1477,6 +1493,19 @@ export default function CalendarPage() {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate that the appointment time is not in the past
+    const appointmentDateTime = new Date(bookingForm.scheduledAt);
+    const now = new Date();
+    
+    if (appointmentDateTime < now) {
+      toast({
+        title: "Invalid Appointment Time",
+        description: "Cannot schedule appointments in the past. Please select a current or future time slot.",
         variant: "destructive",
       });
       return;
