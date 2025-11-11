@@ -891,7 +891,7 @@ export default function PatientAppointments({
       </div>
 
       {/* Appointments List */}
-      <div className="space-y-4">
+      <div className={`space-y-4 ${user?.role === 'patient' ? 'max-h-[700px] overflow-y-auto' : ''}`}>
         {filteredAppointments.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
