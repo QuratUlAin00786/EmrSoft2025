@@ -64,6 +64,7 @@ import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { useLocation } from "wouter";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
 import { cn } from "@/lib/utils";
+import { SearchComboBox } from "@/components/SearchComboBox";
 
 interface Prescription {
   id: string;
@@ -428,6 +429,7 @@ export default function PrescriptionsPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [universalSearch, setUniversalSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [prescriptionIdFilter, setPrescriptionIdFilter] = useState<string>("all");
   const [prescriptionIdPopoverOpen, setPrescriptionIdPopoverOpen] = useState(false);
@@ -2702,6 +2704,16 @@ export default function PrescriptionsPage() {
   // For summary statistics - only apply search filter, not status filter
   const searchFilteredPrescriptions = Array.isArray(prescriptions)
     ? prescriptions.filter((prescription: any) => {
+        // For doctors: Universal search across patient name and prescription ID
+        if (user?.role === 'doctor' && universalSearch) {
+          const searchLower = universalSearch.toLowerCase();
+          const matchesUniversalSearch = 
+            prescription.patientName?.toLowerCase().includes(searchLower) ||
+            String(prescription.prescriptionNumber || '').toLowerCase().includes(searchLower);
+          return matchesUniversalSearch;
+        }
+        
+        // For other roles: search by patient name and medication name
         const matchesSearch =
           !searchQuery ||
           prescription.patientName
@@ -2718,14 +2730,24 @@ export default function PrescriptionsPage() {
   // For display area - apply search, status, and prescription ID filters
   const filteredPrescriptions = Array.isArray(prescriptions)
     ? prescriptions.filter((prescription: any) => {
-        const matchesSearch =
-          !searchQuery ||
-          prescription.patientName
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          prescription.medications.some((med: any) =>
-            med.name.toLowerCase().includes(searchQuery.toLowerCase()),
-          );
+        // For doctors: Universal search across patient name and prescription ID
+        let matchesSearch = true;
+        if (user?.role === 'doctor' && universalSearch) {
+          const searchLower = universalSearch.toLowerCase();
+          matchesSearch = 
+            prescription.patientName?.toLowerCase().includes(searchLower) ||
+            String(prescription.prescriptionNumber || '').toLowerCase().includes(searchLower);
+        } else {
+          // For other roles: search by patient name and medication name
+          matchesSearch =
+            !searchQuery ||
+            prescription.patientName
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            prescription.medications.some((med: any) =>
+              med.name.toLowerCase().includes(searchQuery.toLowerCase()),
+            );
+        }
 
         const matchesStatus =
           statusFilter === "all" || prescription.status === statusFilter;
@@ -2863,15 +2885,25 @@ export default function PrescriptionsPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search prescriptions..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+                {user?.role === 'doctor' ? (
+                  <SearchComboBox
+                    value={universalSearch}
+                    onValueChange={setUniversalSearch}
+                    placeholder="Search by patient name or prescription ID..."
+                    className="flex-1 max-w-sm"
+                    testId="input-universal-search"
                   />
-                </div>
+                ) : (
+                  <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search prescriptions..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                )}
 
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-40">
