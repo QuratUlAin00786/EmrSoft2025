@@ -816,6 +816,16 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                           <User className="h-4 w-4 text-gray-400" />
                           <span>{doctor ? `${doctor.firstName} ${doctor.lastName}` : 'N/A'}</span>
                         </div>
+                        {isDoctorLike(user?.role || '') && appointment.appointmentId && (
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant="outline" 
+                              className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-medium"
+                            >
+                              {appointment.appointmentId}
+                            </Badge>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                           <FileText className="h-4 w-4 text-gray-400" />
                           <span>{doctor?.medicalSpecialtyCategory || doctor?.department || 'N/A'}</span>
