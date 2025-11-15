@@ -289,6 +289,112 @@ const predefinedEducationLevels = [
   "Other (specify)",
 ];
 
+const predefinedOccupations = [
+  // Healthcare & Medical
+  "Physician / Doctor",
+  "Nurse (RN / LPN)",
+  "Nurse Practitioner",
+  "Physician Assistant",
+  "Pharmacist",
+  "Medical Assistant",
+  "Dentist",
+  "Dental Hygienist",
+  "Therapist (PT / OT / Speech)",
+  "Emergency Medical Technician (EMT)",
+  "Paramedic",
+  "Surgeon",
+  "Radiology Technician",
+  "Medical Laboratory Technician",
+  "Caregiver / Home Health Aide",
+  // Business & Office
+  "Manager",
+  "Executive",
+  "Business Owner",
+  "Administrative Assistant",
+  "Receptionist",
+  "Accountant",
+  "Financial Analyst",
+  "HR Specialist",
+  "Customer Service Representative",
+  "Project Manager",
+  // Education
+  "Teacher",
+  "College Professor",
+  "Tutor",
+  "School Administrator",
+  "Teaching Assistant",
+  "Childcare Worker",
+  // Trades & Labor
+  "Electrician",
+  "Plumber",
+  "Carpenter",
+  "Construction Worker",
+  "Mechanic",
+  "Welder",
+  "HVAC Technician",
+  "Machine Operator",
+  "Truck Driver",
+  "Factory Worker",
+  // Technology
+  "Software Developer",
+  "IT Specialist",
+  "Network Engineer",
+  "Data Analyst",
+  "Cybersecurity Specialist",
+  "Web Developer",
+  "Systems Administrator",
+  // Public Service
+  "Police Officer",
+  "Firefighter",
+  "Military Service",
+  "Government Worker",
+  "Postal Worker",
+  "Social Worker",
+  // Hospitality & Service
+  "Chef / Cook",
+  "Waiter / Waitress",
+  "Bartender",
+  "Housekeeper",
+  "Hotel Staff",
+  "Security Guard",
+  "Retail Sales Associate",
+  "Cashier",
+  // Creative & Media
+  "Artist",
+  "Writer",
+  "Photographer",
+  "Graphic Designer",
+  "Video Editor",
+  "Musician",
+  "Actor",
+  "Fashion Designer",
+  // Science & Engineering
+  "Engineer (Mechanical, Electrical, Civil, etc.)",
+  "Scientist / Researcher",
+  "Lab Technician",
+  "Environmental Specialist",
+  "Chemist",
+  "Biologist",
+  // Transportation
+  "Driver (Taxi / Uber / Lyft)",
+  "Bus Driver",
+  "Pilot",
+  "Train Operator",
+  "Delivery Driver",
+  // Agriculture
+  "Farmer",
+  "Rancher",
+  "Fisherman",
+  "Agricultural Worker",
+  // Other / Miscellaneous
+  "Student",
+  "Homemaker",
+  "Freelancer",
+  "Unemployed",
+  "Retired",
+  "Self-Employed",
+];
+
 export default function PatientFamilyHistory({
   patient,
   onUpdate,
@@ -325,6 +431,9 @@ export default function PatientFamilyHistory({
   const [educationOptions, setEducationOptions] = useState<string[]>(predefinedEducationLevels);
   const [openEducationCombobox, setOpenEducationCombobox] = useState(false);
   const [educationSearchQuery, setEducationSearchQuery] = useState("");
+  const [occupationOptions, setOccupationOptions] = useState<string[]>(predefinedOccupations);
+  const [openOccupationCombobox, setOpenOccupationCombobox] = useState(false);
+  const [occupationSearchQuery, setOccupationSearchQuery] = useState("");
   const [editingCondition, setEditingCondition] =
     useState<FamilyCondition | null>(null);
   const [familyErrors, setFamilyErrors] = useState({
@@ -1047,16 +1156,98 @@ export default function PatientFamilyHistory({
                     <div className="space-y-4">
                       <div>
                         <Label>Occupation</Label>
-                        <Input
-                          value={editedSocialHistory.occupation}
-                          onChange={(e) =>
-                            setEditedSocialHistory({
-                              ...editedSocialHistory,
-                              occupation: e.target.value,
-                            })
-                          }
-                          placeholder="Current or former occupation"
-                        />
+                        <div className="space-y-2">
+                          <Popover open={openOccupationCombobox} onOpenChange={setOpenOccupationCombobox}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openOccupationCombobox}
+                                className="w-full justify-between"
+                                data-testid="button-select-occupation"
+                              >
+                                {editedSocialHistory.occupation || "Select occupation..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0" align="start">
+                              <Command>
+                                <CommandInput 
+                                  placeholder="Search occupations..." 
+                                  value={occupationSearchQuery}
+                                  onValueChange={setOccupationSearchQuery}
+                                />
+                                <CommandList className="max-h-[300px]">
+                                  <CommandEmpty>
+                                    <div className="p-2">
+                                      <p className="text-sm text-muted-foreground mb-2">
+                                        No occupation found.
+                                      </p>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={() => {
+                                          if (occupationSearchQuery.trim()) {
+                                            setEditedSocialHistory({
+                                              ...editedSocialHistory,
+                                              occupation: occupationSearchQuery.trim(),
+                                            });
+                                            if (!occupationOptions.includes(occupationSearchQuery.trim())) {
+                                              setOccupationOptions([...occupationOptions, occupationSearchQuery.trim()]);
+                                            }
+                                            setOpenOccupationCombobox(false);
+                                            setOccupationSearchQuery("");
+                                          }
+                                        }}
+                                      >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add "{occupationSearchQuery}"
+                                      </Button>
+                                    </div>
+                                  </CommandEmpty>
+                                  <CommandGroup>
+                                    {occupationOptions.map((occupation) => (
+                                      <CommandItem
+                                        key={occupation}
+                                        value={occupation}
+                                        onSelect={(currentValue) => {
+                                          setEditedSocialHistory({
+                                            ...editedSocialHistory,
+                                            occupation: currentValue,
+                                          });
+                                          setOpenOccupationCombobox(false);
+                                          setOccupationSearchQuery("");
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            editedSocialHistory.occupation === occupation ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        {occupation}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          {editedSocialHistory.occupation && (
+                            <Input
+                              placeholder="Edit or modify occupation"
+                              value={editedSocialHistory.occupation}
+                              onChange={(e) =>
+                                setEditedSocialHistory({
+                                  ...editedSocialHistory,
+                                  occupation: e.target.value,
+                                })
+                              }
+                              data-testid="input-edit-occupation"
+                            />
+                          )}
+                        </div>
                         {socialHistoryErrors.occupation && (
                           <p className="text-sm text-red-500 mt-1">
                             {socialHistoryErrors.occupation}
