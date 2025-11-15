@@ -101,43 +101,114 @@ interface Immunization {
   notes?: string;
 }
 
-const commonConditions = [
-  "Heart Disease",
-  "Diabetes",
-  "Cancer",
-  "Hypertension",
-  "Stroke",
-  "Depression",
-  "Anxiety",
-  "Asthma",
-  "COPD",
-  "Kidney Disease",
-  "Liver Disease",
-  "Arthritis",
-  "Osteoporosis",
-  "Alzheimer's",
-  "Parkinson's",
-  "Epilepsy",
-  "Thyroid Disease",
-];
+const familyMembers = {
+  "Immediate Family": [
+    "Father",
+    "Mother",
+    "Brother",
+    "Sister",
+    "Son",
+    "Daughter",
+    "Spouse / Husband / Wife"
+  ],
+  "Extended Family": [
+    "Grandfather",
+    "Grandmother",
+    "Grandson",
+    "Granddaughter",
+    "Uncle",
+    "Aunt",
+    "Nephew",
+    "Niece",
+    "Cousin"
+  ],
+  "Other / Optional": [
+    "Step-father",
+    "Step-mother",
+    "Step-brother",
+    "Step-sister",
+    "Partner / Domestic Partner",
+    "Guardian"
+  ]
+};
 
-const relatives = [
-  "Mother",
-  "Father",
-  "Maternal Grandmother",
-  "Maternal Grandfather",
-  "Paternal Grandmother",
-  "Paternal Grandfather",
-  "Sister",
-  "Brother",
-  "Maternal Aunt",
-  "Maternal Uncle",
-  "Paternal Aunt",
-  "Paternal Uncle",
-  "Daughter",
-  "Son",
-  "Other",
-];
+const medicalConditions = {
+  "1. Cardiovascular Conditions": [
+    "Hypertension (High blood pressure)",
+    "Heart disease",
+    "Atrial fibrillation",
+    "Congestive heart failure",
+    "Coronary artery disease",
+    "High cholesterol"
+  ],
+  "2. Respiratory Conditions": [
+    "Asthma",
+    "COPD (Chronic obstructive pulmonary disease)",
+    "Chronic bronchitis",
+    "Emphysema",
+    "Sleep apnea"
+  ],
+  "3. Endocrine & Metabolic Conditions": [
+    "Diabetes (Type 1, Type 2)",
+    "Thyroid disorders (Hypothyroidism, Hyperthyroidism)",
+    "PCOS (Polycystic ovarian syndrome)",
+    "Metabolic syndrome",
+    "Obesity"
+  ],
+  "4. Gastrointestinal Conditions": [
+    "GERD (Acid reflux)",
+    "Crohn's disease",
+    "Ulcerative colitis",
+    "IBS (Irritable bowel syndrome)",
+    "Celiac disease",
+    "Chronic liver disease"
+  ],
+  "5. Neurological Conditions": [
+    "Epilepsy",
+    "Parkinson's disease",
+    "Multiple sclerosis",
+    "Migraines",
+    "Neuropathy",
+    "Alzheimer's / Dementia"
+  ],
+  "6. Mental Health Conditions": [
+    "Depression",
+    "Anxiety disorders",
+    "Bipolar disorder",
+    "PTSD",
+    "OCD",
+    "ADHD"
+  ],
+  "7. Musculoskeletal Conditions": [
+    "Arthritis (Osteoarthritis, Rheumatoid arthritis)",
+    "Fibromyalgia",
+    "Chronic back pain",
+    "Osteoporosis"
+  ],
+  "8. Autoimmune Conditions": [
+    "Lupus",
+    "Sjögren's syndrome",
+    "Psoriasis / Psoriatic arthritis",
+    "Hashimoto's thyroiditis"
+  ],
+  "9. Kidney & Urinary Conditions": [
+    "Chronic kidney disease",
+    "Interstitial cystitis",
+    "Recurrent kidney stones"
+  ],
+  "10. Skin Conditions": [
+    "Eczema",
+    "Rosacea",
+    "Hives",
+    "Vitiligo"
+  ],
+  "Optional / Other": [
+    "Cancer (Specify type)",
+    "Anemia",
+    "HIV/AIDS",
+    "Other chronic conditions (Specify)"
+  ]
+};
 
 const commonVaccines = [
   "COVID-19",
@@ -457,6 +528,10 @@ export default function PatientFamilyHistory({
   const [maritalStatusOptions, setMaritalStatusOptions] = useState<string[]>(predefinedMaritalStatuses);
   const [openMaritalStatusCombobox, setOpenMaritalStatusCombobox] = useState(false);
   const [maritalStatusSearchQuery, setMaritalStatusSearchQuery] = useState("");
+  const [openFamilyMemberCombobox, setOpenFamilyMemberCombobox] = useState(false);
+  const [familyMemberSearchQuery, setFamilyMemberSearchQuery] = useState("");
+  const [openMedicalConditionCombobox, setOpenMedicalConditionCombobox] = useState(false);
+  const [medicalConditionSearchQuery, setMedicalConditionSearchQuery] = useState("");
   const [editingCondition, setEditingCondition] =
     useState<FamilyCondition | null>(null);
   const [familyErrors, setFamilyErrors] = useState({
@@ -940,26 +1015,81 @@ export default function PatientFamilyHistory({
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <Label>Family Member</Label>
-                        <Select
-                          value={newCondition.relative}
-                          onValueChange={(value) =>
-                            setNewCondition({
-                              ...newCondition,
-                              relative: value,
-                            })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select relative" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {relatives.map((rel) => (
-                              <SelectItem key={rel} value={rel}>
-                                {rel}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={openFamilyMemberCombobox} onOpenChange={setOpenFamilyMemberCombobox}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openFamilyMemberCombobox}
+                              className="w-full justify-between"
+                            >
+                              {newCondition.relative || "Select family member"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0" align="start">
+                            <Command>
+                              <CommandInput
+                                placeholder="Search family member..."
+                                value={familyMemberSearchQuery}
+                                onValueChange={setFamilyMemberSearchQuery}
+                              />
+                              <CommandList>
+                                <CommandEmpty>
+                                  <div className="p-2 text-sm text-gray-500">
+                                    No family member found. Type to add custom entry.
+                                  </div>
+                                  {familyMemberSearchQuery && (
+                                    <Button
+                                      variant="ghost"
+                                      className="w-full"
+                                      onClick={() => {
+                                        setNewCondition({
+                                          ...newCondition,
+                                          relative: familyMemberSearchQuery,
+                                        });
+                                        setOpenFamilyMemberCombobox(false);
+                                        setFamilyMemberSearchQuery("");
+                                      }}
+                                    >
+                                      Add "{familyMemberSearchQuery}"
+                                    </Button>
+                                  )}
+                                </CommandEmpty>
+                                {Object.entries(familyMembers).map(([category, members]) => (
+                                  <CommandGroup key={category} heading={category}>
+                                    {members
+                                      .filter((member) =>
+                                        member.toLowerCase().includes(familyMemberSearchQuery.toLowerCase())
+                                      )
+                                      .map((member) => (
+                                        <CommandItem
+                                          key={member}
+                                          value={member}
+                                          onSelect={(currentValue) => {
+                                            setNewCondition({
+                                              ...newCondition,
+                                              relative: currentValue,
+                                            });
+                                            setOpenFamilyMemberCombobox(false);
+                                            setFamilyMemberSearchQuery("");
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              newCondition.relative === member ? "opacity-100" : "opacity-0"
+                                            )}
+                                          />
+                                          {member}
+                                        </CommandItem>
+                                      ))}
+                                  </CommandGroup>
+                                ))}
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         {familyErrors.relative && (
                           <p className="text-sm text-red-500 mt-1">
                             {familyErrors.relative}
@@ -968,26 +1098,81 @@ export default function PatientFamilyHistory({
                       </div>
                       <div>
                         <Label>Medical Condition</Label>
-                        <Select
-                          value={newCondition.condition}
-                          onValueChange={(value) =>
-                            setNewCondition({
-                              ...newCondition,
-                              condition: value,
-                            })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select condition" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {commonConditions.map((condition) => (
-                              <SelectItem key={condition} value={condition}>
-                                {condition}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={openMedicalConditionCombobox} onOpenChange={setOpenMedicalConditionCombobox}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openMedicalConditionCombobox}
+                              className="w-full justify-between"
+                            >
+                              {newCondition.condition || "Select medical condition"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0" align="start">
+                            <Command>
+                              <CommandInput
+                                placeholder="Search medical condition..."
+                                value={medicalConditionSearchQuery}
+                                onValueChange={setMedicalConditionSearchQuery}
+                              />
+                              <CommandList>
+                                <CommandEmpty>
+                                  <div className="p-2 text-sm text-gray-500">
+                                    No condition found. Type to add custom entry.
+                                  </div>
+                                  {medicalConditionSearchQuery && (
+                                    <Button
+                                      variant="ghost"
+                                      className="w-full"
+                                      onClick={() => {
+                                        setNewCondition({
+                                          ...newCondition,
+                                          condition: medicalConditionSearchQuery,
+                                        });
+                                        setOpenMedicalConditionCombobox(false);
+                                        setMedicalConditionSearchQuery("");
+                                      }}
+                                    >
+                                      Add "{medicalConditionSearchQuery}"
+                                    </Button>
+                                  )}
+                                </CommandEmpty>
+                                {Object.entries(medicalConditions).map(([category, conditions]) => (
+                                  <CommandGroup key={category} heading={category}>
+                                    {conditions
+                                      .filter((condition) =>
+                                        condition.toLowerCase().includes(medicalConditionSearchQuery.toLowerCase())
+                                      )
+                                      .map((condition) => (
+                                        <CommandItem
+                                          key={condition}
+                                          value={condition}
+                                          onSelect={(currentValue) => {
+                                            setNewCondition({
+                                              ...newCondition,
+                                              condition: currentValue,
+                                            });
+                                            setOpenMedicalConditionCombobox(false);
+                                            setMedicalConditionSearchQuery("");
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              newCondition.condition === condition ? "opacity-100" : "opacity-0"
+                                            )}
+                                          />
+                                          {condition}
+                                        </CommandItem>
+                                      ))}
+                                  </CommandGroup>
+                                ))}
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         {familyErrors.condition && (
                           <p className="text-sm text-red-500 mt-1">
                             {familyErrors.condition}
