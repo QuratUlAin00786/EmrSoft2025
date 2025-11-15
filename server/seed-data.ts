@@ -305,8 +305,11 @@ export async function seedDatabase() {
     await db.insert(medicalRecords).values(sampleRecords);
     console.log("Created sample medical records");
 
-    // Create sample notifications
-    const sampleNotifications = [
+    // Create sample notifications - only if none exist
+    const existingNotifications = await db.select().from(notifications).where(eq(notifications.organizationId, org.id)).limit(1);
+    
+    if (existingNotifications.length === 0) {
+      const sampleNotifications = [
       {
         organizationId: org.id,
         userId: createdUsers[1].id, // Dr. Smith
@@ -411,10 +414,13 @@ export async function seedDatabase() {
           autoMarkAsRead: true
         }
       }
-    ];
+      ];
 
-    await db.insert(notifications).values(sampleNotifications);
-    console.log(`Created ${sampleNotifications.length} sample notifications`);
+      await db.insert(notifications).values(sampleNotifications);
+      console.log(`Created ${sampleNotifications.length} sample notifications`);
+    } else {
+      console.log(`Notifications already exist for organization ${org.id}, skipping notification seed`);
+    }
 
     // Create sample prescriptions - only if none exist
     const existingPrescriptions = await db.select().from(prescriptions).where(eq(prescriptions.organizationId, org.id));
