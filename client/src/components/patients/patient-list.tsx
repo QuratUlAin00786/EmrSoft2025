@@ -859,10 +859,7 @@ function PatientDetailsModal({
                     Loading patient history...
                   </div>
                 ) : (
-                  <div
-                    className="space-y-4"
-                    style={{ height: "350px", overflowY: "hidden" }}
-                  >
+                  <div className="space-y-4">
                     {patientHistory?.familyHistory && (
                       <div>
                         <h4 className="font-semibold mb-2">Family History</h4>
@@ -1289,7 +1286,7 @@ function PatientDetailsModal({
                     <p>No lab results found</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-hidden">
+                  <div className="space-y-4">
                     {labResults.map((result: any) => (
                       <Card
                         key={result.id}
@@ -1384,7 +1381,7 @@ function PatientDetailsModal({
                     <p>No medical imaging found</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-hidden">
+                  <div className="space-y-4">
                     {medicalImaging.map((imaging: any) => (
                       <Card
                         key={imaging.id}
