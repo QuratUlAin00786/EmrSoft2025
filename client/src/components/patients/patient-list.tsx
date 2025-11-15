@@ -33,6 +33,8 @@ import {
   Activity,
   Camera,
   Check,
+  DollarSign,
+  CreditCard,
 } from "lucide-react";
 import {
   Tooltip,
@@ -496,6 +498,54 @@ function PatientDetailsModal({
     enabled: !!patient?.id && open,
   });
 
+  // Fetch invoices by patient ID
+  const { data: patientInvoices = [], isLoading: invoicesLoading } = useQuery({
+    queryKey: ["/api/patients", patient?.id, "invoices"],
+    queryFn: async () => {
+      if (!patient?.id) return [];
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": getTenantSubdomain(),
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patient.id}/invoices`, {
+        headers,
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open,
+  });
+
+  // Fetch payments by patient ID
+  const { data: patientPayments = [], isLoading: paymentsLoading } = useQuery({
+    queryKey: ["/api/patients", patient?.id, "payments"],
+    queryFn: async () => {
+      if (!patient?.id) return [];
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": getTenantSubdomain(),
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patient.id}/payments`, {
+        headers,
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open,
+  });
+
   // Fetch users data for provider details
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ["/api/users"],
@@ -531,7 +581,7 @@ function PatientDetailsModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-10 flex-shrink-0">
+          <TabsList className="grid w-full grid-cols-11 flex-shrink-0">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="records">Medical Records</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
@@ -542,6 +592,7 @@ function PatientDetailsModal({
             <TabsTrigger value="address">Address</TabsTrigger>
             <TabsTrigger value="emergency">Emergency</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            <TabsTrigger value="invoices-payments">Invoices & Payments</TabsTrigger>
           </TabsList>
 
           {/* Basic Information Tab */}
@@ -2006,6 +2057,201 @@ function PatientDetailsModal({
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Invoices & Payments Tab */}
+          <TabsContent value="invoices-payments" className="flex-1 overflow-y-auto p-0 m-0">
+            <div className="space-y-6">
+              {/* Invoices Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Patient Invoices ({patientInvoices.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {invoicesLoading ? (
+                    <div className="text-center py-4">Loading invoices...</div>
+                  ) : patientInvoices.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No invoices found for this patient</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {patientInvoices.map((invoice: any) => (
+                        <div
+                          key={invoice.id}
+                          className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Invoice Number
+                              </p>
+                              <p className="text-lg font-semibold">{invoice.invoiceNumber}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Date
+                              </p>
+                              <p>
+                                {invoice.invoiceDate
+                                  ? format(new Date(invoice.invoiceDate), "MMM dd, yyyy")
+                                  : "N/A"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Total Amount
+                              </p>
+                              <p className="text-lg font-semibold">
+                                £{parseFloat(invoice.totalAmount || 0).toFixed(2)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Status
+                              </p>
+                              <Badge
+                                variant={
+                                  invoice.status === "paid"
+                                    ? "default"
+                                    : invoice.status === "pending"
+                                    ? "outline"
+                                    : "destructive"
+                                }
+                              >
+                                {invoice.status || "pending"}
+                              </Badge>
+                            </div>
+                            {invoice.dueDate && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Due Date
+                                </p>
+                                <p>
+                                  {format(new Date(invoice.dueDate), "MMM dd, yyyy")}
+                                </p>
+                              </div>
+                            )}
+                            {invoice.paidAmount && parseFloat(invoice.paidAmount) > 0 && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Paid Amount
+                                </p>
+                                <p className="text-green-600 font-semibold">
+                                  £{parseFloat(invoice.paidAmount).toFixed(2)}
+                                </p>
+                              </div>
+                            )}
+                            {invoice.notes && (
+                              <div className="md:col-span-2 lg:col-span-4">
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Notes
+                                </p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {invoice.notes}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Payments Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Patient Payments ({patientPayments.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {paymentsLoading ? (
+                    <div className="text-center py-4">Loading payments...</div>
+                  ) : patientPayments.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No payments found for this patient</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {patientPayments.map((payment: any) => (
+                        <div
+                          key={payment.id}
+                          className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Payment ID
+                              </p>
+                              <p className="text-lg font-semibold">#{payment.id}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Amount
+                              </p>
+                              <p className="text-lg font-semibold text-green-600">
+                                £{parseFloat(payment.amount || 0).toFixed(2)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Method
+                              </p>
+                              <Badge variant="outline">{payment.paymentMethod || "N/A"}</Badge>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Status
+                              </p>
+                              <Badge
+                                variant={
+                                  payment.paymentStatus === "completed"
+                                    ? "default"
+                                    : payment.paymentStatus === "pending"
+                                    ? "outline"
+                                    : "destructive"
+                                }
+                              >
+                                {payment.paymentStatus || "completed"}
+                              </Badge>
+                            </div>
+                            {payment.paymentDate && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Payment Date
+                                </p>
+                                <p>
+                                  {format(new Date(payment.paymentDate), "MMM dd, yyyy")}
+                                </p>
+                              </div>
+                            )}
+                            {payment.notes && (
+                              <div className="md:col-span-2 lg:col-span-4">
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Notes
+                                </p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {payment.notes}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>

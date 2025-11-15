@@ -2795,6 +2795,53 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Get patient invoices by ID
+  app.get("/api/patients/:id/invoices", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Get invoices for this patient using patientId string
+      const invoices = await storage.getInvoicesByPatient(patient.patientId, req.tenant!.id);
+      
+      res.json(invoices || []);
+    } catch (error) {
+      console.error("Patient invoices fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patient invoices" });
+    }
+  });
+
+  // Get patient payments by ID
+  app.get("/api/patients/:id/payments", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Get all invoices for this patient (default to empty array if undefined)
+      const invoices = await storage.getInvoicesByPatient(patient.patientId, req.tenant!.id) || [];
+      
+      // Get payments for each invoice
+      const allPayments = [];
+      for (const invoice of invoices) {
+        const payments = await storage.getPaymentsByInvoice(invoice.id, req.tenant!.id) || [];
+        allPayments.push(...payments);
+      }
+      
+      res.json(allPayments);
+    } catch (error) {
+      console.error("Patient payments fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patient payments" });
+    }
+  });
+
   // Create medical record for patient
   app.post("/api/patients/:id/records", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
