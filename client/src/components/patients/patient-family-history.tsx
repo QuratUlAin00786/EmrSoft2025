@@ -82,7 +82,7 @@ interface SocialHistory {
     notes?: string;
   };
   occupation: string;
-  maritalStatus: "single" | "married" | "divorced" | "widowed" | "partner";
+  maritalStatus: string;
   education: string;
   exercise: {
     frequency: "none" | "occasional" | "regular" | "daily";
@@ -395,6 +395,26 @@ const predefinedOccupations = [
   "Self-Employed",
 ];
 
+const predefinedMaritalStatuses = [
+  // Standard Options
+  "Single",
+  "Married",
+  "Divorced",
+  "Widowed",
+  "Separated",
+  // Additional Common Options
+  "In a relationship",
+  "Domestic partnership",
+  "Living with partner / Cohabiting",
+  "Engaged",
+  "Prefer not to say",
+  // Advanced / Legal Options
+  "Civil union",
+  "Annulled",
+  "Legally separated",
+  "Registered partnership",
+];
+
 export default function PatientFamilyHistory({
   patient,
   onUpdate,
@@ -434,6 +454,9 @@ export default function PatientFamilyHistory({
   const [occupationOptions, setOccupationOptions] = useState<string[]>(predefinedOccupations);
   const [openOccupationCombobox, setOpenOccupationCombobox] = useState(false);
   const [occupationSearchQuery, setOccupationSearchQuery] = useState("");
+  const [maritalStatusOptions, setMaritalStatusOptions] = useState<string[]>(predefinedMaritalStatuses);
+  const [openMaritalStatusCombobox, setOpenMaritalStatusCombobox] = useState(false);
+  const [maritalStatusSearchQuery, setMaritalStatusSearchQuery] = useState("");
   const [editingCondition, setEditingCondition] =
     useState<FamilyCondition | null>(null);
   const [familyErrors, setFamilyErrors] = useState({
@@ -1256,26 +1279,98 @@ export default function PatientFamilyHistory({
                       </div>
                       <div>
                         <Label>Marital Status</Label>
-                        <Select
-                          value={editedSocialHistory.maritalStatus}
-                          onValueChange={(value: any) =>
-                            setEditedSocialHistory({
-                              ...editedSocialHistory,
-                              maritalStatus: value,
-                            })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="single">Single</SelectItem>
-                            <SelectItem value="married">Married</SelectItem>
-                            <SelectItem value="divorced">Divorced</SelectItem>
-                            <SelectItem value="widowed">Widowed</SelectItem>
-                            <SelectItem value="partner">Partner</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                          <Popover open={openMaritalStatusCombobox} onOpenChange={setOpenMaritalStatusCombobox}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openMaritalStatusCombobox}
+                                className="w-full justify-between"
+                                data-testid="button-select-marital-status"
+                              >
+                                {editedSocialHistory.maritalStatus || "Select marital status..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0" align="start">
+                              <Command>
+                                <CommandInput 
+                                  placeholder="Search marital status..." 
+                                  value={maritalStatusSearchQuery}
+                                  onValueChange={setMaritalStatusSearchQuery}
+                                />
+                                <CommandList className="max-h-[300px]">
+                                  <CommandEmpty>
+                                    <div className="p-2">
+                                      <p className="text-sm text-muted-foreground mb-2">
+                                        No marital status found.
+                                      </p>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={() => {
+                                          if (maritalStatusSearchQuery.trim()) {
+                                            setEditedSocialHistory({
+                                              ...editedSocialHistory,
+                                              maritalStatus: maritalStatusSearchQuery.trim(),
+                                            });
+                                            if (!maritalStatusOptions.includes(maritalStatusSearchQuery.trim())) {
+                                              setMaritalStatusOptions([...maritalStatusOptions, maritalStatusSearchQuery.trim()]);
+                                            }
+                                            setOpenMaritalStatusCombobox(false);
+                                            setMaritalStatusSearchQuery("");
+                                          }
+                                        }}
+                                      >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add "{maritalStatusSearchQuery}"
+                                      </Button>
+                                    </div>
+                                  </CommandEmpty>
+                                  <CommandGroup>
+                                    {maritalStatusOptions.map((status) => (
+                                      <CommandItem
+                                        key={status}
+                                        value={status}
+                                        onSelect={(currentValue) => {
+                                          setEditedSocialHistory({
+                                            ...editedSocialHistory,
+                                            maritalStatus: currentValue,
+                                          });
+                                          setOpenMaritalStatusCombobox(false);
+                                          setMaritalStatusSearchQuery("");
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            editedSocialHistory.maritalStatus === status ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        {status}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          {editedSocialHistory.maritalStatus && (
+                            <Input
+                              placeholder="Edit or modify marital status"
+                              value={editedSocialHistory.maritalStatus}
+                              onChange={(e) =>
+                                setEditedSocialHistory({
+                                  ...editedSocialHistory,
+                                  maritalStatus: e.target.value,
+                                })
+                              }
+                              data-testid="input-edit-marital-status"
+                            />
+                          )}
+                        </div>
                       </div>
                       <div>
                         <Label>Education Level</Label>
