@@ -29,6 +29,8 @@ import { sendEmail, generatePrescriptionEmailHTML } from "./email";
 import multer from "multer";
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { createNotification, createBulkNotifications } from "./notification-helper";
+import { startAppointmentReminderScheduler } from "./appointment-reminders";
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import { readFile, access } from 'fs/promises';
@@ -3249,6 +3251,43 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         return res.status(404).json({ error: "Failed to update patient" });
       }
 
+      // Send notification for important patient updates
+      if (patient.userId && (updateData.riskLevel || updateData.flags)) {
+        let notificationTitle = "Patient Record Updated";
+        let notificationMessage = "Your medical record has been updated.";
+        let priority: "low" | "normal" | "high" | "critical" = "normal";
+        
+        // Customize notification based on what changed
+        if (updateData.riskLevel) {
+          if (updateData.riskLevel === "critical" || updateData.riskLevel === "high") {
+            notificationTitle = "Important Medical Alert";
+            notificationMessage = `Your risk level has been updated to ${updateData.riskLevel}. Please contact your healthcare provider.`;
+            priority = updateData.riskLevel === "critical" ? "critical" : "high";
+          } else {
+            notificationMessage = `Your risk level has been updated to ${updateData.riskLevel}.`;
+          }
+        } else if (updateData.flags && updateData.flags.length > 0) {
+          notificationTitle = "Medical Alert Added";
+          notificationMessage = "A new medical alert has been added to your record. Please review.";
+          priority = "high";
+        }
+        
+        await createNotification({
+          organizationId: req.tenant!.id,
+          userId: patient.userId,
+          title: notificationTitle,
+          message: notificationMessage,
+          type: "patient_update",
+          priority: priority,
+          actionUrl: `/patients/${patientId}`,
+          metadata: {
+            patientId: patient.id,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            department: "Medical Records",
+          }
+        });
+      }
+
       res.json(updatedPatient);
     } catch (error) {
       handleRouteError(error, "Update patient", res);
@@ -3963,6 +4002,57 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       
       const appointment = await storage.createAppointment(appointmentToCreate);
       
+      // Get patient and provider details for notifications
+      const patient = await storage.getPatient(numericPatientId, req.tenant!.id);
+      const provider = await storage.getUser(appointmentData.providerId, req.tenant!.id);
+      
+      // Create notifications for appointment creation
+      if (patient && provider) {
+        const appointmentDate = new Date(appointmentToCreate.scheduledAt!);
+        const formattedDate = appointmentDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const formattedTime = appointmentDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        
+        const notificationsToCreate = [];
+        
+        // Notify patient
+        if (patient.userId) {
+          notificationsToCreate.push({
+            organizationId: req.tenant!.id,
+            userId: patient.userId,
+            title: "Appointment Confirmed",
+            message: `Your appointment with Dr. ${provider.firstName} ${provider.lastName} is scheduled for ${formattedDate} at ${formattedTime}.`,
+            type: "appointment_reminder" as const,
+            priority: "normal" as const,
+            actionUrl: `/calendar`,
+            metadata: {
+              patientId: patient.id,
+              patientName: `${patient.firstName} ${patient.lastName}`,
+              appointmentId: appointment.id,
+              department: appointmentData.department || "General",
+            }
+          });
+        }
+        
+        // Notify provider
+        notificationsToCreate.push({
+          organizationId: req.tenant!.id,
+          userId: appointmentData.providerId,
+          title: "New Appointment Scheduled",
+          message: `New appointment with ${patient.firstName} ${patient.lastName} scheduled for ${formattedDate} at ${formattedTime}.`,
+          type: "appointment_reminder" as const,
+          priority: "normal" as const,
+          actionUrl: `/calendar`,
+          metadata: {
+            patientId: patient.id,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            appointmentId: appointment.id,
+            department: appointmentData.department || "General",
+          }
+        });
+        
+        await createBulkNotifications(notificationsToCreate);
+      }
+      
       // Broadcast appointment creation to all connected clients in the same organization
       broadcastAppointmentEvent(req.tenant!.id, 'appointment.created', appointment);
       
@@ -4198,6 +4288,31 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         .returning();
 
       console.log("Invoice created successfully:", newInvoice[0]);
+      
+      // Send payment due notification to patient
+      const patient = await storage.getPatientByPatientId(invoiceData.patientId, req.tenant!.id);
+      
+      if (patient && patient.userId) {
+        const dueDate = new Date(invoiceData.dueDate);
+        const formattedDueDate = dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const isPastDue = dueDate < new Date();
+        
+        await createNotification({
+          organizationId: req.tenant!.id,
+          userId: patient.userId,
+          title: isPastDue ? "Payment Overdue" : "Payment Due",
+          message: `Invoice ${invoiceNumber} for £${invoiceData.totalAmount} is ${isPastDue ? 'overdue' : `due by ${formattedDueDate}`}.`,
+          type: "payment_due",
+          priority: isPastDue ? "high" : "normal",
+          actionUrl: `/billing`,
+          metadata: {
+            patientId: patient.id,
+            patientName: invoiceData.patientName,
+            department: "Billing",
+          }
+        });
+      }
+      
       res.status(201).json(newInvoice[0]);
     } catch (error) {
       console.error("Invoice creation error:", error);
@@ -7411,6 +7526,32 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       console.log("About to create prescription with data:", prescriptionToInsert);
       const newPrescription = await storage.createPrescription(prescriptionToInsert);
       console.log("Prescription created successfully:", newPrescription.id);
+      
+      // Send notification to patient about new prescription
+      const patient = await storage.getPatient(parseInt(prescriptionData.patientId), req.tenant!.id);
+      const provider = await storage.getUser(providerId, req.tenant!.id);
+      
+      if (patient && patient.userId && provider) {
+        const medications = prescriptionData.medications || [];
+        const medicationNames = medications.map((med: any) => med.name).join(', ') || firstMedication.name;
+        
+        await createNotification({
+          organizationId: req.tenant!.id,
+          userId: patient.userId,
+          title: "New Prescription Available",
+          message: `Dr. ${provider.firstName} ${provider.lastName} has prescribed ${medicationNames}. Please collect from your pharmacy.`,
+          type: "prescription_alert",
+          priority: "normal",
+          actionUrl: `/prescriptions`,
+          metadata: {
+            patientId: patient.id,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            prescriptionId: newPrescription.id,
+            department: "Pharmacy",
+          }
+        });
+      }
+      
       res.status(201).json(newPrescription);
     } catch (error: any) {
       console.error("DETAILED ERROR creating prescription:", error);
@@ -7728,6 +7869,55 @@ This treatment plan should be reviewed and adjusted based on individual patient 
 
       if (!updatedLabResult) {
         return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      // Send notification when lab result is completed (check persisted status, case-insensitive)
+      if (updatedLabResult.status && updatedLabResult.status.toLowerCase() === "completed" && updatedLabResult.patientId) {
+        const patient = await storage.getPatient(updatedLabResult.patientId, req.tenant!.id);
+        
+        if (patient) {
+          const notificationsToCreate = [];
+          
+          // Notify patient
+          if (patient.userId) {
+            notificationsToCreate.push({
+              organizationId: req.tenant!.id,
+              userId: patient.userId,
+              title: "Lab Results Ready",
+              message: `Your ${updatedLabResult.testType} test results are now available.`,
+              type: "lab_result" as const,
+              priority: updatedLabResult.priority === "urgent" ? "high" as const : "normal" as const,
+              actionUrl: `/lab-results`,
+              metadata: {
+                patientId: patient.id,
+                patientName: `${patient.firstName} ${patient.lastName}`,
+                department: "Laboratory",
+              }
+            });
+          }
+          
+          // Notify ordering doctor if specified
+          if (updatedLabResult.orderedBy) {
+            notificationsToCreate.push({
+              organizationId: req.tenant!.id,
+              userId: updatedLabResult.orderedBy,
+              title: "Lab Results Completed",
+              message: `${updatedLabResult.testType} results for ${patient.firstName} ${patient.lastName} are ready.`,
+              type: "lab_result" as const,
+              priority: updatedLabResult.priority === "urgent" ? "high" as const : "normal" as const,
+              actionUrl: `/lab-results`,
+              metadata: {
+                patientId: patient.id,
+                patientName: `${patient.firstName} ${patient.lastName}`,
+                department: "Laboratory",
+              }
+            });
+          }
+          
+          if (notificationsToCreate.length > 0) {
+            await createBulkNotifications(notificationsToCreate);
+          }
+        }
       }
 
       res.json(updatedLabResult);
@@ -17736,6 +17926,28 @@ This treatment plan should be reviewed and adjusted based on individual patient 
 
       const invoice = await storage.createInvoice(invoiceData);
 
+      // Send invoice creation notification to patient
+      if (metadata.patientId) {
+        const patient = await storage.getPatient(metadata.patientId, req.tenant!.id);
+        
+        if (patient && patient.userId) {
+          await createNotification({
+            organizationId: req.tenant!.id,
+            userId: patient.userId,
+            title: "Payment Received",
+            message: `Invoice ${invoiceNumber} for £${amount} has been paid successfully.`,
+            type: "payment_due",
+            priority: "normal",
+            actionUrl: `/billing`,
+            metadata: {
+              patientId: patient.id,
+              patientName: metadata.patientName || `${patient.firstName} ${patient.lastName}`,
+              department: "Billing",
+            }
+          });
+        }
+      }
+
       // Create payment record
       const paymentData = {
         organizationId,
@@ -18194,6 +18406,10 @@ Cura EMR Team
   // SaaS routes already registered above before tenant middleware
 
   const httpServer = createServer(app);
+  
+  // Start appointment reminder scheduler
+  startAppointmentReminderScheduler();
+  
   // HTML Generator for PDF Reports
   function generateReportHTML(study: any, reportFormData: any = {}) {
     const currentDate = new Date().toLocaleDateString('en-GB');
