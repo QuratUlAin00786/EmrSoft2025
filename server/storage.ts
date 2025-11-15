@@ -1285,12 +1285,8 @@ export class DatabaseStorage implements IStorage {
         const expectedNextId = (maxIdResult[0]?.maxId || 0) + 1;
         console.log(`Sequential validation: Expected next ID: ${expectedNextId}`);
 
-        // Insert the appointment (convert scheduledAt string to Date for database)
-        const appointmentForDB = {
-          ...appointment,
-          scheduledAt: new Date(appointment.scheduledAt)
-        };
-        const [created] = await tx.insert(appointments).values([appointmentForDB]).returning();
+        // Insert the appointment (keep scheduledAt as string to prevent timezone conversion)
+        const [created] = await tx.insert(appointments).values([appointment]).returning();
         
         // Verify sequential order was maintained
         if (created.id < expectedNextId) {
