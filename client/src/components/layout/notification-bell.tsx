@@ -29,6 +29,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 interface Notification {
   id: number;
@@ -55,6 +57,7 @@ interface Notification {
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
+  const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -157,7 +160,11 @@ export function NotificationBell() {
 
     // Navigate to action URL if provided
     if (notification.actionUrl) {
-      window.location.href = notification.actionUrl;
+      const subdomain = getActiveSubdomain();
+      const fullUrl = notification.actionUrl.startsWith('/') 
+        ? `/${subdomain}${notification.actionUrl}` 
+        : notification.actionUrl;
+      navigate(fullUrl);
     }
 
     setIsOpen(false);
@@ -301,8 +308,8 @@ export function NotificationBell() {
               variant="ghost" 
               className="w-full text-sm"
               onClick={() => {
-                // Navigate to full notifications page if it exists
-                window.location.href = "/notifications";
+                const subdomain = getActiveSubdomain();
+                navigate(`/${subdomain}/notifications`);
                 setIsOpen(false);
               }}
             >

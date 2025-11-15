@@ -59,6 +59,7 @@ import FontTest from "@/pages/font-test";
 import TechSpecExport from "@/pages/tech-spec-export";
 import SymptomChecker from "@/pages/symptom-checker";
 import UserManual from "@/pages/user-manual";
+import NotificationsPage from "@/pages/notifications";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
@@ -310,6 +311,7 @@ function ProtectedApp() {
           <Route path="/:subdomain/imaging" component={ImagingPage} />
           <Route path="/:subdomain/forms" component={FormsPage} />
           <Route path="/:subdomain/messaging" component={MessagingPage} />
+          <Route path="/:subdomain/notifications" component={NotificationsPage} />
           <Route path="/:subdomain/billing" component={BillingPage} />
           <Route path="/:subdomain/analytics" component={AnalyticsPage} />
           <Route path="/:subdomain/automation" component={AutomationPage} />
