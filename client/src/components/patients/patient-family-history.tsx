@@ -145,6 +145,42 @@ const commonVaccines = [
   "BCG",
 ];
 
+const predefinedAllergies = [
+  // Food Allergies
+  "Peanuts",
+  "Tree nuts (walnuts, almonds, cashews, pistachios)",
+  "Milk",
+  "Eggs",
+  "Wheat",
+  "Soy",
+  "Fish",
+  "Shellfish",
+  // Environmental / Seasonal Allergies
+  "Pollen (trees, grasses, weeds)",
+  "Mold spores",
+  "Dust mites",
+  "Pet dander (cats, dogs)",
+  // Medication Allergies
+  "Penicillin and other antibiotics",
+  "Aspirin",
+  "NSAIDs (ibuprofen, naproxen)",
+  "Chemotherapy drugs",
+  // Insect Allergies
+  "Bee stings",
+  "Wasp stings",
+  "Hornet stings",
+  "Fire ant stings",
+  // Chemical / Contact Allergies
+  "Latex",
+  "Nickel (jewelry, belt buckles)",
+  "Fragrances",
+  "Detergents and cleaning products",
+  "Cosmetics and skincare ingredients",
+  // Other Allergies
+  "Sun exposure (photosensitivity)",
+  "Cold-induced allergies",
+];
+
 export default function PatientFamilyHistory({
   patient,
   onUpdate,
@@ -170,6 +206,8 @@ export default function PatientFamilyHistory({
     },
   );
   const [newAllergy, setNewAllergy] = useState("");
+  const [allergyOptions, setAllergyOptions] = useState<string[]>(predefinedAllergies);
+  const [isCustomAllergy, setIsCustomAllergy] = useState(false);
   const [newChronicCondition, setNewChronicCondition] = useState("");
   const [editingCondition, setEditingCondition] =
     useState<FamilyCondition | null>(null);
@@ -314,7 +352,13 @@ export default function PatientFamilyHistory({
     }
 
     const currentAllergies = patient.medicalHistory?.allergies || [];
-    const updatedAllergies = [...currentAllergies, newAllergy.trim()];
+    const allergyValue = newAllergy.trim();
+    const updatedAllergies = [...currentAllergies, allergyValue];
+
+    // If this is a custom allergy not in the predefined list, add it to options
+    if (!allergyOptions.includes(allergyValue)) {
+      setAllergyOptions([...allergyOptions, allergyValue]);
+    }
 
     updateMedicalHistoryMutation.mutate({
       allergies: updatedAllergies,
@@ -332,6 +376,7 @@ export default function PatientFamilyHistory({
       },
     });
     setNewAllergy("");
+    setIsCustomAllergy(false);
     setAllergyError("");
   };
 
@@ -1205,16 +1250,57 @@ export default function PatientFamilyHistory({
                         })()}
                       </div>
                       <div>
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Add new allergy"
-                            value={newAllergy}
-                            onChange={(e) => setNewAllergy(e.target.value)}
-                            onKeyPress={(e) => e.key === "Enter" && addAllergy()}
-                          />
-                          <Button onClick={addAllergy} size="sm">
-                            <Plus className="h-4 w-4" />
-                          </Button>
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <Select
+                              value={isCustomAllergy ? "custom" : newAllergy}
+                              onValueChange={(value) => {
+                                if (value === "custom") {
+                                  setIsCustomAllergy(true);
+                                  setNewAllergy("");
+                                } else {
+                                  setIsCustomAllergy(false);
+                                  setNewAllergy(value);
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="flex-1" data-testid="select-allergy">
+                                <SelectValue placeholder="Select or type an allergy" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[300px]">
+                                {allergyOptions.map((allergy) => (
+                                  <SelectItem key={allergy} value={allergy}>
+                                    {allergy}
+                                  </SelectItem>
+                                ))}
+                                <SelectItem value="custom">
+                                  ✏️ Type custom allergy...
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button onClick={addAllergy} size="sm" data-testid="button-add-allergy">
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {isCustomAllergy && (
+                            <Input
+                              placeholder="Type your custom allergy"
+                              value={newAllergy}
+                              onChange={(e) => setNewAllergy(e.target.value)}
+                              onKeyPress={(e) => e.key === "Enter" && addAllergy()}
+                              autoFocus
+                              data-testid="input-custom-allergy"
+                            />
+                          )}
+                          {!isCustomAllergy && newAllergy && (
+                            <Input
+                              placeholder="Edit selected allergy"
+                              value={newAllergy}
+                              onChange={(e) => setNewAllergy(e.target.value)}
+                              onKeyPress={(e) => e.key === "Enter" && addAllergy()}
+                              data-testid="input-edit-allergy"
+                            />
+                          )}
                         </div>
                         {allergyError && (
                           <p className="text-sm text-red-500 mt-1">
