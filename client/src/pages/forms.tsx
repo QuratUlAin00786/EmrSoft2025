@@ -4980,16 +4980,17 @@ Coverage Details: [Insurance Coverage]`;
         `;
       }
 
-      textareaRef.innerHTML = headerHTML + textareaRef.innerHTML;
-      setDocumentContent(textareaRef.innerHTML);
+      const updatedContent = headerHTML + documentContent;
+      setDocumentContent(updatedContent);
       setShowViewClinicInfoDialog(false);
 
-      // Ensure editor remains editable and focused
+      // Ensure editor remains editable and focused after state update
       setTimeout(() => {
-        if (textareaRef) {
-          textareaRef.focus();
+        const editor = document.getElementById('document-content-area');
+        if (editor) {
+          editor.focus();
         }
-      }, 100);
+      }, 150);
 
       toast({
         title: "✓ Header Loaded",
@@ -5031,16 +5032,17 @@ Coverage Details: [Insurance Coverage]`;
         </div>
       `;
 
-      textareaRef.innerHTML = textareaRef.innerHTML + footerHTML;
-      setDocumentContent(textareaRef.innerHTML);
+      const updatedContent = documentContent + footerHTML;
+      setDocumentContent(updatedContent);
       setShowViewClinicInfoDialog(false);
 
-      // Ensure editor remains editable and focused
+      // Ensure editor remains editable and focused after state update
       setTimeout(() => {
-        if (textareaRef) {
-          textareaRef.focus();
+        const editor = document.getElementById('document-content-area');
+        if (editor) {
+          editor.focus();
         }
-      }, 100);
+      }, 150);
 
       toast({
         title: "✓ Footer Loaded",
