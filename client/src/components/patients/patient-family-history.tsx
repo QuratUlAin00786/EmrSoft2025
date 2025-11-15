@@ -1257,19 +1257,6 @@ export default function PatientFamilyHistory({
                               </Command>
                             </PopoverContent>
                           </Popover>
-                          {editedSocialHistory.occupation && (
-                            <Input
-                              placeholder="Edit or modify occupation"
-                              value={editedSocialHistory.occupation}
-                              onChange={(e) =>
-                                setEditedSocialHistory({
-                                  ...editedSocialHistory,
-                                  occupation: e.target.value,
-                                })
-                              }
-                              data-testid="input-edit-occupation"
-                            />
-                          )}
                         </div>
                         {socialHistoryErrors.occupation && (
                           <p className="text-sm text-red-500 mt-1">
@@ -1357,19 +1344,6 @@ export default function PatientFamilyHistory({
                               </Command>
                             </PopoverContent>
                           </Popover>
-                          {editedSocialHistory.maritalStatus && (
-                            <Input
-                              placeholder="Edit or modify marital status"
-                              value={editedSocialHistory.maritalStatus}
-                              onChange={(e) =>
-                                setEditedSocialHistory({
-                                  ...editedSocialHistory,
-                                  maritalStatus: e.target.value,
-                                })
-                              }
-                              data-testid="input-edit-marital-status"
-                            />
-                          )}
                         </div>
                       </div>
                       <div>
@@ -1452,19 +1426,6 @@ export default function PatientFamilyHistory({
                               </Command>
                             </PopoverContent>
                           </Popover>
-                          {editedSocialHistory.education && (
-                            <Input
-                              placeholder="Edit or modify education level"
-                              value={editedSocialHistory.education}
-                              onChange={(e) =>
-                                setEditedSocialHistory({
-                                  ...editedSocialHistory,
-                                  education: e.target.value,
-                                })
-                              }
-                              data-testid="input-edit-education"
-                            />
-                          )}
                         </div>
                         {socialHistoryErrors.education && (
                           <p className="text-sm text-red-500 mt-1">
