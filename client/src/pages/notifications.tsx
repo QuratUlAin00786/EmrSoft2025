@@ -189,9 +189,23 @@ export default function NotificationsPage() {
     // Navigate to action URL if provided
     if (notification.actionUrl) {
       const subdomain = getActiveSubdomain();
-      const fullUrl = notification.actionUrl.startsWith('/') 
-        ? `/${subdomain}${notification.actionUrl}` 
-        : notification.actionUrl;
+      let actionUrl = notification.actionUrl;
+      
+      // Fix invalid legacy URLs - if URL contains /patients/X/prescriptions, redirect to /prescriptions
+      if (actionUrl.match(/\/patients\/\d+\/prescriptions/)) {
+        actionUrl = "/prescriptions";
+      }
+      // Fix invalid legacy URLs - if URL contains /patients/X/[invalid-route], redirect to /patients/X
+      else if (actionUrl.match(/\/patients\/\d+\/\w+/) && !actionUrl.includes('/records')) {
+        const patientId = actionUrl.match(/\/patients\/(\d+)/)?.[1];
+        if (patientId) {
+          actionUrl = `/patients/${patientId}`;
+        }
+      }
+      
+      const fullUrl = actionUrl.startsWith('/') 
+        ? `/${subdomain}${actionUrl}` 
+        : actionUrl;
       navigate(fullUrl);
     }
   };
