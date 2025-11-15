@@ -12,6 +12,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -29,10 +42,13 @@ import {
   Trash2,
   Activity,
   Save,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 import type { Patient } from "@/types";
 
 interface PatientFamilyHistoryProps {
@@ -208,6 +224,8 @@ export default function PatientFamilyHistory({
   const [newAllergy, setNewAllergy] = useState("");
   const [allergyOptions, setAllergyOptions] = useState<string[]>(predefinedAllergies);
   const [isCustomAllergy, setIsCustomAllergy] = useState(false);
+  const [openAllergyCombobox, setOpenAllergyCombobox] = useState(false);
+  const [allergySearchQuery, setAllergySearchQuery] = useState("");
   const [newChronicCondition, setNewChronicCondition] = useState("");
   const [editingCondition, setEditingCondition] =
     useState<FamilyCondition | null>(null);
@@ -1252,49 +1270,81 @@ export default function PatientFamilyHistory({
                       <div>
                         <div className="space-y-2">
                           <div className="flex gap-2">
-                            <Select
-                              value={isCustomAllergy ? "custom" : newAllergy}
-                              onValueChange={(value) => {
-                                if (value === "custom") {
-                                  setIsCustomAllergy(true);
-                                  setNewAllergy("");
-                                } else {
-                                  setIsCustomAllergy(false);
-                                  setNewAllergy(value);
-                                }
-                              }}
-                            >
-                              <SelectTrigger className="flex-1" data-testid="select-allergy">
-                                <SelectValue placeholder="Select or type an allergy" />
-                              </SelectTrigger>
-                              <SelectContent className="max-h-[300px]">
-                                {allergyOptions.map((allergy) => (
-                                  <SelectItem key={allergy} value={allergy}>
-                                    {allergy}
-                                  </SelectItem>
-                                ))}
-                                <SelectItem value="custom">
-                                  ✏️ Type custom allergy...
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <Popover open={openAllergyCombobox} onOpenChange={setOpenAllergyCombobox}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={openAllergyCombobox}
+                                  className="flex-1 justify-between"
+                                  data-testid="button-select-allergy"
+                                >
+                                  {newAllergy || "Search or select an allergy..."}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-full p-0" align="start">
+                                <Command>
+                                  <CommandInput 
+                                    placeholder="Search allergies..." 
+                                    value={allergySearchQuery}
+                                    onValueChange={setAllergySearchQuery}
+                                  />
+                                  <CommandList className="max-h-[300px]">
+                                    <CommandEmpty>
+                                      <div className="p-2">
+                                        <p className="text-sm text-muted-foreground mb-2">
+                                          No allergy found.
+                                        </p>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="w-full"
+                                          onClick={() => {
+                                            if (allergySearchQuery.trim()) {
+                                              setNewAllergy(allergySearchQuery.trim());
+                                              setOpenAllergyCombobox(false);
+                                              setAllergySearchQuery("");
+                                            }
+                                          }}
+                                        >
+                                          <Plus className="h-4 w-4 mr-2" />
+                                          Add "{allergySearchQuery}"
+                                        </Button>
+                                      </div>
+                                    </CommandEmpty>
+                                    <CommandGroup>
+                                      {allergyOptions.map((allergy) => (
+                                        <CommandItem
+                                          key={allergy}
+                                          value={allergy}
+                                          onSelect={(currentValue) => {
+                                            setNewAllergy(currentValue);
+                                            setOpenAllergyCombobox(false);
+                                            setAllergySearchQuery("");
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              newAllergy === allergy ? "opacity-100" : "opacity-0"
+                                            )}
+                                          />
+                                          {allergy}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                             <Button onClick={addAllergy} size="sm" data-testid="button-add-allergy">
                               <Plus className="h-4 w-4" />
                             </Button>
                           </div>
-                          {isCustomAllergy && (
+                          {newAllergy && (
                             <Input
-                              placeholder="Type your custom allergy"
-                              value={newAllergy}
-                              onChange={(e) => setNewAllergy(e.target.value)}
-                              onKeyPress={(e) => e.key === "Enter" && addAllergy()}
-                              autoFocus
-                              data-testid="input-custom-allergy"
-                            />
-                          )}
-                          {!isCustomAllergy && newAllergy && (
-                            <Input
-                              placeholder="Edit selected allergy"
+                              placeholder="Edit or modify allergy before adding"
                               value={newAllergy}
                               onChange={(e) => setNewAllergy(e.target.value)}
                               onKeyPress={(e) => e.key === "Enter" && addAllergy()}
