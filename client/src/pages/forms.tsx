@@ -4984,6 +4984,13 @@ Coverage Details: [Insurance Coverage]`;
       setDocumentContent(textareaRef.innerHTML);
       setShowViewClinicInfoDialog(false);
 
+      // Ensure editor remains editable and focused
+      setTimeout(() => {
+        if (textareaRef) {
+          textareaRef.focus();
+        }
+      }, 100);
+
       toast({
         title: "✓ Header Loaded",
         description: `Clinic header (${header.logoPosition} position) loaded into document`,
@@ -5027,6 +5034,13 @@ Coverage Details: [Insurance Coverage]`;
       textareaRef.innerHTML = textareaRef.innerHTML + footerHTML;
       setDocumentContent(textareaRef.innerHTML);
       setShowViewClinicInfoDialog(false);
+
+      // Ensure editor remains editable and focused
+      setTimeout(() => {
+        if (textareaRef) {
+          textareaRef.focus();
+        }
+      }, 100);
 
       toast({
         title: "✓ Footer Loaded",
