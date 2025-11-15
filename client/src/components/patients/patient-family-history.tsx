@@ -748,7 +748,7 @@ export default function PatientFamilyHistory({
                 Add History
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>Complete Medical History</DialogTitle>
               </DialogHeader>
@@ -756,7 +756,7 @@ export default function PatientFamilyHistory({
               <Tabs
                 value={activeTab}
                 onValueChange={setActiveTab}
-                className="w-full"
+                className="w-full flex-1 flex flex-col overflow-hidden"
               >
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="family">Family History</TabsTrigger>
@@ -767,7 +767,7 @@ export default function PatientFamilyHistory({
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="family" className="space-y-6">
+                <TabsContent value="family" className="space-y-6 overflow-y-auto flex-1">
                   <div className="border rounded-lg p-4">
                     <h4 className="font-medium mb-4">
                       Add Family Medical Condition
@@ -923,7 +923,7 @@ export default function PatientFamilyHistory({
                   </div>
                 </TabsContent>
 
-                <TabsContent value="social" className="space-y-6">
+                <TabsContent value="social" className="space-y-6 overflow-y-auto flex-1">
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>
@@ -1081,7 +1081,7 @@ export default function PatientFamilyHistory({
                   </div>
                 </TabsContent>
 
-                <TabsContent value="immunizations" className="space-y-4">
+                <TabsContent value="immunizations" className="space-y-4 overflow-y-auto flex-1">
                   <div className="border rounded-lg p-4">
                     <h4 className="font-medium mb-4">Immunization Record</h4>
                     <div className="space-y-3">
@@ -1281,7 +1281,7 @@ export default function PatientFamilyHistory({
                   </div>
                 </TabsContent>
 
-                <TabsContent value="allergies" className="space-y-4">
+                <TabsContent value="allergies" className="space-y-4 overflow-y-auto flex-1">
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <h4 className="font-medium mb-3 flex items-center gap-2">
