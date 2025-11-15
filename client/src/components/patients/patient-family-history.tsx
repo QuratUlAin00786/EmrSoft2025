@@ -197,6 +197,68 @@ const predefinedAllergies = [
   "Cold-induced allergies",
 ];
 
+const predefinedChronicConditions = [
+  // Cardiovascular Conditions
+  "Hypertension (High blood pressure)",
+  "Heart disease",
+  "Atrial fibrillation",
+  "Congestive heart failure",
+  "Coronary artery disease",
+  "High cholesterol",
+  // Respiratory Conditions
+  "Asthma",
+  "COPD (Chronic obstructive pulmonary disease)",
+  "Chronic bronchitis",
+  "Emphysema",
+  "Sleep apnea",
+  // Endocrine & Metabolic Conditions
+  "Diabetes (Type 1, Type 2)",
+  "Thyroid disorders (Hypothyroidism, Hyperthyroidism)",
+  "PCOS (Polycystic ovarian syndrome)",
+  "Metabolic syndrome",
+  "Obesity",
+  // Gastrointestinal Conditions
+  "GERD (Acid reflux)",
+  "Crohn's disease",
+  "Ulcerative colitis",
+  "IBS (Irritable bowel syndrome)",
+  "Celiac disease",
+  "Chronic liver disease",
+  // Neurological Conditions
+  "Epilepsy",
+  "Parkinson's disease",
+  "Multiple sclerosis",
+  "Migraines",
+  "Neuropathy",
+  "Alzheimer's / Dementia",
+  // Mental Health Conditions
+  "Depression",
+  "Anxiety disorders",
+  "Bipolar disorder",
+  "PTSD",
+  "OCD",
+  "ADHD",
+  // Musculoskeletal Conditions
+  "Arthritis (Osteoarthritis, Rheumatoid arthritis)",
+  "Fibromyalgia",
+  "Chronic back pain",
+  "Osteoporosis",
+  // Autoimmune Conditions
+  "Lupus",
+  "Sjögren's syndrome",
+  "Psoriasis / Psoriatic arthritis",
+  "Hashimoto's thyroiditis",
+  // Kidney & Urinary Conditions
+  "Chronic kidney disease",
+  "Interstitial cystitis",
+  "Recurrent kidney stones",
+  // Skin Conditions
+  "Eczema",
+  "Rosacea",
+  "Hives",
+  "Vitiligo",
+];
+
 export default function PatientFamilyHistory({
   patient,
   onUpdate,
@@ -227,6 +289,9 @@ export default function PatientFamilyHistory({
   const [openAllergyCombobox, setOpenAllergyCombobox] = useState(false);
   const [allergySearchQuery, setAllergySearchQuery] = useState("");
   const [newChronicCondition, setNewChronicCondition] = useState("");
+  const [chronicConditionOptions, setChronicConditionOptions] = useState<string[]>(predefinedChronicConditions);
+  const [openConditionCombobox, setOpenConditionCombobox] = useState(false);
+  const [conditionSearchQuery, setConditionSearchQuery] = useState("");
   const [editingCondition, setEditingCondition] =
     useState<FamilyCondition | null>(null);
   const [familyErrors, setFamilyErrors] = useState({
@@ -442,10 +507,13 @@ export default function PatientFamilyHistory({
     }
 
     const currentConditions = patient.medicalHistory?.chronicConditions || [];
-    const updatedConditions = [
-      ...currentConditions,
-      newChronicCondition.trim(),
-    ];
+    const conditionValue = newChronicCondition.trim();
+    const updatedConditions = [...currentConditions, conditionValue];
+
+    // If this is a custom condition not in the predefined list, add it to options
+    if (!chronicConditionOptions.includes(conditionValue)) {
+      setChronicConditionOptions([...chronicConditionOptions, conditionValue]);
+    }
 
     updateMedicalHistoryMutation.mutate({
       allergies: patient.medicalHistory?.allergies || [],
@@ -1393,20 +1461,89 @@ export default function PatientFamilyHistory({
                         )}
                       </div>
                       <div>
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Add new condition"
-                            value={newChronicCondition}
-                            onChange={(e) =>
-                              setNewChronicCondition(e.target.value)
-                            }
-                            onKeyPress={(e) =>
-                              e.key === "Enter" && addChronicCondition()
-                            }
-                          />
-                          <Button onClick={addChronicCondition} size="sm">
-                            <Plus className="h-4 w-4" />
-                          </Button>
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <Popover open={openConditionCombobox} onOpenChange={setOpenConditionCombobox}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={openConditionCombobox}
+                                  className="flex-1 justify-between"
+                                  data-testid="button-select-condition"
+                                >
+                                  {newChronicCondition || "Search or select a chronic condition..."}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-full p-0" align="start">
+                                <Command>
+                                  <CommandInput 
+                                    placeholder="Search chronic conditions..." 
+                                    value={conditionSearchQuery}
+                                    onValueChange={setConditionSearchQuery}
+                                  />
+                                  <CommandList className="max-h-[300px]">
+                                    <CommandEmpty>
+                                      <div className="p-2">
+                                        <p className="text-sm text-muted-foreground mb-2">
+                                          No condition found.
+                                        </p>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="w-full"
+                                          onClick={() => {
+                                            if (conditionSearchQuery.trim()) {
+                                              setNewChronicCondition(conditionSearchQuery.trim());
+                                              setOpenConditionCombobox(false);
+                                              setConditionSearchQuery("");
+                                            }
+                                          }}
+                                        >
+                                          <Plus className="h-4 w-4 mr-2" />
+                                          Add "{conditionSearchQuery}"
+                                        </Button>
+                                      </div>
+                                    </CommandEmpty>
+                                    <CommandGroup>
+                                      {chronicConditionOptions.map((condition) => (
+                                        <CommandItem
+                                          key={condition}
+                                          value={condition}
+                                          onSelect={(currentValue) => {
+                                            setNewChronicCondition(currentValue);
+                                            setOpenConditionCombobox(false);
+                                            setConditionSearchQuery("");
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              newChronicCondition === condition ? "opacity-100" : "opacity-0"
+                                            )}
+                                          />
+                                          {condition}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                            <Button onClick={addChronicCondition} size="sm" data-testid="button-add-condition">
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {newChronicCondition && (
+                            <Input
+                              placeholder="Edit or modify condition before adding"
+                              value={newChronicCondition}
+                              onChange={(e) => setNewChronicCondition(e.target.value)}
+                              onKeyPress={(e) => e.key === "Enter" && addChronicCondition()}
+                              data-testid="input-edit-condition"
+                            />
+                          )}
                         </div>
                         {chronicConditionError && (
                           <p className="text-sm text-red-500 mt-1">
