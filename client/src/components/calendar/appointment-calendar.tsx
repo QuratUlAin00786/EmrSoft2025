@@ -3366,7 +3366,7 @@ Medical License: [License Number]
           
           <div className="py-4">
             <p className="text-gray-700">
-              You have already created an appointment. ({duplicateAppointmentDetails}) You can choose a different time for the appointment.
+              You have already created an appointment with the same doctor on this date. ({duplicateAppointmentDetails}) You can choose a different time or update the existing appointment.
             </p>
           </div>
 
