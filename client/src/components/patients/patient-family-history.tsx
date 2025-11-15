@@ -995,7 +995,7 @@ export default function PatientFamilyHistory({
                         )}
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <Label>Age of Onset</Label>
                         <Input
@@ -1030,14 +1030,8 @@ export default function PatientFamilyHistory({
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="flex items-end">
-                        <Button onClick={addFamilyCondition} className="w-full">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add
-                        </Button>
-                      </div>
                     </div>
-                    <div>
+                    <div className="mb-4">
                       <Label>Additional Notes</Label>
                       <Input
                         placeholder="Additional details about the condition"
@@ -1049,6 +1043,12 @@ export default function PatientFamilyHistory({
                           })
                         }
                       />
+                    </div>
+                    <div>
+                      <Button onClick={addFamilyCondition} className="w-full">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add
+                      </Button>
                     </div>
                   </div>
 
