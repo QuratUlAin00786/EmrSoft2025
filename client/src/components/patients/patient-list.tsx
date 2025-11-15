@@ -2924,7 +2924,7 @@ export function PatientList({ onSelectPatient, genderFilter = null, viewMode = "
                           variant="outline"
                           className="text-xs dark:text-gray-200 dark:border-gray-600"
                         >
-                          {patient.insuranceInfo.provider.toUpperCase()}
+                          {patient.insuranceInfo.provider === "NHS (National Health Service)" ? "NHS" : patient.insuranceInfo.provider.toUpperCase()}
                         </Badge>
                       )}
                       {patient.isInsured && (
