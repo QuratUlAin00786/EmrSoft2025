@@ -1511,21 +1511,22 @@ export default function PatientFamilyHistory({
                         ))
                       )}
                     </div>
-                    <Button
-                      className="w-full mt-4"
-                      variant="outline"
-                      onClick={() => setShowImmunizationForm(true)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Immunization
-                    </Button>
 
-                    {showImmunizationForm && (
-                      <div className="mt-4 p-4 border rounded-lg bg-gray-50">
-                        <h5 className="font-medium mb-3">
+                    <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="font-medium">
                           New Immunization Record
                         </h5>
-                        <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={addImmunization}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Immunization
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
                           <div>
                             <Label>Vaccine</Label>
                             <Select
@@ -1650,35 +1651,7 @@ export default function PatientFamilyHistory({
                             />
                           </div>
                         </div>
-                        <div className="flex gap-2 mt-4">
-                          <Button onClick={addImmunization} size="sm">
-                            Add Record
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setShowImmunizationForm(false);
-                              setNewImmunization({
-                                vaccine: "",
-                                date: "",
-                                provider: "",
-                                lot: "",
-                                site: "",
-                                notes: "",
-                              });
-                              setImmunizationErrors({
-                                vaccine: "",
-                                date: "",
-                                provider: "",
-                              });
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
                       </div>
-                    )}
                   </div>
                 </TabsContent>
 
