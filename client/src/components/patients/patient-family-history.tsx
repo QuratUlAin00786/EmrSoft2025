@@ -259,6 +259,36 @@ const predefinedChronicConditions = [
   "Vitiligo",
 ];
 
+const predefinedEducationLevels = [
+  // No Schooling
+  "No formal education",
+  "Some primary education (no completion)",
+  // Primary / Elementary
+  "Completed primary school",
+  "Completed elementary school",
+  // Secondary / High School
+  "Some high school",
+  "High school graduate / Diploma",
+  "GED (General Equivalency Diploma)",
+  // Postsecondary (Non-degree)
+  "Trade school / Vocational training",
+  "Certificate program",
+  "Apprenticeship",
+  // College / University
+  "Some college (no degree)",
+  "Associate degree (AA / AS)",
+  "Bachelor's degree (BA / BS / BFA)",
+  // Graduate / Postgraduate
+  "Master's degree (MA / MS / MBA / etc.)",
+  "Professional degree (MD, DO, JD, PharmD, DDS, etc.)",
+  "Doctorate / PhD",
+  // Other / Specialized
+  "Continuing education",
+  "Adult education courses",
+  "Specialized license training",
+  "Other (specify)",
+];
+
 export default function PatientFamilyHistory({
   patient,
   onUpdate,
@@ -292,6 +322,9 @@ export default function PatientFamilyHistory({
   const [chronicConditionOptions, setChronicConditionOptions] = useState<string[]>(predefinedChronicConditions);
   const [openConditionCombobox, setOpenConditionCombobox] = useState(false);
   const [conditionSearchQuery, setConditionSearchQuery] = useState("");
+  const [educationOptions, setEducationOptions] = useState<string[]>(predefinedEducationLevels);
+  const [openEducationCombobox, setOpenEducationCombobox] = useState(false);
+  const [educationSearchQuery, setEducationSearchQuery] = useState("");
   const [editingCondition, setEditingCondition] =
     useState<FamilyCondition | null>(null);
   const [familyErrors, setFamilyErrors] = useState({
@@ -1055,16 +1088,98 @@ export default function PatientFamilyHistory({
                       </div>
                       <div>
                         <Label>Education Level</Label>
-                        <Input
-                          value={editedSocialHistory.education}
-                          onChange={(e) =>
-                            setEditedSocialHistory({
-                              ...editedSocialHistory,
-                              education: e.target.value,
-                            })
-                          }
-                          placeholder="Highest education level"
-                        />
+                        <div className="space-y-2">
+                          <Popover open={openEducationCombobox} onOpenChange={setOpenEducationCombobox}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openEducationCombobox}
+                                className="w-full justify-between"
+                                data-testid="button-select-education"
+                              >
+                                {editedSocialHistory.education || "Select education level..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0" align="start">
+                              <Command>
+                                <CommandInput 
+                                  placeholder="Search education levels..." 
+                                  value={educationSearchQuery}
+                                  onValueChange={setEducationSearchQuery}
+                                />
+                                <CommandList className="max-h-[300px]">
+                                  <CommandEmpty>
+                                    <div className="p-2">
+                                      <p className="text-sm text-muted-foreground mb-2">
+                                        No education level found.
+                                      </p>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={() => {
+                                          if (educationSearchQuery.trim()) {
+                                            setEditedSocialHistory({
+                                              ...editedSocialHistory,
+                                              education: educationSearchQuery.trim(),
+                                            });
+                                            if (!educationOptions.includes(educationSearchQuery.trim())) {
+                                              setEducationOptions([...educationOptions, educationSearchQuery.trim()]);
+                                            }
+                                            setOpenEducationCombobox(false);
+                                            setEducationSearchQuery("");
+                                          }
+                                        }}
+                                      >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add "{educationSearchQuery}"
+                                      </Button>
+                                    </div>
+                                  </CommandEmpty>
+                                  <CommandGroup>
+                                    {educationOptions.map((level) => (
+                                      <CommandItem
+                                        key={level}
+                                        value={level}
+                                        onSelect={(currentValue) => {
+                                          setEditedSocialHistory({
+                                            ...editedSocialHistory,
+                                            education: currentValue,
+                                          });
+                                          setOpenEducationCombobox(false);
+                                          setEducationSearchQuery("");
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            editedSocialHistory.education === level ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        {level}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          {editedSocialHistory.education && (
+                            <Input
+                              placeholder="Edit or modify education level"
+                              value={editedSocialHistory.education}
+                              onChange={(e) =>
+                                setEditedSocialHistory({
+                                  ...editedSocialHistory,
+                                  education: e.target.value,
+                                })
+                              }
+                              data-testid="input-edit-education"
+                            />
+                          )}
+                        </div>
                         {socialHistoryErrors.education && (
                           <p className="text-sm text-red-500 mt-1">
                             {socialHistoryErrors.education}
