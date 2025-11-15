@@ -3293,7 +3293,7 @@ Medical License: [License Number]
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600 font-medium">Date & Time:</span>
                   <span className="text-gray-900">
-                    {createdAppointmentDetails.scheduledAt ? new Date(createdAppointmentDetails.scheduledAt).toLocaleString() : 'N/A'}
+                    {createdAppointmentDetails.scheduledAt ? format(new Date(createdAppointmentDetails.scheduledAt), 'MM/dd/yyyy, h:mm a') : 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
