@@ -845,7 +845,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Complete Patient History Tab */}
-          <TabsContent value="history" className="flex-1 overflow-y-auto p-0 m-0">
+          <TabsContent value="history" className="flex-1 overflow-y-hidden p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1272,7 +1272,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Lab Results Tab */}
-          <TabsContent value="lab" className="flex-1 overflow-y-auto p-0 m-0">
+          <TabsContent value="lab" className="flex-1 overflow-y-hidden p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1365,7 +1365,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Medical Imaging Tab */}
-          <TabsContent value="imaging" className="flex-1 overflow-y-auto p-0 m-0">
+          <TabsContent value="imaging" className="flex-1 overflow-y-hidden p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
