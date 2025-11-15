@@ -2363,6 +2363,7 @@ export function PatientList({ onSelectPatient, genderFilter = null, viewMode = "
       (searchQuery ||
         searchFilters.insuranceProvider ||
         searchFilters.riskLevel ||
+        searchFilters.patientId ||
         searchFilters.lastVisit)
     ) {
       handleSearch(searchQuery, searchFilters);
@@ -2484,6 +2485,12 @@ export function PatientList({ onSelectPatient, genderFilter = null, viewMode = "
       );
     }
 
+    if (filters.patientId) {
+      filtered = filtered.filter(
+        (patient) => patient.patientId === filters.patientId,
+      );
+    }
+
     setFilteredPatients(filtered);
   };
 
@@ -2534,6 +2541,7 @@ export function PatientList({ onSelectPatient, genderFilter = null, viewMode = "
     searchQuery ||
     searchFilters.insuranceProvider ||
     searchFilters.riskLevel ||
+    searchFilters.patientId ||
     searchFilters.lastVisit ||
     (searchFilters.searchType && searchFilters.searchType !== "all");
 

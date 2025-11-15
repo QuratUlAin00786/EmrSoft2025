@@ -1,9 +1,13 @@
 import { useState } from "react";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, Check, ChevronsUpDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 interface PatientSearchProps {
   onSearch: (query: string, filters: SearchFilters) => void;
@@ -15,6 +19,7 @@ export interface SearchFilters {
   ageRange?: { min: number; max: number };
   insuranceProvider?: string;
   riskLevel?: 'low' | 'medium' | 'high' | 'critical';
+  patientId?: string;
   hasUpcomingAppointments?: boolean;
   lastVisit?: 'week' | 'month' | 'quarter' | 'year';
 }
@@ -25,6 +30,18 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
     searchType: 'all'
   });
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [patientIdOpen, setPatientIdOpen] = useState(false);
+  const [patientIdSearch, setPatientIdSearch] = useState("");
+
+  // Fetch all patients to get their IDs
+  const { data: patients = [] } = useQuery({
+    queryKey: ["/api/patients"],
+  });
+
+  // Extract unique patient IDs and sort them
+  const patientIds = Array.isArray(patients)
+    ? Array.from(new Set(patients.map((p: any) => p.patientId).filter(Boolean))).sort()
+    : [];
 
   const handleSearch = () => {
     onSearch(query, filters);
@@ -164,6 +181,80 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
                   <SelectItem value="critical">Critical</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-600 mb-2 block">Patient ID</label>
+              <Popover open={patientIdOpen} onOpenChange={setPatientIdOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={patientIdOpen}
+                    className="w-full justify-between"
+                  >
+                    {filters.patientId || "Any patient ID"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search patient ID..."
+                      value={patientIdSearch}
+                      onValueChange={setPatientIdSearch}
+                    />
+                    <CommandList>
+                      <CommandEmpty>No patient ID found.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value="all"
+                          onSelect={() => {
+                            const newFilters = { ...filters, patientId: undefined };
+                            setFilters(newFilters);
+                            onSearch(query, newFilters);
+                            setPatientIdOpen(false);
+                            setPatientIdSearch("");
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              !filters.patientId ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          Any patient ID
+                        </CommandItem>
+                        {patientIds
+                          .filter((id: string) =>
+                            id.toLowerCase().includes(patientIdSearch.toLowerCase())
+                          )
+                          .map((id: string) => (
+                            <CommandItem
+                              key={id}
+                              value={id}
+                              onSelect={(currentValue) => {
+                                const newFilters = { ...filters, patientId: currentValue };
+                                setFilters(newFilters);
+                                onSearch(query, newFilters);
+                                setPatientIdOpen(false);
+                                setPatientIdSearch("");
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  filters.patientId === id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {id}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
