@@ -4980,7 +4980,9 @@ Coverage Details: [Insurance Coverage]`;
         `;
       }
 
-      const updatedContent = headerHTML + documentContent;
+      // Ensure there's always an editable area after the header
+      const editableContent = documentContent || '<p><br></p>';
+      const updatedContent = headerHTML + editableContent;
       setDocumentContent(updatedContent);
       setShowViewClinicInfoDialog(false);
 
@@ -4989,6 +4991,13 @@ Coverage Details: [Insurance Coverage]`;
         const editor = document.getElementById('document-content-area');
         if (editor) {
           editor.focus();
+          // Move cursor to the end of the document
+          const range = document.createRange();
+          const sel = window.getSelection();
+          range.selectNodeContents(editor);
+          range.collapse(false);
+          sel?.removeAllRanges();
+          sel?.addRange(range);
         }
       }, 150);
 
@@ -5032,7 +5041,9 @@ Coverage Details: [Insurance Coverage]`;
         </div>
       `;
 
-      const updatedContent = documentContent + footerHTML;
+      // Ensure there's always an editable area before the footer
+      const editableContent = documentContent || '<p><br></p>';
+      const updatedContent = editableContent + footerHTML;
       setDocumentContent(updatedContent);
       setShowViewClinicInfoDialog(false);
 
@@ -5041,6 +5052,13 @@ Coverage Details: [Insurance Coverage]`;
         const editor = document.getElementById('document-content-area');
         if (editor) {
           editor.focus();
+          // Move cursor to the end of the document
+          const range = document.createRange();
+          const sel = window.getSelection();
+          range.selectNodeContents(editor);
+          range.collapse(false);
+          sel?.removeAllRanges();
+          sel?.addRange(range);
         }
       }, 150);
 
