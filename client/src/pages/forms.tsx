@@ -10984,17 +10984,6 @@ Registration No: [Number]`
                     </Select>
                   </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="clinic-address" className="text-sm font-medium">Address</Label>
-                    <Input
-                      id="clinic-address"
-                      value={clinicHeaderInfo.address}
-                      onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, address: e.target.value }))}
-                      placeholder="Enter clinic address"
-                      className="mt-1"
-                      data-testid="input-clinic-address"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
                     <Label htmlFor="header-bg-color" className="text-sm font-medium">Background Color</Label>
                     <div className="flex gap-2 mt-1">
                       <Input
@@ -11025,6 +11014,17 @@ Registration No: [Number]`
                 Sub Heading
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-3">
+                  <Label htmlFor="clinic-address" className="text-sm font-medium">Address</Label>
+                  <Input
+                    id="clinic-address"
+                    value={clinicHeaderInfo.address}
+                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, address: e.target.value }))}
+                    placeholder="Enter clinic address"
+                    className="mt-1"
+                    data-testid="input-clinic-address"
+                  />
+                </div>
                 <div>
                   <Label htmlFor="clinic-phone" className="text-sm font-medium">Phone</Label>
                   <Input
