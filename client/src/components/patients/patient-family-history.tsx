@@ -44,6 +44,7 @@ import {
   Save,
   Check,
   ChevronsUpDown,
+  X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -500,6 +501,7 @@ export default function PatientFamilyHistory({
     severity: "mild",
   });
   const [showImmunizationForm, setShowImmunizationForm] = useState(false);
+  const [editingImmunizationIndex, setEditingImmunizationIndex] = useState<number | null>(null);
   const [newImmunization, setNewImmunization] = useState<Partial<Immunization>>(
     {
       vaccine: "",
@@ -952,6 +954,92 @@ export default function PatientFamilyHistory({
     });
     setImmunizationErrors({ vaccine: "", date: "", provider: "" });
     setShowImmunizationForm(false);
+  };
+
+  const editImmunization = (index: number) => {
+    const immunization = immunizations[index];
+    setNewImmunization({
+      vaccine: immunization.vaccine,
+      date: immunization.date,
+      provider: immunization.provider,
+      lot: immunization.lot || "",
+      site: immunization.site || "",
+      notes: immunization.notes || "",
+    });
+    setEditingImmunizationIndex(index);
+    setImmunizationErrors({ vaccine: "", date: "", provider: "" });
+  };
+
+  const updateImmunization = () => {
+    // Reset errors
+    setImmunizationErrors({ vaccine: "", date: "", provider: "" });
+
+    // Validate fields
+    const errors = {
+      vaccine: !newImmunization.vaccine ? "Please select a vaccine" : "",
+      date: !newImmunization.date ? "Please select a date" : "",
+      provider: !newImmunization.provider ? "Please enter a provider" : "",
+    };
+
+    if (errors.vaccine || errors.date || errors.provider) {
+      setImmunizationErrors(errors);
+      return;
+    }
+
+    if (editingImmunizationIndex === null) return;
+
+    const updatedImmunization: Immunization = {
+      id: immunizations[editingImmunizationIndex].id,
+      vaccine: newImmunization.vaccine!,
+      date: newImmunization.date!,
+      provider: newImmunization.provider!,
+      lot: newImmunization.lot,
+      site: newImmunization.site,
+      notes: newImmunization.notes,
+    };
+
+    const updatedImmunizations = [...immunizations];
+    updatedImmunizations[editingImmunizationIndex] = updatedImmunization;
+
+    updateMedicalHistoryMutation.mutate({
+      allergies: patient.medicalHistory?.allergies || [],
+      chronicConditions: patient.medicalHistory?.chronicConditions || [],
+      medications: patient.medicalHistory?.medications || [],
+      familyHistory: patient.medicalHistory?.familyHistory || {},
+      socialHistory: patient.medicalHistory?.socialHistory || {},
+      immunizations: updatedImmunizations,
+    });
+
+    onUpdate({
+      medicalHistory: {
+        ...patient.medicalHistory,
+        immunizations: updatedImmunizations,
+      },
+    });
+
+    setNewImmunization({
+      vaccine: "",
+      date: "",
+      provider: "",
+      lot: "",
+      site: "",
+      notes: "",
+    });
+    setImmunizationErrors({ vaccine: "", date: "", provider: "" });
+    setEditingImmunizationIndex(null);
+  };
+
+  const cancelEditImmunization = () => {
+    setNewImmunization({
+      vaccine: "",
+      date: "",
+      provider: "",
+      lot: "",
+      site: "",
+      notes: "",
+    });
+    setImmunizationErrors({ vaccine: "", date: "", provider: "" });
+    setEditingImmunizationIndex(null);
   };
 
   const getSeverityColor = (severity: string) => {
@@ -1650,7 +1738,12 @@ export default function PatientFamilyHistory({
                                 {immunization.date} - {immunization.provider}
                               </div>
                             </div>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => editImmunization(index)}
+                              data-testid={`button-edit-immunization-${index}`}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                           </div>
@@ -1661,16 +1754,39 @@ export default function PatientFamilyHistory({
                     <div className="mt-4 p-4 border rounded-lg bg-gray-50">
                       <div className="flex items-center justify-between mb-3">
                         <h5 className="font-medium">
-                          New Immunization Record
+                          {editingImmunizationIndex !== null ? "Edit Immunization Record" : "New Immunization Record"}
                         </h5>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={addImmunization}
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Immunization
-                        </Button>
+                        <div className="flex gap-2">
+                          {editingImmunizationIndex !== null && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={cancelEditImmunization}
+                              data-testid="button-cancel-immunization"
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Cancel
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={editingImmunizationIndex !== null ? updateImmunization : addImmunization}
+                            data-testid={editingImmunizationIndex !== null ? "button-update-immunization" : "button-add-immunization"}
+                          >
+                            {editingImmunizationIndex !== null ? (
+                              <>
+                                <Save className="h-4 w-4 mr-2" />
+                                Update Immunization
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Immunization
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                           <div>
