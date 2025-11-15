@@ -4166,7 +4166,14 @@ export default function CalendarPage() {
                       <Input
                         type="date"
                         value={invoiceForm.serviceDate}
-                        onChange={(e) => setInvoiceForm({ ...invoiceForm, serviceDate: e.target.value })}
+                        onChange={(e) => {
+                          const newServiceDate = e.target.value;
+                          if (user?.role === 'patient') {
+                            setInvoiceForm({ ...invoiceForm, serviceDate: newServiceDate, invoiceDate: newServiceDate, dueDate: newServiceDate });
+                          } else {
+                            setInvoiceForm({ ...invoiceForm, serviceDate: newServiceDate });
+                          }
+                        }}
                         className="mt-1"
                       />
                     </div>
