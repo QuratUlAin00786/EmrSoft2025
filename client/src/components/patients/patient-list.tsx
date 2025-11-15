@@ -861,7 +861,7 @@ function PatientDetailsModal({
                 ) : (
                   <div
                     className="space-y-4"
-                    style={{ height: "350px", overflowY: "auto" }}
+                    style={{ height: "350px", overflowY: "hidden" }}
                   >
                     {patientHistory?.familyHistory && (
                       <div>
