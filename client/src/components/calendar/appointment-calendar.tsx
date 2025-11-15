@@ -2791,7 +2791,7 @@ Medical License: [License Number]
                   return;
                 }
                 
-                const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
+                const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00`;
                 
                 // Generate title from patient and provider names
                 const patientName = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
@@ -3107,7 +3107,7 @@ Medical License: [License Number]
                     return;
                   }
                   
-                  const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
+                  const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00`;
                   const providerName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
                   const generatedTitle = `${selectedPatient?.firstName || 'Patient'} - ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} Appointment`;
                   
@@ -3282,7 +3282,7 @@ Medical License: [License Number]
               <div className="w-full bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600 font-medium">Appointment ID:</span>
-                  <span className="text-gray-900">{createdAppointmentDetails.id}</span>
+                  <span className="text-gray-900">{createdAppointmentDetails.appointmentId}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600 font-medium">Patient Name:</span>
