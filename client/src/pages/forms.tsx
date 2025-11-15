@@ -10983,7 +10983,7 @@ Registration No: [Number]`
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <Label htmlFor="clinic-address" className="text-sm font-medium">Address</Label>
                     <Input
                       id="clinic-address"
@@ -10994,113 +10994,143 @@ Registration No: [Number]`
                       data-testid="input-clinic-address"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="clinic-phone" className="text-sm font-medium">Phone</Label>
-                    <Input
-                      id="clinic-phone"
-                      value={clinicHeaderInfo.phone}
-                      onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="+44 20 1234 5678"
-                      className="mt-1"
-                      data-testid="input-clinic-phone"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="clinic-email" className="text-sm font-medium">Email</Label>
-                    <Input
-                      id="clinic-email"
-                      type="email"
-                      value={clinicHeaderInfo.email}
-                      onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="info@clinic.com"
-                      className="mt-1"
-                      data-testid="input-clinic-email"
-                    />
-                  </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="clinic-website" className="text-sm font-medium">Website</Label>
-                    <Input
-                      id="clinic-website"
-                      value={clinicHeaderInfo.website}
-                      onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, website: e.target.value }))}
-                      placeholder="www.clinic.com"
-                      className="mt-1"
-                      data-testid="input-clinic-website"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Font Family</Label>
-                    <Select
-                      value={clinicHeaderInfo.fontFamily}
-                      onValueChange={(value) => setClinicHeaderInfo(prev => ({ ...prev, fontFamily: value }))}
-                    >
-                      <SelectTrigger className="mt-1" data-testid="select-font-family">
-                        <SelectValue placeholder="Select font" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="verdana">Verdana</SelectItem>
-                        <SelectItem value="arial">Arial</SelectItem>
-                        <SelectItem value="calibri">Calibri</SelectItem>
-                        <SelectItem value="times">Times New Roman</SelectItem>
-                        <SelectItem value="georgia">Georgia</SelectItem>
-                        <SelectItem value="courier">Courier</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Font Size</Label>
-                    <Select
-                      value={clinicHeaderInfo.fontSize}
-                      onValueChange={(value) => setClinicHeaderInfo(prev => ({ ...prev, fontSize: value }))}
-                    >
-                      <SelectTrigger className="mt-1" data-testid="select-font-size">
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10pt">10pt</SelectItem>
-                        <SelectItem value="12pt">12pt</SelectItem>
-                        <SelectItem value="14pt">14pt</SelectItem>
-                        <SelectItem value="16pt">16pt</SelectItem>
-                        <SelectItem value="18pt">18pt</SelectItem>
-                        <SelectItem value="20pt">20pt</SelectItem>
-                        <SelectItem value="24pt">24pt</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label className="text-sm font-medium mb-2 block">Text Styling</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant={clinicHeaderInfo.fontWeight === "bold" ? "default" : "outline"}
-                        onClick={() => setClinicHeaderInfo(prev => ({ ...prev, fontWeight: prev.fontWeight === "bold" ? "normal" : "bold" }))}
-                        className="flex items-center gap-1"
-                        data-testid="button-font-bold"
-                      >
-                        <Bold className="h-4 w-4" />
-                        Bold
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={clinicHeaderInfo.fontStyle === "italic" ? "default" : "outline"}
-                        onClick={() => setClinicHeaderInfo(prev => ({ ...prev, fontStyle: prev.fontStyle === "italic" ? "normal" : "italic" }))}
-                        className="flex items-center gap-1"
-                        data-testid="button-font-italic"
-                      >
-                        <Italic className="h-4 w-4" />
-                        Italic
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={clinicHeaderInfo.textDecoration === "underline" ? "default" : "outline"}
-                        onClick={() => setClinicHeaderInfo(prev => ({ ...prev, textDecoration: prev.textDecoration === "underline" ? "none" : "underline" }))}
-                        className="flex items-center gap-1"
-                        data-testid="button-font-underline"
-                      >
-                        <Underline className="h-4 w-4" />
-                        Underline
-                      </Button>
+                    <Label htmlFor="header-bg-color" className="text-sm font-medium">Background Color</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        id="header-bg-color"
+                        type="color"
+                        value={clinicFooterInfo.backgroundColor}
+                        onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                        className="w-20 h-10"
+                        data-testid="input-header-bg-color"
+                      />
+                      <Input
+                        type="text"
+                        value={clinicFooterInfo.backgroundColor}
+                        onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                        placeholder="#000000"
+                        className="flex-1"
+                      />
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sub Heading Section */}
+            <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+              <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Sub Heading
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="clinic-phone" className="text-sm font-medium">Phone</Label>
+                  <Input
+                    id="clinic-phone"
+                    value={clinicHeaderInfo.phone}
+                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+44 20 1234 5678"
+                    className="mt-1"
+                    data-testid="input-clinic-phone"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="clinic-email" className="text-sm font-medium">Email</Label>
+                  <Input
+                    id="clinic-email"
+                    type="email"
+                    value={clinicHeaderInfo.email}
+                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="info@clinic.com"
+                    className="mt-1"
+                    data-testid="input-clinic-email"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="clinic-website" className="text-sm font-medium">Website</Label>
+                  <Input
+                    id="clinic-website"
+                    value={clinicHeaderInfo.website}
+                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, website: e.target.value }))}
+                    placeholder="www.clinic.com"
+                    className="mt-1"
+                    data-testid="input-clinic-website"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Font Family</Label>
+                  <Select
+                    value={clinicHeaderInfo.fontFamily}
+                    onValueChange={(value) => setClinicHeaderInfo(prev => ({ ...prev, fontFamily: value }))}
+                  >
+                    <SelectTrigger className="mt-1" data-testid="select-font-family">
+                      <SelectValue placeholder="Select font" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="verdana">Verdana</SelectItem>
+                      <SelectItem value="arial">Arial</SelectItem>
+                      <SelectItem value="calibri">Calibri</SelectItem>
+                      <SelectItem value="times">Times New Roman</SelectItem>
+                      <SelectItem value="georgia">Georgia</SelectItem>
+                      <SelectItem value="courier">Courier</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Font Size</Label>
+                  <Select
+                    value={clinicHeaderInfo.fontSize}
+                    onValueChange={(value) => setClinicHeaderInfo(prev => ({ ...prev, fontSize: value }))}
+                  >
+                    <SelectTrigger className="mt-1" data-testid="select-font-size">
+                      <SelectValue placeholder="Select size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10pt">10pt</SelectItem>
+                      <SelectItem value="12pt">12pt</SelectItem>
+                      <SelectItem value="14pt">14pt</SelectItem>
+                      <SelectItem value="16pt">16pt</SelectItem>
+                      <SelectItem value="18pt">18pt</SelectItem>
+                      <SelectItem value="20pt">20pt</SelectItem>
+                      <SelectItem value="24pt">24pt</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Text Styling</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={clinicHeaderInfo.fontWeight === "bold" ? "default" : "outline"}
+                      onClick={() => setClinicHeaderInfo(prev => ({ ...prev, fontWeight: prev.fontWeight === "bold" ? "normal" : "bold" }))}
+                      className="flex items-center gap-1"
+                      data-testid="button-font-bold"
+                    >
+                      <Bold className="h-4 w-4" />
+                      Bold
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={clinicHeaderInfo.fontStyle === "italic" ? "default" : "outline"}
+                      onClick={() => setClinicHeaderInfo(prev => ({ ...prev, fontStyle: prev.fontStyle === "italic" ? "normal" : "italic" }))}
+                      className="flex items-center gap-1"
+                      data-testid="button-font-italic"
+                    >
+                      <Italic className="h-4 w-4" />
+                      Italic
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={clinicHeaderInfo.textDecoration === "underline" ? "default" : "outline"}
+                      onClick={() => setClinicHeaderInfo(prev => ({ ...prev, textDecoration: prev.textDecoration === "underline" ? "none" : "underline" }))}
+                      className="flex items-center gap-1"
+                      data-testid="button-font-underline"
+                    >
+                      <Underline className="h-4 w-4" />
+                      Underline
+                    </Button>
                   </div>
                 </div>
               </div>
