@@ -1285,12 +1285,14 @@ export class DatabaseStorage implements IStorage {
         const expectedNextId = (maxIdResult[0]?.maxId || 0) + 1;
         console.log(`Sequential validation: Expected next ID: ${expectedNextId}`);
 
-        // Convert scheduledAt to Date object for Drizzle (treats string as local time)
-        const appointmentWithDate = {
+        // Format timestamp string to PostgreSQL format without timezone conversion
+        // Input: "2025-11-15T22:15:00" -> Output: "2025-11-15 22:15:00"
+        const formattedTimestamp = appointment.scheduledAt.replace('T', ' ');
+        const appointmentWithFormattedTime = {
           ...appointment,
-          scheduledAt: new Date(appointment.scheduledAt)
+          scheduledAt: formattedTimestamp
         };
-        const [created] = await tx.insert(appointments).values([appointmentWithDate]).returning();
+        const [created] = await tx.insert(appointments).values([appointmentWithFormattedTime]).returning();
         
         // Verify sequential order was maintained
         if (created.id < expectedNextId) {
