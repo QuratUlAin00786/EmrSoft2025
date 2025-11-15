@@ -1285,21 +1285,30 @@ export class DatabaseStorage implements IStorage {
         const expectedNextId = (maxIdResult[0]?.maxId || 0) + 1;
         console.log(`Sequential validation: Expected next ID: ${expectedNextId}`);
 
-        // Insert appointment using raw SQL for scheduledAt to prevent timezone conversion
-        // PostgreSQL timestamp without timezone expects: '2025-11-15 22:15:00'
+        // Use completely raw SQL to insert appointment without timezone conversion
         const formattedTimestamp = appointment.scheduledAt.replace('T', ' ');
-        const [created] = await tx.insert(appointments).values([{
-          ...appointment,
-          scheduledAt: sql`${formattedTimestamp}::timestamp`
-        }]).returning();
+        const created = await tx.execute(sql`
+          INSERT INTO appointments (
+            organization_id, appointment_id, patient_id, provider_id, assigned_role,
+            title, description, scheduled_at, duration, status, type, location, is_virtual, created_by
+          ) VALUES (
+            ${appointment.organizationId}, ${appointment.appointmentId}, ${appointment.patientId},
+            ${appointment.providerId}, ${appointment.assignedRole}, ${appointment.title},
+            ${appointment.description}, ${formattedTimestamp}::timestamp, ${appointment.duration},
+            ${appointment.status}, ${appointment.type}, ${appointment.location}, ${appointment.isVirtual},
+            ${appointment.createdBy}
+          ) RETURNING *
+        `);
+        
+        const createdAppointment = created.rows[0] as Appointment;
         
         // Verify sequential order was maintained
-        if (created.id < expectedNextId) {
-          console.warn(`Sequential order concern: Created ID ${created.id} is less than expected ${expectedNextId}`);
+        if (createdAppointment.id < expectedNextId) {
+          console.warn(`Sequential order concern: Created ID ${createdAppointment.id} is less than expected ${expectedNextId}`);
         }
         
-        console.log(`Sequential confirmation: Created appointment ID ${created.id} in proper sequence`);
-        return created;
+        console.log(`Sequential confirmation: Created appointment ID ${createdAppointment.id} in proper sequence`);
+        return createdAppointment;
       });
 
       console.log("Appointment created successfully with sequential validation:", created);
