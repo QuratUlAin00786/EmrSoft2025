@@ -859,7 +859,7 @@ function PatientDetailsModal({
                     Loading patient history...
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="space-y-4 overflow-y-auto" style={{ maxHeight: "850px" }}>
                     {patientHistory?.familyHistory && (
                       <div>
                         <h4 className="font-semibold mb-2">Family History</h4>
@@ -1286,7 +1286,7 @@ function PatientDetailsModal({
                     <p>No lab results found</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="space-y-4 overflow-y-auto" style={{ maxHeight: "850px" }}>
                     {labResults.map((result: any) => (
                       <Card
                         key={result.id}
@@ -1381,7 +1381,7 @@ function PatientDetailsModal({
                     <p>No medical imaging found</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="space-y-4 overflow-y-auto" style={{ maxHeight: "850px" }}>
                     {medicalImaging.map((imaging: any) => (
                       <Card
                         key={imaging.id}
