@@ -1297,10 +1297,33 @@ export class DatabaseStorage implements IStorage {
             ${appointment.description}, ${formattedTimestamp}::timestamp, ${appointment.duration},
             ${appointment.status}, ${appointment.type}, ${appointment.location}, ${appointment.isVirtual},
             ${appointment.createdBy}
-          ) RETURNING *
+          ) RETURNING 
+            id,
+            organization_id AS "organizationId",
+            appointment_id AS "appointmentId",
+            patient_id AS "patientId",
+            provider_id AS "providerId",
+            assigned_role AS "assignedRole",
+            title,
+            description,
+            scheduled_at AS "scheduledAt",
+            duration,
+            status,
+            type,
+            location,
+            is_virtual AS "isVirtual",
+            created_by AS "createdBy",
+            created_at AS "createdAt"
         `);
         
-        const createdAppointment = created.rows[0] as Appointment;
+        const rawRow = created.rows[0] as any;
+        // Format scheduled_at as ISO string without timezone conversion
+        // PostgreSQL returns: "2025-11-15 23:15:00", we need: "2025-11-15T23:15:00"
+        const createdAppointment: Appointment = {
+          ...rawRow,
+          scheduledAt: rawRow.scheduledAt.replace(' ', 'T'),
+          createdAt: new Date(rawRow.createdAt)
+        };
         
         // Verify sequential order was maintained
         if (createdAppointment.id < expectedNextId) {
