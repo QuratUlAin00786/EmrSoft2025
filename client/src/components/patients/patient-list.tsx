@@ -1289,7 +1289,7 @@ function PatientDetailsModal({
                     <p>No lab results found</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="space-y-4 max-h-96 overflow-y-hidden">
                     {labResults.map((result: any) => (
                       <Card
                         key={result.id}
@@ -1384,7 +1384,7 @@ function PatientDetailsModal({
                     <p>No medical imaging found</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="space-y-4 max-h-96 overflow-y-hidden">
                     {medicalImaging.map((imaging: any) => (
                       <Card
                         key={imaging.id}
