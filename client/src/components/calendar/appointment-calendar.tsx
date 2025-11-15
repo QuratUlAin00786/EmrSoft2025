@@ -1278,9 +1278,10 @@ Medical License: [License Number]
 
   const getAppointmentsForDate = (date: Date) => {
     return appointments.filter((apt: any) => {
-      // Parse the date more reliably to avoid timezone issues
-      const appointmentDate = new Date(apt.scheduledAt);
-      const result = isSameDay(appointmentDate, date);
+      // Extract date without timezone conversion: "2025-11-17T22:45:00" -> "2025-11-17"
+      const aptDateString = apt.scheduledAt.substring(0, 10);
+      const selectedDateString = format(date, 'yyyy-MM-dd');
+      const result = aptDateString === selectedDateString;
       return result;
     });
   };
@@ -2623,8 +2624,6 @@ Medical License: [License Number]
                       
                       // Initialize invoice data with fetched fee
                       const selectedDate = format(newAppointmentDate!, 'yyyy-MM-dd');
-                      const today = format(new Date(), 'yyyy-MM-dd');
-                      const dueDateStr = format(new Date(), 'yyyy-MM-dd');
                       
                       const selectedPatient = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
                       const providerName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
@@ -2632,8 +2631,8 @@ Medical License: [License Number]
                       setInvoiceData({
                         serviceDate: selectedDate,
                         doctor: `${providerName?.firstName || ''} ${providerName?.lastName || ''}`,
-                        invoiceDate: today,
-                        dueDate: dueDateStr,
+                        invoiceDate: selectedDate,
+                        dueDate: selectedDate,
                         services: [{
                           code: feeData.serviceCode || 'CONS-001',
                           description: feeData.serviceName || 'General Consultation',
