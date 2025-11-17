@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from "react";
 import { PermissionDeniedDialog } from "@/components/ui/permission-denied-dialog";
 import { setPermissionDeniedCallback } from "@/lib/permission-error-handler";
 
-const curaLogoPath = "/cura-logo.png";
+const curaLogoPath = "/emr-logo.png";
 
 // Pages
 import Dashboard from "@/pages/dashboard";

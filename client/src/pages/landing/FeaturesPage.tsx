@@ -31,8 +31,8 @@ import { AppStoreBadge } from "@/components/AppStoreBadge";
 import { PlayStoreBadge } from "@/components/PlayStoreBadge";
 import { WebsiteChatbot } from "@/components/WebsiteChatbot";
 
-const curaLogoPath = "/cura-logo.png";
-const dashboardScreenshot = "/cura-logo.png";
+const curaLogoPath = "/emr-logo.png";
+const dashboardScreenshot = "/emr-logo.png";
 
 export default function FeaturesPage() {
   return (

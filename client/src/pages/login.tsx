@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
-const curaLogoPath = "/cura-logo.png";
+const curaLogoPath = "/emr-logo.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");

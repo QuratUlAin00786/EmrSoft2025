@@ -5,7 +5,7 @@ import { NotificationBell } from "@/components/layout/notification-bell";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 
-const curaIconPath = "/cura-logo.png";
+const curaIconPath = "/emr-logo.png";
 
 interface HeaderProps {
   title: string;

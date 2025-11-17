@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, Download, ExternalLink, Mail, Phone } from "lucide-react";
 
-const curaLogoPath = "/cura-logo.png";
+const curaLogoPath = "/emr-logo.png";
 
 export default function Press() {
   const pressReleases = [

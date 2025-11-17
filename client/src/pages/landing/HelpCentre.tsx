@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 
-const curaLogoPath = "/cura-logo.png";
+const curaLogoPath = "/emr-logo.png";
 
 const ticketSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),

@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
-const curaLogo = "/cura-logo.png";
+const curaLogo = "/emr-logo.png";
 
 interface InvoiceTemplateProps {
   invoice: {

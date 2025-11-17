@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Check, X, Star, Shield, Users, Zap, Award, Clock } from "lucide-react";
 
-const curaLogoPath = "/cura-logo.png";
+const curaLogoPath = "/emr-logo.png";
 
 export default function PricingPage() {
   const plans = [

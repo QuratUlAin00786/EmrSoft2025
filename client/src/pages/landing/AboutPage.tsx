@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { WebsiteChatbot } from "@/components/WebsiteChatbot";
 
-const curaLogoPath = "/cura-logo.png";
+const curaLogoPath = "/emr-logo.png";
 
 export default function AboutPage() {
   return (

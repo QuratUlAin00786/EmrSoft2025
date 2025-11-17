@@ -633,7 +633,7 @@ export function WebsiteChatbot() {
           ) : (
             <div className="flex flex-col items-center">
               <img 
-                src="/cura-logo-chatbot.png" 
+                src="/emr-logo.png" 
                 alt="Cura Chat" 
                 className="h-6 w-6 mb-0.5"
               />
@@ -652,7 +652,7 @@ export function WebsiteChatbot() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <img 
-                    src="/cura-logo-chatbot.png" 
+                    src="/emr-logo.png" 
                     alt="Cura Logo" 
                     className="h-8 w-auto"
                   />
@@ -681,7 +681,7 @@ export function WebsiteChatbot() {
                       <div className="flex items-start gap-2">
                         {!message.isUser && (
                           <img 
-                            src="/cura-logo-chatbot.png" 
+                            src="/emr-logo.png" 
                             alt="Cura" 
                             className="h-4 w-4 mt-0.5 flex-shrink-0 rounded-sm"
                           />
@@ -725,7 +725,7 @@ export function WebsiteChatbot() {
                   <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
                     <div className="flex items-center gap-2">
                       <img 
-                        src="/cura-logo-chatbot.png" 
+                        src="/emr-logo.png" 
                         alt="Cura" 
                         className="h-4 w-4 rounded-sm"
                       />
