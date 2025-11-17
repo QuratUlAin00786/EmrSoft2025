@@ -7215,10 +7215,7 @@ function PaymentForm({ invoice, onSuccess, onCancel }: {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-        <PaymentElement options={{
-          layout: 'tabs',
-          paymentMethodOrder: ['card']
-        }} />
+        <PaymentElement />
       </div>
       
       <div className="flex gap-3">
