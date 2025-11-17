@@ -2879,6 +2879,22 @@ export default function BillingPage() {
   const [firstServiceAmount, setFirstServiceAmount] = useState("");
   const [notes, setNotes] = useState("");
   const [nhsNumber, setNhsNumber] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [serviceType, setServiceType] = useState("");
+  const [serviceId, setServiceId] = useState("");
+  
+  // Auto-generate service_id when service_type changes
+  useEffect(() => {
+    if (serviceType) {
+      const timestamp = Date.now();
+      const prefix = serviceType === 'appointment' ? 'APT' : 
+                     serviceType === 'lab_result' ? 'LAB' : 
+                     serviceType === 'medical_images' ? 'IMG' : 'SRV';
+      setServiceId(`${prefix}-${timestamp}`);
+    } else {
+      setServiceId("");
+    }
+  }, [serviceType]);
   
   // Validation error states
   const [patientError, setPatientError] = useState("");
@@ -6105,6 +6121,49 @@ export default function BillingPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="payment-method">Payment Method</Label>
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger data-testid="select-payment-method">
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Cash">Cash</SelectItem>
+                    <SelectItem value="Debit Card">Debit Card</SelectItem>
+                    <SelectItem value="Credit Card">Credit Card</SelectItem>
+                    <SelectItem value="Insurance">Insurance</SelectItem>
+                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="Check">Check</SelectItem>
+                    <SelectItem value="Online Payment">Online Payment</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="service-type">Service Type</Label>
+                <Select value={serviceType} onValueChange={setServiceType}>
+                  <SelectTrigger data-testid="select-service-type">
+                    <SelectValue placeholder="Select service type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="appointment">Appointment</SelectItem>
+                    <SelectItem value="lab_result">Lab Result</SelectItem>
+                    <SelectItem value="medical_images">Medical Images</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {serviceId && (
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Generated Service ID:</span>
+                  <span className="text-sm font-mono text-blue-600 dark:text-blue-400">{serviceId}</span>
+                </div>
+              </div>
+            )}
+
             <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <div className="flex items-center gap-2">
                 <Label className="font-semibold">Invoice Type:</Label>
@@ -6216,7 +6275,10 @@ export default function BillingPage() {
                   firstServiceDesc,
                   firstServiceQty,
                   firstServiceAmount,
-                  notes
+                  notes,
+                  paymentMethod: paymentMethod || undefined,
+                  serviceType: serviceType || undefined,
+                  serviceId: serviceId || undefined
                 };
 
                 const response = await apiRequest('POST', '/api/billing/invoices', invoiceData);
@@ -6245,6 +6307,9 @@ export default function BillingPage() {
                 setFirstServiceQty("");
                 setFirstServiceAmount("");
                 setNotes("");
+                setPaymentMethod("");
+                setServiceType("");
+                setServiceId("");
                 
                 // Show success modal
                 setCreatedInvoiceNumber(newInvoice.invoiceNumber);
