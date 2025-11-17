@@ -19504,8 +19504,8 @@ Cura EMR Team
       
       yPosition -= 70;
       
-      // CURA HEALTH EMR header (left side, below logo row)
-      page.drawText('CURA HEALTH EMR', {
+      // EMRSoft header (left side, below logo row)
+      page.drawText('EMRSoft', {
         x: 40,
         y: yPosition,
         size: 11,
@@ -19963,7 +19963,7 @@ Cura EMR Team
       const footerY = 30;
       
       // Bottom center: Copyright notice
-      const copyrightText = `© 2025 ${headerData?.clinicName || 'CuraCare Hospital'} — All Rights Reserved`;
+      const copyrightText = `© 2025 ${headerData?.clinicName || 'EMRSoft Healthcare'} — All Rights Reserved`;
       const copyrightWidth = copyrightText.length * 3.5;
       page.drawText(copyrightText, {
         x: width / 2 - copyrightWidth / 2,
