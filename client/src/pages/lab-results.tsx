@@ -5298,7 +5298,10 @@ Report generated from EMRSoft System`;
                       serviceType: "lab_result",
                       serviceId: pendingOrderData?.testId,
                     });
-                  } else if (invoiceData.paymentMethod === "debit_card") {
+                  } else if (
+                    invoiceData.paymentMethod === "debit_card" ||
+                    invoiceData.paymentMethod === "credit_card"
+                  ) {
                     // Handle Stripe payment - setup payment intent
                     createStripePaymentMutation.mutate({
                       patient_id: pendingOrderData?.patientId,
