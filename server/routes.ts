@@ -18758,7 +18758,7 @@ EMRSoft Team
       headerY -= 18;
       
       // Department
-      page.drawText('DIAGNOSTIC RADIOLOGY', {
+      page.drawText('DEPARTMENT OF DIAGNOSTIC RADIOLOGY', {
         x: headerInfoX,
         y: headerY,
         size: 11,
@@ -19055,7 +19055,8 @@ EMRSoft Team
               y: yPosition - signatureBoxHeight - 5,
               width: signatureBoxWidth,
               height: signatureBoxHeight,
-              borderColor: rgb(0.7, 0.7, 0.7),
+              borderColor: rgb(0.9, 0.9, 0.9),
+             
               borderWidth: 1,
             });
             

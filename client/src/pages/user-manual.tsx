@@ -6,13 +6,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { 
-  BookOpen, 
-  Settings, 
-  Users, 
-  Clock, 
-  DollarSign, 
-  FileText, 
+import {
+  BookOpen,
+  Settings,
+  Users,
+  Clock,
+  DollarSign,
+  FileText,
   Calendar,
   UserCog,
   Pill,
@@ -23,7 +23,7 @@ import {
   Shield,
   AlertCircle,
   CheckCircle,
-  Maximize2
+  Maximize2,
 } from "lucide-react";
 
 // Import screenshots
@@ -40,7 +40,7 @@ export default function UserManual() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <Header title="User Manual" />
-      
+
       <div className="container mx-auto p-6 max-w-7xl">
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
@@ -50,7 +50,8 @@ export default function UserManual() {
             </h1>
           </div>
           <p className="text-muted-foreground">
-            Version 1.0 • Comprehensive guide for hospital administration, IT staff, and clinical users
+            Version 1.0 • Comprehensive guide for hospital administration, IT
+            staff, and clinical users
           </p>
         </div>
 
@@ -98,9 +99,13 @@ export default function UserManual() {
                       <div className="flex items-start gap-3">
                         <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                         <div>
-                          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Important - Complete Setup First</h3>
+                          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                            Important - Complete Setup First
+                          </h3>
                           <p className="text-sm text-blue-800 dark:text-blue-200">
-                            Before beginning patient registration, appointments, or billing, four key configurations must be completed:
+                            Before beginning patient registration, appointments,
+                            or billing, four key configurations must be
+                            completed:
                           </p>
                         </div>
                       </div>
@@ -112,10 +117,13 @@ export default function UserManual() {
                           <div className="bg-primary/10 p-2 rounded">
                             <Shield className="h-5 w-5 text-primary" />
                           </div>
-                          <h4 className="font-semibold">1. Create Role Permissions</h4>
+                          <h4 className="font-semibold">
+                            1. Create Role Permissions
+                          </h4>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Define user roles and assign access levels for data security
+                          Define user roles and assign access levels for data
+                          security
                         </p>
                       </div>
 
@@ -136,7 +144,9 @@ export default function UserManual() {
                           <div className="bg-primary/10 p-2 rounded">
                             <DollarSign className="h-5 w-5 text-primary" />
                           </div>
-                          <h4 className="font-semibold">3. Define Fees & Charges</h4>
+                          <h4 className="font-semibold">
+                            3. Define Fees & Charges
+                          </h4>
                         </div>
                         <p className="text-sm text-muted-foreground">
                           Set doctors' fees and departmental charges
@@ -148,7 +158,9 @@ export default function UserManual() {
                           <div className="bg-primary/10 p-2 rounded">
                             <FileText className="h-5 w-5 text-primary" />
                           </div>
-                          <h4 className="font-semibold">4. Create Header & Footer</h4>
+                          <h4 className="font-semibold">
+                            4. Create Header & Footer
+                          </h4>
                         </div>
                         <p className="text-sm text-muted-foreground">
                           Customize branding for PDF documents
@@ -167,36 +179,68 @@ export default function UserManual() {
                         <table className="w-full border-collapse border border-border">
                           <thead>
                             <tr className="bg-muted">
-                              <th className="border border-border p-3 text-left">Step</th>
-                              <th className="border border-border p-3 text-left">Task</th>
-                              <th className="border border-border p-3 text-left">Responsible Role</th>
-                              <th className="border border-border p-3 text-left">Module</th>
+                              <th className="border border-border p-3 text-left">
+                                Step
+                              </th>
+                              <th className="border border-border p-3 text-left">
+                                Task
+                              </th>
+                              <th className="border border-border p-3 text-left">
+                                Responsible Role
+                              </th>
+                              <th className="border border-border p-3 text-left">
+                                Module
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
                             <tr>
                               <td className="border border-border p-3">1</td>
-                              <td className="border border-border p-3">Create roles and assign permissions</td>
-                              <td className="border border-border p-3"><Badge>Administrator</Badge></td>
-                              <td className="border border-border p-3">User Management</td>
+                              <td className="border border-border p-3">
+                                Create roles and assign permissions
+                              </td>
+                              <td className="border border-border p-3">
+                                <Badge>Administrator</Badge>
+                              </td>
+                              <td className="border border-border p-3">
+                                User Management
+                              </td>
                             </tr>
                             <tr>
                               <td className="border border-border p-3">2</td>
-                              <td className="border border-border p-3">Create default/custom shifts</td>
-                              <td className="border border-border p-3"><Badge variant="secondary">HR / Admin</Badge></td>
-                              <td className="border border-border p-3">Shift Management</td>
+                              <td className="border border-border p-3">
+                                Create default/custom shifts
+                              </td>
+                              <td className="border border-border p-3">
+                                <Badge variant="secondary">HR / Admin</Badge>
+                              </td>
+                              <td className="border border-border p-3">
+                                Shift Management
+                              </td>
                             </tr>
                             <tr>
                               <td className="border border-border p-3">3</td>
-                              <td className="border border-border p-3">Set fees and service charges</td>
-                              <td className="border border-border p-3"><Badge variant="outline">Finance / Admin</Badge></td>
-                              <td className="border border-border p-3">Billing Setup</td>
+                              <td className="border border-border p-3">
+                                Set fees and service charges
+                              </td>
+                              <td className="border border-border p-3">
+                                <Badge variant="outline">Finance / Admin</Badge>
+                              </td>
+                              <td className="border border-border p-3">
+                                Billing Setup
+                              </td>
                             </tr>
                             <tr>
                               <td className="border border-border p-3">4</td>
-                              <td className="border border-border p-3">Create header and footer templates</td>
-                              <td className="border border-border p-3"><Badge>Admin / IT</Badge></td>
-                              <td className="border border-border p-3">Document Templates</td>
+                              <td className="border border-border p-3">
+                                Create header and footer templates
+                              </td>
+                              <td className="border border-border p-3">
+                                <Badge>Admin / IT</Badge>
+                              </td>
+                              <td className="border border-border p-3">
+                                Document Templates
+                              </td>
                             </tr>
                           </tbody>
                         </table>
@@ -223,7 +267,8 @@ export default function UserManual() {
                     <div>
                       <h3 className="font-semibold mb-2">Objective</h3>
                       <p className="text-muted-foreground">
-                        Define user roles and assign access levels to ensure data security and controlled access to features.
+                        Define user roles and assign access levels to ensure
+                        data security and controlled access to features.
                       </p>
                     </div>
 
@@ -231,19 +276,24 @@ export default function UserManual() {
 
                     <div className="flex gap-4 items-start">
                       <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Create New Role Interface</h3>
+                        <h3 className="font-semibold mb-3">
+                          Create New Role Interface
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Example: Creating an Administrator role with full system permissions including Dashboard, Patients, Appointments, Medical Records, Prescriptions, and more.
+                          Example: Creating an Administrator role with full
+                          system permissions including Dashboard, Patients,
+                          Appointments, Medical Records, Prescriptions, and
+                          more.
                         </p>
                       </div>
-                      <div 
+                      <div
                         className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
                         onClick={() => setPopupImage(roleScreenshot)}
                         data-testid="img-role-screenshot-thumbnail"
                       >
-                        <img 
-                          src={roleScreenshot} 
-                          alt="Create New Role Dialog showing role name, display name, description, and module permissions matrix" 
+                        <img
+                          src={roleScreenshot}
+                          alt="Create New Role Dialog showing role name, display name, description, and module permissions matrix"
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -263,12 +313,15 @@ export default function UserManual() {
                         <li className="text-sm">
                           <span className="font-semibold">Navigate:</span>
                           <div className="ml-6 mt-1 p-3 bg-muted rounded-lg font-mono text-xs">
-                            Admin Dashboard → User Management → Roles & Permissions
+                            Admin Dashboard → User Management → Roles &
+                            Permissions
                           </div>
                         </li>
-                        
+
                         <li className="text-sm">
-                          <span className="font-semibold">Create New Role:</span>
+                          <span className="font-semibold">
+                            Create New Role:
+                          </span>
                           <ul className="ml-6 mt-2 space-y-2">
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
@@ -276,7 +329,8 @@ export default function UserManual() {
                             </li>
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                              Enter Role Name (e.g., Doctor, Nurse, Receptionist, Lab Technician, Administrator)
+                              Enter Role Name (e.g., Doctor, Nurse,
+                              Receptionist, Lab Technician, Administrator)
                             </li>
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
@@ -286,15 +340,19 @@ export default function UserManual() {
                         </li>
 
                         <li className="text-sm">
-                          <span className="font-semibold">Assign Permissions:</span>
+                          <span className="font-semibold">
+                            Assign Permissions:
+                          </span>
                           <ul className="ml-6 mt-2 space-y-2">
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                              Select allowed modules (Patient Registration, Billing, Reports, Settings)
+                              Select allowed modules (Patient Registration,
+                              Billing, Reports, Settings)
                             </li>
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                              Choose Read / Write / Edit / Delete privileges for each module
+                              Choose Read / Write / Edit / Delete privileges for
+                              each module
                             </li>
                           </ul>
                         </li>
@@ -307,7 +365,9 @@ export default function UserManual() {
                         </li>
 
                         <li className="text-sm">
-                          <span className="font-semibold">Assign Role to Users:</span>
+                          <span className="font-semibold">
+                            Assign Role to Users:
+                          </span>
                           <div className="ml-6 mt-1 p-3 bg-muted rounded-lg font-mono text-xs">
                             User List → Select user → Choose role → Save
                           </div>
@@ -323,31 +383,63 @@ export default function UserManual() {
                         <table className="w-full border-collapse border border-border">
                           <thead>
                             <tr className="bg-muted">
-                              <th className="border border-border p-3 text-left">Role</th>
-                              <th className="border border-border p-3 text-left">Access Modules</th>
-                              <th className="border border-border p-3 text-left">Description</th>
+                              <th className="border border-border p-3 text-left">
+                                Role
+                              </th>
+                              <th className="border border-border p-3 text-left">
+                                Access Modules
+                              </th>
+                              <th className="border border-border p-3 text-left">
+                                Description
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
                             <tr>
-                              <td className="border border-border p-3"><Badge>Administrator</Badge></td>
-                              <td className="border border-border p-3">All modules</td>
-                              <td className="border border-border p-3">Full access & system configuration</td>
+                              <td className="border border-border p-3">
+                                <Badge>Administrator</Badge>
+                              </td>
+                              <td className="border border-border p-3">
+                                All modules
+                              </td>
+                              <td className="border border-border p-3">
+                                Full access & system configuration
+                              </td>
                             </tr>
                             <tr>
-                              <td className="border border-border p-3"><Badge variant="secondary">Doctor</Badge></td>
-                              <td className="border border-border p-3">Patients, Appointments, Prescriptions, Reports</td>
-                              <td className="border border-border p-3">Clinical access only</td>
+                              <td className="border border-border p-3">
+                                <Badge variant="secondary">Doctor</Badge>
+                              </td>
+                              <td className="border border-border p-3">
+                                Patients, Appointments, Prescriptions, Reports
+                              </td>
+                              <td className="border border-border p-3">
+                                Clinical access only
+                              </td>
                             </tr>
                             <tr>
-                              <td className="border border-border p-3"><Badge variant="outline">Receptionist</Badge></td>
-                              <td className="border border-border p-3">Appointments, Billing, Patient Registration</td>
-                              <td className="border border-border p-3">Front-desk operations</td>
+                              <td className="border border-border p-3">
+                                <Badge variant="outline">Receptionist</Badge>
+                              </td>
+                              <td className="border border-border p-3">
+                                Appointments, Billing, Patient Registration
+                              </td>
+                              <td className="border border-border p-3">
+                                Front-desk operations
+                              </td>
                             </tr>
                             <tr>
-                              <td className="border border-border p-3"><Badge variant="destructive">Lab Technician</Badge></td>
-                              <td className="border border-border p-3">Lab Requests, Lab Results</td>
-                              <td className="border border-border p-3">Diagnostic data entry</td>
+                              <td className="border border-border p-3">
+                                <Badge variant="destructive">
+                                  Lab Technician
+                                </Badge>
+                              </td>
+                              <td className="border border-border p-3">
+                                Lab Requests, Lab Results
+                              </td>
+                              <td className="border border-border p-3">
+                                Diagnostic data entry
+                              </td>
                             </tr>
                           </tbody>
                         </table>
@@ -374,7 +466,8 @@ export default function UserManual() {
                     <div>
                       <h3 className="font-semibold mb-2">Objective</h3>
                       <p className="text-muted-foreground">
-                        Define work hours for doctors, nurses, and support staff.
+                        Define work hours for doctors, nurses, and support
+                        staff.
                       </p>
                     </div>
 
@@ -382,19 +475,24 @@ export default function UserManual() {
 
                     <div className="flex gap-4 items-start">
                       <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Shifts Management Interface</h3>
+                        <h3 className="font-semibold mb-3">
+                          Shifts Management Interface
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Example: Default shifts view showing multiple staff members (James Administrator, Paul Smith, Emma Johnson, etc.) with their assigned working hours and days of the week.
+                          Example: Default shifts view showing multiple staff
+                          members (James Administrator, Paul Smith, Emma
+                          Johnson, etc.) with their assigned working hours and
+                          days of the week.
                         </p>
                       </div>
-                      <div 
+                      <div
                         className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
                         onClick={() => setPopupImage(shiftsScreenshot)}
                         data-testid="img-shifts-screenshot-thumbnail"
                       >
-                        <img 
-                          src={shiftsScreenshot} 
-                          alt="Shifts Management showing default shifts with staff members and their working hours across different days" 
+                        <img
+                          src={shiftsScreenshot}
+                          alt="Shifts Management showing default shifts with staff members and their working hours across different days"
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -406,46 +504,67 @@ export default function UserManual() {
                     <Separator />
 
                     <div>
-                      <h3 className="font-semibold mb-3">Steps to Create Shifts</h3>
+                      <h3 className="font-semibold mb-3">
+                        Steps to Create Shifts
+                      </h3>
                       <ol className="space-y-4 list-decimal list-inside">
                         <li className="text-sm">
                           <span className="font-semibold">Navigate:</span>
                           <div className="ml-6 mt-1 p-3 bg-muted rounded-lg font-mono text-xs">
-                            Admin Dashboard → Human Resources → Shifts Management
+                            Admin Dashboard → Human Resources → Shifts
+                            Management
                           </div>
                         </li>
 
                         <li className="text-sm">
-                          <span className="font-semibold">Create Default Shifts:</span>
+                          <span className="font-semibold">
+                            Create Default Shifts:
+                          </span>
                           <div className="ml-6 mt-2 space-y-3">
                             <div className="p-3 border rounded-lg">
                               <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium">Morning Shift</span>
+                                <span className="font-medium">
+                                  Morning Shift
+                                </span>
                                 <Badge>08:00 AM - 02:00 PM</Badge>
                               </div>
-                              <p className="text-xs text-muted-foreground">Mark as Default</p>
+                              <p className="text-xs text-muted-foreground">
+                                Mark as Default
+                              </p>
                             </div>
-                            
+
                             <div className="p-3 border rounded-lg">
                               <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium">Evening Shift</span>
-                                <Badge variant="secondary">02:00 PM - 08:00 PM</Badge>
+                                <span className="font-medium">
+                                  Evening Shift
+                                </span>
+                                <Badge variant="secondary">
+                                  02:00 PM - 08:00 PM
+                                </Badge>
                               </div>
-                              <p className="text-xs text-muted-foreground">Mark as Default</p>
+                              <p className="text-xs text-muted-foreground">
+                                Mark as Default
+                              </p>
                             </div>
-                            
+
                             <div className="p-3 border rounded-lg">
                               <div className="flex items-center justify-between mb-1">
                                 <span className="font-medium">Night Shift</span>
-                                <Badge variant="outline">08:00 PM - 08:00 AM</Badge>
+                                <Badge variant="outline">
+                                  08:00 PM - 08:00 AM
+                                </Badge>
                               </div>
-                              <p className="text-xs text-muted-foreground">Mark as Default</p>
+                              <p className="text-xs text-muted-foreground">
+                                Mark as Default
+                              </p>
                             </div>
                           </div>
                         </li>
 
                         <li className="text-sm">
-                          <span className="font-semibold">Create Custom Shifts (if needed):</span>
+                          <span className="font-semibold">
+                            Create Custom Shifts (if needed):
+                          </span>
                           <ul className="ml-6 mt-2 space-y-2">
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
@@ -475,9 +594,12 @@ export default function UserManual() {
                       <div className="flex items-start gap-3">
                         <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
                         <div>
-                          <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">Note</h4>
+                          <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                            Note
+                          </h4>
                           <p className="text-sm text-amber-800 dark:text-amber-200">
-                            Custom shifts override default shifts for assigned users.
+                            Custom shifts override default shifts for assigned
+                            users.
                           </p>
                         </div>
                       </div>
@@ -511,19 +633,25 @@ export default function UserManual() {
 
                     <div className="flex gap-4 items-start">
                       <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Billing & Pricing Management</h3>
+                        <h3 className="font-semibold mb-3">
+                          Billing & Pricing Management
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Example: Pricing Management showing Doctors Fee Pricing with various consultation types (Procedure Consultation, Home Visit, Emergency Visit, Teleconsultation, Follow-up Visit, etc.) with their respective codes, categories, and prices in GBP.
+                          Example: Pricing Management showing Doctors Fee
+                          Pricing with various consultation types (Procedure
+                          Consultation, Home Visit, Emergency Visit,
+                          Teleconsultation, Follow-up Visit, etc.) with their
+                          respective codes, categories, and prices in GBP.
                         </p>
                       </div>
-                      <div 
+                      <div
                         className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
                         onClick={() => setPopupImage(billingScreenshot)}
                         data-testid="img-billing-screenshot-thumbnail"
                       >
-                        <img 
-                          src={billingScreenshot} 
-                          alt="Billing & Payments interface showing pricing management for doctors' fees with service codes and pricing" 
+                        <img
+                          src={billingScreenshot}
+                          alt="Billing & Payments interface showing pricing management for doctors' fees with service codes and pricing"
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -535,7 +663,9 @@ export default function UserManual() {
                     <Separator />
 
                     <div>
-                      <h3 className="font-semibold mb-3">Steps to Configure Billing</h3>
+                      <h3 className="font-semibold mb-3">
+                        Steps to Configure Billing
+                      </h3>
                       <ol className="space-y-4 list-decimal list-inside">
                         <li className="text-sm">
                           <span className="font-semibold">Navigate:</span>
@@ -561,13 +691,16 @@ export default function UserManual() {
                             </li>
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                              Add notes (e.g., procedure charges, specializations)
+                              Add notes (e.g., procedure charges,
+                              specializations)
                             </li>
                           </ul>
                         </li>
 
                         <li className="text-sm">
-                          <span className="font-semibold">Lab Results Fees:</span>
+                          <span className="font-semibold">
+                            Lab Results Fees:
+                          </span>
                           <ul className="ml-6 mt-2 space-y-2">
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
@@ -575,7 +708,8 @@ export default function UserManual() {
                             </li>
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                              Select test (e.g., CBC, Lipid Profile, Liver Function Test)
+                              Select test (e.g., CBC, Lipid Profile, Liver
+                              Function Test)
                             </li>
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
@@ -585,7 +719,9 @@ export default function UserManual() {
                         </li>
 
                         <li className="text-sm">
-                          <span className="font-semibold">Imaging Charges:</span>
+                          <span className="font-semibold">
+                            Imaging Charges:
+                          </span>
                           <ul className="ml-6 mt-2 space-y-2">
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
@@ -605,7 +741,8 @@ export default function UserManual() {
                         <li className="text-sm">
                           <span className="font-semibold">Save & Review:</span>
                           <div className="ml-6 mt-1">
-                            All charges appear in the billing module automatically
+                            All charges appear in the billing module
+                            automatically
                           </div>
                         </li>
                       </ol>
@@ -631,7 +768,8 @@ export default function UserManual() {
                     <div>
                       <h3 className="font-semibold mb-2">Objective</h3>
                       <p className="text-muted-foreground">
-                        Customize branding for all printed and digital documents.
+                        Customize branding for all printed and digital
+                        documents.
                       </p>
                     </div>
 
@@ -639,19 +777,24 @@ export default function UserManual() {
 
                     <div className="flex gap-4 items-start">
                       <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Create Clinic Information</h3>
+                        <h3 className="font-semibold mb-3">
+                          Create Clinic Information
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Step 1: Upload clinic logo and configure header information including clinic name, address, phone, email, and website. Customize font family, font size, and text styling options.
+                          Step 1: Upload clinic logo and configure header
+                          information including clinic name, address, phone,
+                          email, and website. Customize font family, font size,
+                          and text styling options.
                         </p>
                       </div>
-                      <div 
+                      <div
                         className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
                         onClick={() => setPopupImage(documentScreenshot1)}
                         data-testid="img-document-screenshot-1-thumbnail"
                       >
-                        <img 
-                          src={documentScreenshot1} 
-                          alt="Create Clinic Information dialog showing header design, clinic logo upload, and header information fields" 
+                        <img
+                          src={documentScreenshot1}
+                          alt="Create Clinic Information dialog showing header design, clinic logo upload, and header information fields"
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -664,19 +807,24 @@ export default function UserManual() {
 
                     <div className="flex gap-4 items-start">
                       <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Saved Clinic Header & Footer</h3>
+                        <h3 className="font-semibold mb-3">
+                          Saved Clinic Header & Footer
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Step 2: Preview of saved clinic header showing "Clinical Care Hospital" with contact details and saved footer displaying "© 2025 CuraCare Hospital — All Rights Reserved" for use in all PDF documents.
+                          Step 2: Preview of saved clinic header showing
+                          "Clinical Care Hospital" with contact details and
+                          saved footer displaying "© 2025 CuraCare Hospital —
+                          All Rights Reserved" for use in all PDF documents.
                         </p>
                       </div>
-                      <div 
+                      <div
                         className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
                         onClick={() => setPopupImage(documentScreenshot2)}
                         data-testid="img-document-screenshot-2-thumbnail"
                       >
-                        <img 
-                          src={documentScreenshot2} 
-                          alt="Saved Clinic Information showing preview of clinic header with logo and footer with copyright text" 
+                        <img
+                          src={documentScreenshot2}
+                          alt="Saved Clinic Information showing preview of clinic header with logo and footer with copyright text"
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -689,19 +837,25 @@ export default function UserManual() {
 
                     <div className="flex gap-4 items-start">
                       <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Document Editor with Header/Footer Options</h3>
+                        <h3 className="font-semibold mb-3">
+                          Document Editor with Header/Footer Options
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Step 3: Document editor toolbar showing "Create Clinic Information", "View Custom Clinic Information", "Clinical Header", and "View Saved Templates" options for managing document templates and branding across all forms and reports.
+                          Step 3: Document editor toolbar showing "Create Clinic
+                          Information", "View Custom Clinic Information",
+                          "Clinical Header", and "View Saved Templates" options
+                          for managing document templates and branding across
+                          all forms and reports.
                         </p>
                       </div>
-                      <div 
+                      <div
                         className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
                         onClick={() => setPopupImage(documentScreenshot3)}
                         data-testid="img-document-screenshot-3-thumbnail"
                       >
-                        <img 
-                          src={documentScreenshot3} 
-                          alt="Forms interface showing document editor with options to create clinic information, view custom clinic information, and manage clinical headers" 
+                        <img
+                          src={documentScreenshot3}
+                          alt="Forms interface showing document editor with options to create clinic information, view custom clinic information, and manage clinical headers"
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -713,12 +867,15 @@ export default function UserManual() {
                     <Separator />
 
                     <div>
-                      <h3 className="font-semibold mb-3">Steps to Configure Document Templates</h3>
+                      <h3 className="font-semibold mb-3">
+                        Steps to Configure Document Templates
+                      </h3>
                       <ol className="space-y-4 list-decimal list-inside">
                         <li className="text-sm">
                           <span className="font-semibold">Navigate:</span>
                           <div className="ml-6 mt-1 p-3 bg-muted rounded-lg font-mono text-xs">
-                            Settings → Document Templates → Header & Footer Configuration
+                            Settings → Document Templates → Header & Footer
+                            Configuration
                           </div>
                         </li>
 
@@ -745,17 +902,21 @@ export default function UserManual() {
                           <ul className="ml-6 mt-2 space-y-2">
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                              Add legal disclaimer, website, or additional contact info
+                              Add legal disclaimer, website, or additional
+                              contact info
                             </li>
                             <li className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                              Option to include page number, date/time, and digital signature field
+                              Option to include page number, date/time, and
+                              digital signature field
                             </li>
                           </ul>
                         </li>
 
                         <li className="text-sm">
-                          <span className="font-semibold">Apply to Documents:</span>
+                          <span className="font-semibold">
+                            Apply to Documents:
+                          </span>
                           <div className="ml-6 mt-2">
                             <p className="mb-2">Select applicable templates:</p>
                             <div className="grid grid-cols-2 gap-2">
@@ -777,7 +938,9 @@ export default function UserManual() {
                               </div>
                               <div className="flex items-center gap-2 p-2 border rounded col-span-2">
                                 <FileText className="h-4 w-4 text-primary" />
-                                <span className="text-xs">Discharge Summaries</span>
+                                <span className="text-xs">
+                                  Discharge Summaries
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -820,23 +983,49 @@ export default function UserManual() {
                       <div className="flex items-start gap-3">
                         <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
                         <div>
-                          <h3 className="font-semibold text-green-900 dark:text-green-100 mb-2">Post-Setup Checklist</h3>
+                          <h3 className="font-semibold text-green-900 dark:text-green-100 mb-2">
+                            Post-Setup Checklist
+                          </h3>
                           <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                              <input type="checkbox" className="h-4 w-4" data-testid="checkbox-roles" />
-                              <span className="text-sm text-green-800 dark:text-green-200">Roles & Permissions configured</span>
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4"
+                                data-testid="checkbox-roles"
+                              />
+                              <span className="text-sm text-green-800 dark:text-green-200">
+                                Roles & Permissions configured
+                              </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <input type="checkbox" className="h-4 w-4" data-testid="checkbox-shifts" />
-                              <span className="text-sm text-green-800 dark:text-green-200">Shifts created & assigned</span>
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4"
+                                data-testid="checkbox-shifts"
+                              />
+                              <span className="text-sm text-green-800 dark:text-green-200">
+                                Shifts created & assigned
+                              </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <input type="checkbox" className="h-4 w-4" data-testid="checkbox-fees" />
-                              <span className="text-sm text-green-800 dark:text-green-200">Fees and charges set</span>
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4"
+                                data-testid="checkbox-fees"
+                              />
+                              <span className="text-sm text-green-800 dark:text-green-200">
+                                Fees and charges set
+                              </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <input type="checkbox" className="h-4 w-4" data-testid="checkbox-templates" />
-                              <span className="text-sm text-green-800 dark:text-green-200">PDF templates customized</span>
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4"
+                                data-testid="checkbox-templates"
+                              />
+                              <span className="text-sm text-green-800 dark:text-green-200">
+                                PDF templates customized
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -846,7 +1035,9 @@ export default function UserManual() {
                     <Separator />
 
                     <div>
-                      <h3 className="text-lg font-semibold mb-3">Next Steps - Using the System</h3>
+                      <h3 className="text-lg font-semibold mb-3">
+                        Next Steps - Using the System
+                      </h3>
                       <p className="text-muted-foreground mb-4">
                         After setup, users can proceed with:
                       </p>
@@ -857,10 +1048,13 @@ export default function UserManual() {
                             <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg">
                               <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                             </div>
-                            <h4 className="font-semibold">Patient Registration</h4>
+                            <h4 className="font-semibold">
+                              Patient Registration
+                            </h4>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Register new patients, manage patient records, and update demographic information
+                            Register new patients, manage patient records, and
+                            update demographic information
                           </p>
                         </div>
 
@@ -869,10 +1063,13 @@ export default function UserManual() {
                             <div className="bg-purple-100 dark:bg-purple-900 p-2 rounded-lg">
                               <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                             </div>
-                            <h4 className="font-semibold">Appointments Scheduling</h4>
+                            <h4 className="font-semibold">
+                              Appointments Scheduling
+                            </h4>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Schedule, reschedule, and manage patient appointments with doctors
+                            Schedule, reschedule, and manage patient
+                            appointments with doctors
                           </p>
                         </div>
 
@@ -881,10 +1078,13 @@ export default function UserManual() {
                             <div className="bg-green-100 dark:bg-green-900 p-2 rounded-lg">
                               <Receipt className="h-5 w-5 text-green-600 dark:text-green-400" />
                             </div>
-                            <h4 className="font-semibold">Billing and Payments</h4>
+                            <h4 className="font-semibold">
+                              Billing and Payments
+                            </h4>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Process invoices, manage payments, and track billing records
+                            Process invoices, manage payments, and track billing
+                            records
                           </p>
                         </div>
 
@@ -893,10 +1093,13 @@ export default function UserManual() {
                             <div className="bg-orange-100 dark:bg-orange-900 p-2 rounded-lg">
                               <FlaskConical className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                             </div>
-                            <h4 className="font-semibold">Lab / Imaging Orders</h4>
+                            <h4 className="font-semibold">
+                              Lab / Imaging Orders
+                            </h4>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Create lab test orders, request imaging studies, and manage results
+                            Create lab test orders, request imaging studies, and
+                            manage results
                           </p>
                         </div>
 
@@ -908,7 +1111,8 @@ export default function UserManual() {
                             <h4 className="font-semibold">Report Generation</h4>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Generate comprehensive reports for analysis and compliance
+                            Generate comprehensive reports for analysis and
+                            compliance
                           </p>
                         </div>
 
@@ -920,7 +1124,8 @@ export default function UserManual() {
                             <h4 className="font-semibold">Prescriptions</h4>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Create and manage electronic prescriptions with e-signature
+                            Create and manage electronic prescriptions with
+                            e-signature
                           </p>
                         </div>
 
@@ -932,7 +1137,8 @@ export default function UserManual() {
                             <h4 className="font-semibold">Telemedicine</h4>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Conduct virtual consultations with video conferencing
+                            Conduct virtual consultations with video
+                            conferencing
                           </p>
                         </div>
 
@@ -944,7 +1150,8 @@ export default function UserManual() {
                             <h4 className="font-semibold">Messaging</h4>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Send SMS and WhatsApp messages to patients for reminders
+                            Send SMS and WhatsApp messages to patients for
+                            reminders
                           </p>
                         </div>
                       </div>
@@ -953,13 +1160,16 @@ export default function UserManual() {
                     <Separator />
 
                     <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Need Help?</h4>
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                        Need Help?
+                      </h4>
                       <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
-                        For additional support, please contact your system administrator or IT support team.
+                        For additional support, please contact your system
+                        administrator or IT support team.
                       </p>
                       <div className="text-sm text-blue-800 dark:text-blue-200">
-                        <p>📧 Email: support@curaemr.ai</p>
-                        <p>📞 Phone: +44 (0) 121 XXX XXXX</p>
+                        <p>📧 Email: support@emrSoft.ai</p>
+                        <p>📞 Phone: +92 51 2345 6789</p>
                       </div>
                     </div>
                   </div>
@@ -974,9 +1184,9 @@ export default function UserManual() {
       <Dialog open={!!popupImage} onOpenChange={() => setPopupImage(null)}>
         <DialogContent className="max-w-6xl max-h-[90vh] p-0">
           <div className="relative w-full h-full flex items-center justify-center bg-black/5">
-            <img 
-              src={popupImage || ""} 
-              alt="Screenshot preview" 
+            <img
+              src={popupImage || ""}
+              alt="Screenshot preview"
               className="w-full h-auto max-h-[85vh] object-contain"
               data-testid="img-popup-preview"
             />
