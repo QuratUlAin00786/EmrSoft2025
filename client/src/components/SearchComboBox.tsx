@@ -36,7 +36,7 @@ export function SearchComboBox({
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedValue(value);
-      setOpen(value.length >= 2); // Auto-open when typing
+      setOpen(value.length > 0); // Auto-open when typing
     }, 300);
 
     return () => clearTimeout(timer);
@@ -65,7 +65,7 @@ export function SearchComboBox({
       
       return response.json();
     },
-    enabled: debouncedValue.length >= 2,
+    enabled: debouncedValue.length > 0,
     staleTime: 30000,
   });
 
@@ -142,7 +142,7 @@ export function SearchComboBox({
             {isLoading && (
               <div className="p-4 text-sm text-gray-500">Loading suggestions...</div>
             )}
-            {!isLoading && debouncedValue.length >= 2 && suggestions.length === 0 && (
+            {!isLoading && debouncedValue.length > 0 && suggestions.length === 0 && (
               <CommandEmpty>No results found. You can type any search term.</CommandEmpty>
             )}
             {!isLoading && suggestions.length > 0 && (
@@ -167,9 +167,6 @@ export function SearchComboBox({
                   </CommandItem>
                 ))}
               </CommandGroup>
-            )}
-            {debouncedValue.length < 2 && (
-              <div className="p-4 text-sm text-gray-500">Type at least 2 characters to see suggestions</div>
             )}
           </Command>
         </PopoverContent>
