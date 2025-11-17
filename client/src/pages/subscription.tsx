@@ -147,73 +147,66 @@ export default function Subscription() {
         subtitle="Manage your subscription and billing."
       />
       
-      <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-950/20 p-6">
-        <div className="max-w-7xl mx-auto space-y-10">
+      <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900 p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
           {/* Current Subscription */}
           {subscription && (
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-blue-950/30 overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 dark:bg-blue-400/5 rounded-full blur-3xl -z-0"></div>
-              <CardHeader className="relative z-10">
-                <CardTitle className="flex items-center space-x-3 text-2xl">
-                  <div className="p-2 bg-yellow-500/10 dark:bg-yellow-400/20 rounded-lg">
-                    <Crown className="h-6 w-6 text-yellow-600 dark:text-yellow-500" />
-                  </div>
-                  <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
-                    Current Subscription
-                  </span>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Crown className="h-5 w-5 text-primary" />
+                  <span>Current Subscription</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Zap className="h-4 w-4" />
-                      <span className="font-medium">Active Plan</span>
+                      <span>Active Plan</span>
                     </div>
-                    <p className="text-3xl font-bold capitalize bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-400 dark:to-blue-600 bg-clip-text text-transparent">
+                    <p className="text-2xl font-bold capitalize">
                       {subscription.plan}
                     </p>
                     <Badge 
-                      className={`${
+                      variant={
                         subscription.status === 'active' 
-                          ? "bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md" 
+                          ? "default" 
                           : subscription.status === 'trial'
-                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-md"
-                          : "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0 shadow-md"
-                      } px-3 py-1`}
+                          ? "secondary"
+                          : "outline"
+                      }
                     >
                       {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
                     </Badge>
                   </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Users className="h-4 w-4" />
-                      <span className="font-medium">User Capacity</span>
+                      <span>User Capacity</span>
                     </div>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                      {subscription.currentUsers} <span className="text-xl text-gray-500 dark:text-gray-400">/ {subscription.userLimit}</span>
+                    <p className="text-2xl font-bold">
+                      {subscription.currentUsers} <span className="text-lg text-muted-foreground">/ {subscription.userLimit}</span>
                     </p>
-                    <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
+                    <div className="relative w-full bg-secondary rounded-full h-2">
                       <div 
-                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-400 dark:to-blue-500 rounded-full transition-all duration-500 shadow-md" 
+                        className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all duration-500" 
                         style={{ 
                           width: `${Math.min((subscription.currentUsers / subscription.userLimit) * 100, 100)}%` 
                         }}
-                      >
-                        <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                      </div>
+                      />
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
-                      <span className="font-medium">
+                      <span>
                         {subscription.status === 'trial' ? 'Trial Period' : 'Billing Cycle'}
                       </span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    <p className="text-xl font-bold">
                       {subscription.status === 'trial' 
                         ? new Date(subscription.trialEndsAt!).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                         : subscription.nextBillingAt 
@@ -222,8 +215,8 @@ export default function Subscription() {
                       }
                     </p>
                     {subscription.monthlyPrice && (
-                      <p className="text-base text-gray-600 dark:text-gray-400 font-medium">
-                        <span className="text-2xl text-blue-600 dark:text-blue-400">£{subscription.monthlyPrice}</span>/month
+                      <p className="text-sm text-muted-foreground">
+                        <span className="text-xl font-bold text-primary">£{subscription.monthlyPrice}</span>/month
                       </p>
                     )}
                   </div>
@@ -233,75 +226,64 @@ export default function Subscription() {
           )}
 
           {/* Available Plans */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Available Plans</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Select a plan that fits your practice needs</p>
+                <h3 className="text-xl font-bold">Available Plans</h3>
+                <p className="text-sm text-muted-foreground mt-1">Select a plan that fits your practice needs</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+              <TrendingUp className="h-5 w-5 text-primary" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {plans.map((plan) => (
                 <Card 
                   key={plan.id} 
-                  className={`relative transition-all duration-300 hover:scale-105 hover:shadow-2xl border-2 ${
-                    plan.popular 
-                      ? "border-blue-500 shadow-xl bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950/40" 
-                      : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 bg-white dark:bg-gray-800"
-                  }`}
+                  className={plan.popular ? "border-primary" : ""}
                 >
                   {plan.popular && (
-                    <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 z-10">
-                      <Badge className="bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0 shadow-lg px-4 py-1.5 text-sm font-semibold">
-                        ⭐ Most Popular
+                    <div className="px-4 py-2 bg-primary/10 border-b">
+                      <Badge variant="default">
+                        Most Popular
                       </Badge>
                     </div>
                   )}
                   
-                  <CardHeader className="text-center pb-4 pt-8">
-                    <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">{plan.name}</CardTitle>
+                  <CardHeader className="text-center">
+                    <CardTitle className="text-xl mb-2">{plan.name}</CardTitle>
                     <div className="space-y-2">
                       <div>
-                        <span className="text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-400 dark:to-blue-600 bg-clip-text text-transparent">
+                        <span className="text-4xl font-bold text-primary">
                           £{plan.price}
                         </span>
-                        <span className="text-lg text-gray-600 dark:text-gray-400 ml-2">/month</span>
+                        <span className="text-sm text-muted-foreground ml-2">/month</span>
                       </div>
-                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-950/30 rounded-full">
-                        <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Up to {plan.userLimit} users</span>
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-secondary rounded-full">
+                        <Users className="h-3 w-3" />
+                        <span className="text-xs font-medium">Up to {plan.userLimit} users</span>
                       </div>
                     </div>
                   </CardHeader>
                   
-                  <CardContent className="space-y-6">
-                    <div className="space-y-3">
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
                       {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-start space-x-3 group">
-                          <div className="mt-0.5 p-1 bg-green-50 dark:bg-green-950/30 rounded-full group-hover:scale-110 transition-transform">
-                            <Check className="h-4 w-4 text-green-600 dark:text-green-500 flex-shrink-0" />
-                          </div>
-                          <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{feature}</span>
+                        <div key={index} className="flex items-start space-x-2">
+                          <Check className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-sm">{feature}</span>
                         </div>
                       ))}
                       
                       {plan.notIncluded.map((feature, index) => (
-                        <div key={index} className="flex items-start space-x-3 opacity-40">
-                          <div className="mt-0.5 p-1 bg-red-50 dark:bg-red-950/30 rounded-full">
-                            <X className="h-4 w-4 text-red-500 flex-shrink-0" />
-                          </div>
-                          <span className="text-sm text-gray-700 dark:text-gray-300 line-through leading-relaxed">{feature}</span>
+                        <div key={index} className="flex items-start space-x-2 opacity-50">
+                          <X className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-sm line-through">{feature}</span>
                         </div>
                       ))}
                     </div>
                     
                     <Button 
-                      className={`w-full h-12 font-semibold shadow-md hover:shadow-lg transition-all ${
-                        plan.popular 
-                          ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white" 
-                          : "bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-500 text-gray-900 dark:text-gray-100"
-                      }`}
+                      className="w-full"
+                      variant={plan.popular ? "default" : "outline"}
                       onClick={() => {
                         if (subscription?.plan === plan.id) {
                           setCurrentPlanData(plan);
@@ -314,7 +296,7 @@ export default function Subscription() {
                       data-testid={`button-plan-${plan.id}`}
                     >
                       {subscription?.plan === plan.id 
-                        ? "✓ Current Plan" 
+                        ? "Current Plan" 
                         : subscription?.status === 'trial' 
                         ? "Start Free Trial"
                         : "Upgrade Now"
@@ -328,54 +310,50 @@ export default function Subscription() {
 
           {/* Add-on Packages */}
           {packages.length > 0 && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Add-on Packages</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Extend your capabilities with specialized modules</p>
+                  <h3 className="text-xl font-bold">Add-on Packages</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Extend your capabilities with specialized modules</p>
                 </div>
-                <Package className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                <Package className="h-5 w-5 text-primary" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {packages.map((pkg) => {
                   const IconComponent = pkg.icon;
                   return (
-                    <Card key={pkg.id} className="relative hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 bg-white dark:bg-gray-800 overflow-hidden group">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 dark:bg-blue-400/10 rounded-full blur-2xl group-hover:bg-blue-500/10 dark:group-hover:bg-blue-400/20 transition-all"></div>
-                      
-                      <CardHeader className="pb-4 relative z-10">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-                            <IconComponent className="h-7 w-7 text-white" />
+                    <Card key={pkg.id}>
+                      <CardHeader>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="p-2 bg-primary/10 rounded-lg">
+                            <IconComponent className="h-5 w-5 text-primary" />
                           </div>
                           <div className="text-right">
                             <div className="flex items-baseline justify-end gap-1">
-                              <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">£{pkg.price}</span>
-                              <span className="text-sm text-gray-500 dark:text-gray-400">/mo</span>
+                              <span className="text-2xl font-bold text-primary">£{pkg.price}</span>
+                              <span className="text-xs text-muted-foreground">/mo</span>
                             </div>
                           </div>
                         </div>
                         <div>
-                          <h3 className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-2">{pkg.name}</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{pkg.description}</p>
+                          <h3 className="font-bold text-lg mb-1">{pkg.name}</h3>
+                          <p className="text-sm text-muted-foreground">{pkg.description}</p>
                         </div>
                       </CardHeader>
                       
-                      <CardContent className="relative z-10">
-                        <div className="space-y-3 mb-6">
+                      <CardContent>
+                        <div className="space-y-2 mb-4">
                           {pkg.features.map((feature, index) => (
-                            <div key={index} className="flex items-start space-x-2 group/feature">
-                              <div className="mt-0.5 p-1 bg-green-50 dark:bg-green-950/30 rounded-full group-hover/feature:scale-110 transition-transform">
-                                <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-500 flex-shrink-0" />
-                              </div>
-                              <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{feature}</span>
+                            <div key={index} className="flex items-start space-x-2">
+                              <Check className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-sm">{feature}</span>
                             </div>
                           ))}
                         </div>
                         
                         <Button 
-                          className="w-full h-11 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-md hover:shadow-lg transition-all"
+                          className="w-full"
                           onClick={() => {
                             console.log('Selected package:', pkg.id);
                           }}
@@ -392,86 +370,79 @@ export default function Subscription() {
           )}
 
           {/* Billing History */}
-          <Card className="border-0 shadow-xl bg-white dark:bg-gray-800">
-            <CardHeader className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-              <CardTitle className="flex items-center gap-3 text-2xl">
-                <div className="p-2 bg-blue-500/10 dark:bg-blue-400/20 rounded-lg">
-                  <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
-                  Billing History
-                </span>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <span>Billing History</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent>
               {billingLoading ? (
-                <div className="flex items-center justify-center py-12">
+                <div className="flex items-center justify-center py-8">
                   <LoadingSpinner />
                 </div>
               ) : billingHistory.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gray-100 dark:bg-gray-700 mb-6">
-                    <Calendar className="h-10 w-10 text-gray-400 dark:text-gray-500" />
-                  </div>
-                  <h4 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No billing history yet</h4>
-                  <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                <div className="text-center py-12">
+                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h4 className="text-lg font-semibold mb-2">No billing history yet</h4>
+                  <p className="text-sm text-muted-foreground">
                     Billing records will appear here once your subscription becomes active.
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Invoice</th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Amount</th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Method</th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Period</th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                      <tr className="border-b">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Invoice</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Date</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Amount</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Method</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Period</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="divide-y">
                       {billingHistory.map((payment: any) => (
-                        <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
+                        <tr key={payment.id} className="hover:bg-muted/50">
+                          <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-gray-400" />
-                              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{payment.invoiceNumber}</span>
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">{payment.invoiceNumber}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                          <td className="px-4 py-3 text-sm">
                             {payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Pending'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-semibold">
                               {payment.currency} {parseFloat(payment.amount).toFixed(2)}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-3">
                             <Badge 
-                              className={`${
-                                payment.paymentStatus === 'completed' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white border-0' :
-                                payment.paymentStatus === 'pending' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0' :
-                                payment.paymentStatus === 'failed' ? 'bg-gradient-to-r from-red-500 to-red-600 text-white border-0' :
-                                'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                              } px-3 py-1 font-medium`}
+                              variant={
+                                payment.paymentStatus === 'completed' ? 'default' :
+                                payment.paymentStatus === 'pending' ? 'secondary' :
+                                payment.paymentStatus === 'failed' ? 'destructive' :
+                                'outline'
+                              }
                             >
                               {payment.paymentStatus}
                             </Badge>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 capitalize">
+                          <td className="px-4 py-3 text-sm capitalize">
                             {payment.paymentMethod.replace('_', ' ')}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                          <td className="px-4 py-3 text-sm">
                             {new Date(payment.periodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(payment.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-3">
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30"
                             >
                               <Download className="h-4 w-4 mr-1" />
                               Invoice
