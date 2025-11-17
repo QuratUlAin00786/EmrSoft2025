@@ -18236,11 +18236,16 @@ EMRSoft Team
         return res.status(503).json({ error: "Payment processing is not configured. Please contact support." });
       }
 
-      // Create Stripe payment intent
+      // Create Stripe payment intent (disable Link payment method)
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amountToPay * 100), // Convert to pence/cents
         currency: "gbp",
         payment_method_types: ['card'],
+        payment_method_options: {
+          card: {
+            request_three_d_secure: 'any'
+          }
+        },
         metadata: {
           invoiceId: invoice.id.toString(),
           patientId: invoice.patientId,

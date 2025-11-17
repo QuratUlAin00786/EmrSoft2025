@@ -7216,10 +7216,8 @@ function PaymentForm({ invoice, onSuccess, onCancel }: {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
         <PaymentElement options={{
-          wallets: {
-            applePay: 'never',
-            googlePay: 'never'
-          }
+          layout: 'tabs',
+          paymentMethodOrder: ['card']
         }} />
       </div>
       
