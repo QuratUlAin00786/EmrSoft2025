@@ -124,7 +124,7 @@ export default function LoginPage() {
           </Link>
 
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <img src={emrLogoPath} alt="EMR Soft" className="h-10 w-auto" />
+            <img src={emrLogoPath} alt="EMR Soft" className="h-10 w-auto" style={{height: '60px'}} />
             <span className="text-2xl font-bold text-gray-900 dark:text-white"></span>
           </div>
           <p className="text-gray-600 dark:text-gray-300">

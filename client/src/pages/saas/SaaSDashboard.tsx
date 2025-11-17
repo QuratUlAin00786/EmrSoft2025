@@ -108,6 +108,7 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
                     src={emrLogoPath} 
                     alt="EMR Soft" 
                     className="h-10 w-auto"
+                    style={{height: '60px'}}
                   />
                   <div className="flex items-center space-x-2">
                     <Shield className="h-5 w-5 text-red-600" />
@@ -148,6 +149,7 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
                     src={emrLogoPath} 
                     alt="EMR Soft" 
                     className="h-10 w-auto"
+                    style={{height: '60px'}}
                   />
                   <div className="flex items-center space-x-2">
                     <Shield className="h-5 w-5 text-red-600" />
