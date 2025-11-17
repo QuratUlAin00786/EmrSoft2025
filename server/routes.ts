@@ -864,8 +864,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             brandName: 'Demo Healthcare Clinic',
             contactEmail: 'admin@demo.com',
             contactPhone: '+44 123 456 7890',
-            address: '123 Demo Street',
-            city: 'London',
+            address: '45 Blue Area, G-6/3, Islamabad, Pakistan',
+            city: 'Paistan',
             country: 'UK',
             settings: {
               theme: { primaryColor: '#4A7DFF' },
