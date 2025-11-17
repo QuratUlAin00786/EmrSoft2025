@@ -713,7 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       status: 'ok', 
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      service: 'cura-emr',
+      service: 'emr-soft',
       environment: process.env.NODE_ENV || 'development'
     });
   });
@@ -753,7 +753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(200).json({ 
       status: 'healthy', 
       timestamp: new Date().toISOString(),
-      service: 'cura-emr'
+      service: 'emr-soft'
     });
   });
 
@@ -863,13 +863,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             subdomain: 'demo',
             brandName: 'Demo Healthcare Clinic',
             contactEmail: 'admin@demo.com',
-            contactPhone: '+44 123 456 7890',
-            address: '45 Blue Area, G-6/3, Islamabad, Pakistan',
-            city: 'Paistan',
-            country: 'UK',
+            contactPhone: '+92 51 2345 6789',
+            address: '45 Blue Area, G-6/3',
+            city: 'Islamabad',
+            country: 'Pakistan',
             settings: {
               theme: { primaryColor: '#4A7DFF' },
-              compliance: { gdprEnabled: true, dataResidency: 'UK' },
+              compliance: { gdprEnabled: true, dataResidency: 'PK' },
               features: { aiEnabled: true, billingEnabled: true }
             }
           });
@@ -1847,7 +1847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 </svg>
               </div>
               <h1>Successfully Connected!</h1>
-              <p>Your QuickBooks account has been linked to Cura.</p>
+              <p>Your QuickBooks account has been linked to EMRSoft.</p>
               <div class="realm-id">Realm ID: ${realmId}</div>
             </div>
             <script>
@@ -14386,7 +14386,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       const BBB_SECRET = "W8tt2cQCSIy43cGwrGDfeKMEdQn1Bfm9l3aygXn8XA";
 
       // Generate meeting ID and passwords
-      const meetingID = `cura-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const meetingID = `EMRSoft-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const moderatorPW = meetingData.moderatorPassword || `mod-${Math.random().toString(36).substr(2, 8)}`;
       const attendeePW = meetingData.attendeePassword || `att-${Math.random().toString(36).substr(2, 8)}`;
 
@@ -14403,9 +14403,9 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         allowStartStopRecording: 'false',
         webcamsOnlyForModerator: 'false',
         logo: '',
-        bannerText: `Cura Video Consultation - ${meetingData.meetingName}`,
+        bannerText: `EMRSoft Video Consultation - ${meetingData.meetingName}`,
         bannerColor: '#4F46E5',
-        copyright: 'Powered by Cura EMR',
+        copyright: 'Powered by EMRSoft',
         muteOnStart: 'false',
         guestPolicy: 'ALWAYS_ACCEPT'
       });
@@ -18279,7 +18279,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           <body>
             <div class="container">
               <div class="header">
-                <h1>Cura EMR</h1>
+                <h1>EMRSoft</h1>
                 <h2>Invoice Details - ${invoice.id}</h2>
               </div>
               <div class="content">
@@ -18339,10 +18339,10 @@ This treatment plan should be reviewed and adjusted based on individual patient 
                   <p style="margin: 0; font-size: 14px; color: #374151;">Thank you for choosing our healthcare services. If you have any questions about this invoice, please don't hesitate to contact us.</p>
                 </div>
 
-                <p style="margin-top: 30px; font-size: 14px; color: #374151;">Best regards,<br><strong>Cura EMR Team</strong></p>
+                <p style="margin-top: 30px; font-size: 14px; color: #374151;">Best regards,<br><strong>EMRSoft Team</strong></p>
               </div>
               <div class="footer">
-                <p style="margin: 0;">© 2025 Cura EMR by Cura Software Limited. All rights reserved.</p>
+                <p style="margin: 0;">© 2025 EMRSoft by EMRSoft Software Limited. All rights reserved.</p>
               </div>
             </div>
           </body>
@@ -18363,7 +18363,7 @@ Total Amount: £${totalAmount.toFixed(2)}
 Thank you for choosing our healthcare services.
 
 Best regards,
-Cura EMR Team
+EMRSoft Team
         `;
 
         // Check if PDF file exists for this invoice
@@ -18559,7 +18559,7 @@ Cura EMR Team
 </head>
 <body>
     <div class="header">
-        <h1>CURA MEDICAL CENTER</h1>
+        <h1>EMRSoft MEDICAL CENTER</h1>
         <h2>RADIOLOGY DIAGNOSTIC REPORT</h2>
     </div>
     <div style="border-bottom: 1px solid #9ca3af; margin-bottom: 15px;"></div>
@@ -18622,8 +18622,8 @@ Cura EMR Team
     </div>
 
     <div class="footer">
-        <span>Cura Medical Center | Radiology Department</span>
-        <span>Tel: +44-123-456-7890 | Email: radiology@curamedical.com</span>
+        <span>EMRSoft Medical Center | Radiology Department</span>
+        <span>Tel: +92 51 2345 6789 | Email: radiology@emrSoftmedical.com</span>
     </div>
     
     <div style="text-align: center; font-size: 6pt; color: #1e3a8a; padding: 3px; margin-top: -10px;">
@@ -18747,7 +18747,7 @@ Cura EMR Team
       let headerY = yPosition - 20;
       
       // Clinic name
-      const clinicName = clinicHeader?.clinicName || 'CURA MEDICAL CENTER';
+      const clinicName = clinicHeader?.clinicName || 'EMRSoft MEDICAL CENTER';
       page.drawText(clinicName, {
         x: headerInfoX,
         y: headerY,
@@ -18758,7 +18758,7 @@ Cura EMR Team
       headerY -= 18;
       
       // Department
-      page.drawText('DEPARTMENT OF DIAGNOSTIC RADIOLOGY', {
+      page.drawText('DIAGNOSTIC RADIOLOGY', {
         x: headerInfoX,
         y: headerY,
         size: 11,
@@ -18780,7 +18780,7 @@ Cura EMR Team
       
       // Phone and email
       const phone = clinicHeader?.phone || '+44-123-456-7890';
-      const email = clinicHeader?.email || 'info@curamedical.com';
+      const email = clinicHeader?.email || 'info@EMRSoftmedical.com';
       page.drawText(`Tel: ${phone} | Fax: ${phone}`, {
         x: headerInfoX,
         y: headerY,
@@ -19308,7 +19308,7 @@ Cura EMR Team
         });
       } else {
         // Fallback footer
-        page.drawText('CURA MEDICAL CENTER - DEPARTMENT OF RADIOLOGY', {
+        page.drawText('EMRSoft MEDICAL CENTER - DEPARTMENT OF RADIOLOGY', {
           x: width / 2 - 120,
           y: footerY - 8,
           size: 10,
@@ -19316,7 +19316,7 @@ Cura EMR Team
           color: primaryBlue
         });
         
-        page.drawText('Tel: +44-123-456-7890  |  Email: radiology@curamedical.com  |  Web: www.curamedical.com', {
+        page.drawText('Tel: +92 51 2345 6789  |  Email: radiology@EMRSoftmedical.com  |  Web: www.EMRSoftmedical.com', {
           x: width / 2 - 140,
           y: footerY - 22,
           size: 8,
@@ -20685,7 +20685,7 @@ Cura EMR Team
       
       yPosition -= 15;
       
-      page.drawText('Generated by Cura EMR System', {
+      page.drawText('Generated by EMRSoft System', {
         x: 40,
         y: yPosition,
         size: 7,
@@ -21015,8 +21015,8 @@ Cura EMR Team
         color: rgb(0.31, 0.27, 0.9)
       });
       
-      // Organization Name - CURA EMR SYSTEM
-      page.drawText(footerData?.organizationName || 'CURA EMR SYSTEM', {
+      // Organization Name - EMRSoft EMR SYSTEM
+      page.drawText(footerData?.organizationName || 'EMRSoft SYSTEM', {
         x: 40,
         y: height - 50,
         size: 22,
@@ -21291,11 +21291,11 @@ Cura EMR Team
               <p style="color: #dc2626; font-weight: bold;">⚠️ CONFIDENTIAL MEDICAL INFORMATION</p>
               <p style="font-size: 12px; color: #666;">This ${isPrescription ? 'prescription' : 'study'} has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.</p>
               
-              <p>Best regards,<br>Cura EMR Team</p>
+              <p>Best regards,<br>EMRSoft Team</p>
             </div>
             
             <div style="background-color: #1e293b; color: white; padding: 20px; text-align: center; font-size: 12px;">
-              <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+              <p>© 2025 EMRSoft by Healthcare Group. All rights reserved.</p>
             </div>
           </div>
         `,
@@ -21317,7 +21317,7 @@ The ${emailDescription} is attached to this email.
 This ${isPrescription ? 'prescription' : 'study'} has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.
 
 Best regards,
-Cura EMR Team
+EMRSoft Team
         `,
         attachments: [
           {
