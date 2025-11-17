@@ -9477,7 +9477,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       console.log("[SHARE LAB RESULT] PDF found, preparing to send email...");
 
       // Read PDF file
-      const pdfBuffer = await fse.readFile(fullPath);
+      const fs = await import('fs/promises');
+      const pdfBuffer = await fs.readFile(fullPath);
 
       // Prepare email with attachment
       const patientName = `${patient.firstName} ${patient.lastName}`;
