@@ -46,6 +46,7 @@ export default function FeaturesPage() {
                 src={curaLogoPath} 
                 alt="Cura EMR" 
                 className="h-12 w-auto"
+                style={{height: '60px'}}
               />
               <div className="flex flex-col">
                 <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Halo Group</span>
