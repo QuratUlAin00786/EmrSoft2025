@@ -4107,12 +4107,10 @@ Report generated from EMRSoft System`;
                             </>
                           ) : (
                             <>
-                              {fileExistenceMap[result.id] && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={async () => {
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={async () => {
                                       try {
                                         const token =
                                           localStorage.getItem("auth_token");
@@ -4319,8 +4317,6 @@ Report generated from EMRSoft System`;
                                   >
                                     <Share2 className="h-4 w-4 mr-2" />
                                   </Button>
-                                </>
-                              )}
                             </>
                           )}
                         </div>
