@@ -7129,7 +7129,8 @@ function StripePaymentForm({ invoice, onSuccess, onCancel, paymentMethodType }: 
       clientSecret,
       appearance: {
         theme: 'stripe'
-      }
+      },
+      loader: 'auto'
     }}>
       <PaymentForm invoice={invoice} onSuccess={onSuccess} onCancel={onCancel} />
     </Elements>
@@ -7215,7 +7216,19 @@ function PaymentForm({ invoice, onSuccess, onCancel }: {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-        <PaymentElement />
+        <PaymentElement options={{
+          layout: 'tabs',
+          defaultValues: {
+            billingDetails: {
+              email: ''
+            }
+          },
+          fields: {
+            billingDetails: {
+              email: 'never'
+            }
+          }
+        }} />
       </div>
       
       <div className="flex gap-3">
