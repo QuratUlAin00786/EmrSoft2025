@@ -18240,6 +18240,7 @@ EMRSoft Team
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amountToPay * 100), // Convert to pence/cents
         currency: "gbp",
+        payment_method_types: ['card'],
         metadata: {
           invoiceId: invoice.id.toString(),
           patientId: invoice.patientId,
