@@ -4492,6 +4492,65 @@ export default function BillingPage() {
                               </SelectContent>
                             </Select>
 
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  className="w-64 justify-between"
+                                  data-testid="select-invoice-id-filter-admin"
+                                >
+                                  {invoiceIdFilter
+                                    ? invoices.find((inv: any) => inv.invoiceNumber === invoiceIdFilter)?.invoiceNumber
+                                    : "Search Invoice ID..."}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-64 p-0">
+                                <Command>
+                                  <CommandInput placeholder="Search invoice ID, patient name or ID..." />
+                                  <CommandEmpty>No invoice found.</CommandEmpty>
+                                  <CommandGroup className="max-h-64 overflow-auto">
+                                    <CommandItem
+                                      value=""
+                                      onSelect={() => setInvoiceIdFilter("")}
+                                    >
+                                      <Check
+                                        className={`mr-2 h-4 w-4 ${
+                                          invoiceIdFilter === "" ? "opacity-100" : "opacity-0"
+                                        }`}
+                                      />
+                                      All Invoices
+                                    </CommandItem>
+                                    {Array.from(new Set(invoices.map((inv: any) => inv.invoiceNumber)))
+                                      .filter((invNum: any) => invNum)
+                                      .map((invNum: any) => {
+                                        const invoice = invoices.find((inv: any) => inv.invoiceNumber === invNum);
+                                        return (
+                                          <CommandItem
+                                            key={invNum}
+                                            value={`${invNum} ${invoice?.patientName} ${invoice?.patientId}`}
+                                            onSelect={() => setInvoiceIdFilter(invNum)}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${
+                                                invoiceIdFilter === invNum ? "opacity-100" : "opacity-0"
+                                              }`}
+                                            />
+                                            <div className="flex flex-col">
+                                              <span className="font-medium">{invNum}</span>
+                                              <span className="text-xs text-gray-500">
+                                                {invoice?.patientName} ({invoice?.patientId})
+                                              </span>
+                                            </div>
+                                          </CommandItem>
+                                        );
+                                      })}
+                                  </CommandGroup>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+
                             {user?.role === 'doctor' && (
                               <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
                                 <SelectTrigger className="w-52">
