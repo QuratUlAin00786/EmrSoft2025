@@ -6914,11 +6914,22 @@ function PaymentModal({ invoice, open, onClose, onSuccess }: {
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const { user } = useAuth();
+  const isPatient = user?.role === 'patient';
+
+  // Reset payment method when modal opens/closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedPaymentMethod(null);
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Pay Invoice {invoice.patientId}</DialogTitle>
+          <DialogTitle>Pay Invoice {invoice.invoiceNumber || invoice.patientId}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
@@ -6936,7 +6947,51 @@ function PaymentModal({ invoice, open, onClose, onSuccess }: {
             </div>
           </div>
 
-          <StripePaymentForm invoice={invoice} onSuccess={onSuccess} onCancel={onClose} />
+          {/* Payment Method Selection for Patients */}
+          {isPatient && !selectedPaymentMethod ? (
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Select Payment Method</Label>
+              <div className="space-y-2">
+                <button
+                  onClick={() => setSelectedPaymentMethod('debit')}
+                  className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-bluewave hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all flex items-center justify-between group"
+                  data-testid="button-select-debit-card"
+                >
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="h-5 w-5 text-bluewave" />
+                    <span className="font-medium">Debit Card</span>
+                  </div>
+                  <div className="text-gray-400 group-hover:text-bluewave transition-colors">→</div>
+                </button>
+                
+                <button
+                  onClick={() => setSelectedPaymentMethod('credit')}
+                  className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-bluewave hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all flex items-center justify-between group"
+                  data-testid="button-select-credit-card"
+                >
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="h-5 w-5 text-bluewave" />
+                    <span className="font-medium">Credit Card</span>
+                  </div>
+                  <div className="text-gray-400 group-hover:text-bluewave transition-colors">→</div>
+                </button>
+              </div>
+            </div>
+          ) : isPatient && selectedPaymentMethod ? (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedPaymentMethod(null)}
+                className="mb-2"
+              >
+                ← Back to payment methods
+              </Button>
+              <StripePaymentForm invoice={invoice} onSuccess={onSuccess} onCancel={onClose} paymentMethodType={selectedPaymentMethod} />
+            </>
+          ) : (
+            <StripePaymentForm invoice={invoice} onSuccess={onSuccess} onCancel={onClose} paymentMethodType={null} />
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -6949,10 +7004,11 @@ const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY
   : null;
 
 // Stripe Payment Form Component
-function StripePaymentForm({ invoice, onSuccess, onCancel }: {
+function StripePaymentForm({ invoice, onSuccess, onCancel, paymentMethodType }: {
   invoice: Invoice;
   onSuccess: () => void;
   onCancel: () => void;
+  paymentMethodType: string | null;
 }) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
