@@ -1368,6 +1368,26 @@ export default function LabResultsPage() {
     },
   });
 
+  const shareLabResultMutation = useMutation({
+    mutationFn: async (data: {
+      labResultId: number;
+      email: string;
+      message: string;
+      method: string;
+    }) => {
+      const response = await apiRequest(
+        "POST",
+        `/api/lab-results/${data.labResultId}/share`,
+        {
+          email: data.email,
+          message: data.message,
+          method: data.method,
+        },
+      );
+      return response.json();
+    },
+  });
+
   // Cash payment mutation
   const createCashPaymentMutation = useMutation({
     mutationFn: async (paymentData: any) => {
@@ -6391,41 +6411,61 @@ Report generated from EMRSoft System`;
                 <Button
                   variant="outline"
                   onClick={() => setShowShareDialog(false)}
+                  disabled={shareLabResultMutation.isPending}
                 >
                   Cancel
                 </Button>
                 <Button
-                  onClick={() => {
-                    const method =
-                      shareFormData.method === "email" ? "email" : "WhatsApp";
-                    const contact =
-                      shareFormData.method === "email"
-                        ? shareFormData.email
-                        : shareFormData.whatsapp;
+                  onClick={async () => {
+                    if (!selectedResult) return;
 
-                    toast({
-                      title: "Study Shared",
-                      description: `Lab result sent to ${getPatientName(selectedResult.patientId)} via ${method} (${contact})`,
-                    });
-                    setShowShareDialog(false);
-                    setShareFormData({
-                      method: "",
-                      email: "",
-                      whatsapp: "",
-                      message: "",
-                    });
+                    try {
+                      await shareLabResultMutation.mutateAsync({
+                        labResultId: selectedResult.id,
+                        email: shareFormData.email,
+                        message: shareFormData.message,
+                        method: shareFormData.method,
+                      });
+                      
+                      toast({
+                        title: "Study Shared",
+                        description: `Lab result sent successfully via ${shareFormData.method === "email" ? "email" : "WhatsApp"}`,
+                      });
+                      
+                      setShowShareDialog(false);
+                      setShareFormData({
+                        method: "",
+                        email: "",
+                        whatsapp: "",
+                        message: "",
+                      });
+                    } catch (error: any) {
+                      toast({
+                        title: "Share Failed",
+                        description: error.message || "Failed to share lab result. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
                   }}
                   disabled={
                     !shareFormData.method ||
-                    (shareFormData.method === "email" &&
-                      !shareFormData.email) ||
-                    (shareFormData.method === "whatsapp" &&
-                      !shareFormData.whatsapp)
+                    (shareFormData.method === "email" && !shareFormData.email) ||
+                    (shareFormData.method === "whatsapp" && !shareFormData.whatsapp) ||
+                    shareLabResultMutation.isPending
                   }
                   className="bg-medical-blue hover:bg-blue-700"
                 >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share Study
+                  {shareLabResultMutation.isPending ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share Study
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

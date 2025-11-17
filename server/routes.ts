@@ -9412,6 +9412,169 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Share lab result via email with PDF attachment
+  app.post("/api/lab-results/:id/share", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      console.log("[SHARE LAB RESULT] Starting share process...");
+      
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const labResultId = parseInt(req.params.id);
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid lab result ID" });
+      }
+
+      const { email, message, method } = req.body;
+      
+      // Validate request body (message can be empty)
+      if (!email || !method) {
+        return res.status(400).json({ error: "Email and method are required" });
+      }
+      
+      // Use default message if not provided
+      const emailMessage = message && message.trim() 
+        ? message 
+        : `Your lab result is attached for your review.`;
+
+      if (method !== 'email') {
+        return res.status(400).json({ error: "Only email sharing is currently supported" });
+      }
+
+      const organizationId = req.tenant!.id;
+
+      // Fetch lab result
+      const labResults = await storage.getLabResults(organizationId);
+      const labResult = labResults.find(result => result.id === labResultId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      // Fetch patient details
+      const patient = await storage.getPatient(labResult.patientId, organizationId);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Construct file path
+      const fileName = `${labResult.testId}.pdf`;
+      const fullPath = path.join(process.cwd(), `uploads/Lab_TestResults/${organizationId}/${labResult.patientId}/${fileName}`);
+
+      console.log(`[SHARE LAB RESULT] Looking for PDF at: ${fullPath}`);
+
+      // Check if file exists
+      const fileExists = await fse.pathExists(fullPath);
+
+      if (!fileExists) {
+        console.log("[SHARE LAB RESULT] PDF not found, cannot share without generated PDF");
+        return res.status(404).json({ 
+          error: "Lab result PDF not found. Please generate the PDF first before sharing." 
+        });
+      }
+
+      console.log("[SHARE LAB RESULT] PDF found, preparing to send email...");
+
+      // Read PDF file
+      const pdfBuffer = await fse.readFile(fullPath);
+
+      // Prepare email with attachment
+      const patientName = `${patient.firstName} ${patient.lastName}`;
+      const emailOptions = {
+        to: email,
+        subject: `Lab Result - ${labResult.testId}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #3B82F6; color: white; padding: 20px; text-align: center; }
+              .content { padding: 20px; background-color: #f9f9f9; }
+              .footer { text-align: center; color: #666; font-size: 12px; padding-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>EMRSoft</h1>
+                <h2>Lab Result Shared</h2>
+              </div>
+              <div class="content">
+                <p>Dear ${patientName},</p>
+                <p>${emailMessage}</p>
+                <p><strong>Lab Result Details:</strong></p>
+                <ul>
+                  <li><strong>Test ID:</strong> ${labResult.testId}</li>
+                  <li><strong>Test Type:</strong> ${labResult.testType}</li>
+                  <li><strong>Status:</strong> ${labResult.status}</li>
+                </ul>
+                <p>Please find the attached PDF with your complete lab result.</p>
+                <p>If you have any questions or concerns, please contact your healthcare provider.</p>
+                <p>Best regards,<br>EMRSoft Team</p>
+              </div>
+              <div class="footer">
+                <p>© 2025 EMR SOFT. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        text: `
+Dear ${patientName},
+
+${emailMessage}
+
+Lab Result Details:
+- Test ID: ${labResult.testId}
+- Test Type: ${labResult.testType}
+- Status: ${labResult.status}
+
+Please find the attached PDF with your complete lab result.
+
+If you have any questions or concerns, please contact your healthcare provider.
+
+Best regards,
+EMRSoft Team
+
+© 2025 EMR SOFT. All rights reserved.
+        `,
+        attachments: [
+          {
+            filename: fileName,
+            content: pdfBuffer,
+            contentType: 'application/pdf'
+          }
+        ]
+      };
+
+      console.log(`[SHARE LAB RESULT] Sending email to: ${email}`);
+      console.log(`[SHARE LAB RESULT] PDF attachment size: ${pdfBuffer.length} bytes`);
+
+      // Send email using email service
+      const emailSent = await emailService.sendEmail(emailOptions);
+
+      if (emailSent) {
+        console.log("[SHARE LAB RESULT] ✅ Email sent successfully");
+        res.json({ 
+          success: true, 
+          message: "Lab result shared successfully via email" 
+        });
+      } else {
+        console.error("[SHARE LAB RESULT] ❌ Email delivery failed");
+        res.status(500).json({ 
+          error: "Failed to send email. Please check your email service configuration." 
+        });
+      }
+
+    } catch (error) {
+      console.error("[SHARE LAB RESULT] Error sharing lab result:", error);
+      res.status(500).json({ error: "Failed to share lab result" });
+    }
+  });
+
   // Check if lab result PDF file exists
   app.get("/api/files/:id/exists", authMiddleware, async (req: TenantRequest, res) => {
     try {
