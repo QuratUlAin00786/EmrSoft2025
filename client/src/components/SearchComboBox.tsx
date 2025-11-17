@@ -1,9 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import { Check, Search } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
 interface SearchSuggestion {
@@ -31,12 +29,14 @@ export function SearchComboBox({
   const [open, setOpen] = useState(false);
   const [debouncedValue, setDebouncedValue] = useState(value);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedValue(value);
-      setOpen(value.length > 0); // Auto-open when typing
+      setOpen(value.length > 0);
     }, 300);
 
     return () => clearTimeout(timer);
@@ -74,9 +74,27 @@ export function SearchComboBox({
     setHighlightedIndex(0);
   }, [suggestions]);
 
+  // Handle clicks outside to close popover
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        inputRef.current &&
+        popoverRef.current &&
+        !inputRef.current.contains(event.target as Node) &&
+        !popoverRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleSelect = (selectedValue: string) => {
     onValueChange(selectedValue);
     setOpen(false);
+    inputRef.current?.focus();
   };
 
   // Handle keyboard navigation and auto-complete
@@ -114,31 +132,27 @@ export function SearchComboBox({
 
   return (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => onValueChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onFocus={() => setOpen(true)}
-            placeholder={placeholder}
-            className={cn(
-              "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-9 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-              className
-            )}
-            data-testid={testId}
-          />
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-0" align="start">
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => onValueChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onFocus={() => setOpen(value.length > 0)}
+        placeholder={placeholder}
+        className={cn(
+          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-9 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        data-testid={testId}
+      />
+      {open && (
+        <div
+          ref={popoverRef}
+          className="absolute z-50 w-80 mt-1 rounded-md border bg-popover p-0 text-popover-foreground shadow-md outline-none animate-in"
+        >
           <Command>
-            <CommandInput 
-              placeholder={placeholder}
-              value={value}
-              onValueChange={onValueChange}
-              className="hidden"
-            />
             {isLoading && (
               <div className="p-4 text-sm text-gray-500">Loading suggestions...</div>
             )}
@@ -169,8 +183,8 @@ export function SearchComboBox({
               </CommandGroup>
             )}
           </Command>
-        </PopoverContent>
-      </Popover>
+        </div>
+      )}
     </div>
   );
 }
