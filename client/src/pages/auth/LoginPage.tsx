@@ -224,27 +224,27 @@ export default function LoginPage() {
               <div className="space-y-2 text-xs text-gray-600 dark:text-gray-300">
                 <div className="flex justify-between">
                   <span>Admin:</span>
-                  <span>james@curaemr.ai / 467fe887</span>
+                  <span>james@emrsoft.ai / 467fe887</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Doctor:</span>
-                  <span>paul@curaemr.ai / doctor123</span>
+                  <span>paul@emrsoft.ai / doctor123</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Nurse:</span>
-                  <span>emma@curaemr.ai / nurse123</span>
+                  <span>emma@emrsoft.ai / nurse123</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Patient:</span>
-                  <span>john@curaemr.ai / patient123</span>
+                  <span>john@emrsoft.ai / patient123</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Lab-Technician:</span>
-                  <span>amelia@curaemr.ai / lab123</span>
+                  <span>amelia@emrsoft.ai / lab123</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Sample-Taker:</span>
-                  <span>sampletaker@curaemr.ai / sample123</span>
+                  <span>sampletaker@emrsoft.ai / sample123</span>
                 </div>
               </div>
             </div>
@@ -256,7 +256,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("james@curaemr.ai");
+                  setEmail("james@emrsoft.ai");
                   setPassword("467fe887");
                 }}
                 className="text-xs"
@@ -269,7 +269,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("paul@curaemr.ai");
+                  setEmail("paul@emrsoft.ai");
                   setPassword("doctor123");
                 }}
                 className="text-xs"
@@ -282,7 +282,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("emma@curaemr.ai");
+                  setEmail("emma@emrsoft.ai");
                   setPassword("nurse123");
                 }}
                 className="text-xs"
@@ -295,7 +295,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("john@curaemr.ai");
+                  setEmail("john@emrsoft.ai");
                   setPassword("patient123");
                 }}
                 className="text-xs"
@@ -308,7 +308,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("amelia@curaemr.ai");
+                  setEmail("amelia@emrsoft.ai");
                   setPassword("lab123");
                 }}
                 className="text-xs"
@@ -321,7 +321,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("sampletaker@curaemr.ai");
+                  setEmail("sampletaker@emrsoft.ai");
                   setPassword("sample123");
                 }}
                 className="text-xs"
