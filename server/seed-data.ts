@@ -13,11 +13,11 @@ export async function seedDatabase() {
     
     if (!org) {
       [org] = await db.insert(organizations).values([{
-      name: "Cura Healthcare",
+      name: "EMRSoft Healthcare",
       subdomain: "cura",
-      email: "admin@curaemr.ai",
+      email: "admin@emrsoft.ai",
       region: "UK",
-      brandName: "Cura EMR",
+      brandName: "EMRSoft",
       settings: {
         theme: { primaryColor: "#3b82f6", logoUrl: "" },
         compliance: { gdprEnabled: true, dataResidency: "UK" },
