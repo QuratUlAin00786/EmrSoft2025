@@ -5283,31 +5283,17 @@ Report generated from EMRSoft System`;
                         : "";
                     })();
 
-                  if (invoiceData.paymentMethod === "cash") {
-                    // Handle cash payment
+                  if (
+                    invoiceData.paymentMethod === "cash" ||
+                    invoiceData.paymentMethod === "debit_card" ||
+                    invoiceData.paymentMethod === "credit_card"
+                  ) {
+                    // Handle cash, debit card, and credit card payments - save directly
                     createCashPaymentMutation.mutate({
                       patient_id: pendingOrderData?.patientId,
                       patientName: patientName,
                       items: invoiceData.items,
                       totalAmount: invoiceData.totalAmount,
-                      insuranceProvider: invoiceData.insuranceProvider,
-                      paymentMethod: invoiceData.paymentMethod,
-                      serviceDate: invoiceData.serviceDate,
-                      invoiceDate: invoiceData.invoiceDate,
-                      dueDate: invoiceData.dueDate,
-                      serviceType: "lab_result",
-                      serviceId: pendingOrderData?.testId,
-                    });
-                  } else if (
-                    invoiceData.paymentMethod === "debit_card" ||
-                    invoiceData.paymentMethod === "credit_card"
-                  ) {
-                    // Handle Stripe payment - setup payment intent
-                    createStripePaymentMutation.mutate({
-                      patient_id: pendingOrderData?.patientId,
-                      patientName: patientName,
-                      amount: invoiceData.totalAmount,
-                      items: invoiceData.items,
                       insuranceProvider: invoiceData.insuranceProvider,
                       paymentMethod: invoiceData.paymentMethod,
                       serviceDate: invoiceData.serviceDate,
