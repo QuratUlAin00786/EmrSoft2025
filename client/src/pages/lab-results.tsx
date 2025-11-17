@@ -241,6 +241,7 @@ import {
   Receipt,
   PenTool,
   PoundSterling,
+  Share2,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -3636,6 +3637,38 @@ Report generated from EMRSoft System`;
                                         >
                                           <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                                         </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            const resultData = {
+                                              testId: result.testId,
+                                              testType: result.testType,
+                                              patientName: getPatientName(result.patientId),
+                                              doctorName: result.doctorName || 'Dr. Sarah Williams',
+                                              status: result.status,
+                                              orderedAt: format(new Date(result.orderedAt), 'PPP'),
+                                            };
+                                            
+                                            if (navigator.share) {
+                                              navigator.share({
+                                                title: `Lab Result - ${result.testId}`,
+                                                text: `Lab Result for ${getPatientName(result.patientId)}\nTest: ${result.testType}\nStatus: ${result.status}\nOrdered: ${format(new Date(result.orderedAt), 'PPP')}`,
+                                              }).catch(() => {});
+                                            } else {
+                                              const shareText = `Lab Result - ${result.testId}\n\nPatient: ${getPatientName(result.patientId)}\nTest Type: ${result.testType}\nDoctor: ${result.doctorName || 'Dr. Sarah Williams'}\nStatus: ${result.status}\nOrdered: ${format(new Date(result.orderedAt), 'PPP')}`;
+                                              navigator.clipboard.writeText(shareText);
+                                              toast({
+                                                title: "Copied to Clipboard",
+                                                description: "Lab result details copied to clipboard",
+                                              });
+                                            }
+                                          }}
+                                          className="h-8 w-8 p-0"
+                                          data-testid={`button-share-${result.id}`}
+                                        >
+                                          <Share2 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                        </Button>
                                       </>
                                     )}
                                   </div>
@@ -4253,6 +4286,38 @@ Report generated from EMRSoft System`;
                                     data-testid="button-download-lab-report"
                                   >
                                     <Download className="h-4 w-4 mr-2" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const resultData = {
+                                        testId: result.testId,
+                                        testType: result.testType,
+                                        patientName: getPatientName(result.patientId),
+                                        doctorName: result.doctorName || 'Dr. Sarah Williams',
+                                        status: result.status,
+                                        orderedAt: format(new Date(result.orderedAt), 'PPP'),
+                                      };
+                                      
+                                      if (navigator.share) {
+                                        navigator.share({
+                                          title: `Lab Result - ${result.testId}`,
+                                          text: `Lab Result for ${getPatientName(result.patientId)}\nTest: ${result.testType}\nStatus: ${result.status}\nOrdered: ${format(new Date(result.orderedAt), 'PPP')}`,
+                                        }).catch(() => {});
+                                      } else {
+                                        const shareText = `Lab Result - ${result.testId}\n\nPatient: ${getPatientName(result.patientId)}\nTest Type: ${result.testType}\nDoctor: ${result.doctorName || 'Dr. Sarah Williams'}\nStatus: ${result.status}\nOrdered: ${format(new Date(result.orderedAt), 'PPP')}`;
+                                        navigator.clipboard.writeText(shareText);
+                                        toast({
+                                          title: "Copied to Clipboard",
+                                          description: "Lab result details copied to clipboard",
+                                        });
+                                      }
+                                    }}
+                                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                                    data-testid={`button-share-lab-report-${result.id}`}
+                                  >
+                                    <Share2 className="h-4 w-4 mr-2" />
                                   </Button>
                                 </>
                               )}
