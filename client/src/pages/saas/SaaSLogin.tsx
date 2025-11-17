@@ -13,7 +13,7 @@ import { saasApiRequest } from '@/lib/saasQueryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Lock } from 'lucide-react';
 
-const curaLogoPath = "/cura-logo-chatbot.png";
+const emrLogoPath = "/emr-logo.png";
 
 const saasLoginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
@@ -72,8 +72,8 @@ export default function SaaSLogin({ onLoginSuccess }: SaaSLoginProps) {
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
             <img 
-              src={curaLogoPath} 
-              alt="Cura Software Limited" 
+              src={emrLogoPath} 
+              alt="EMR Soft" 
               className="h-16 w-auto"
             />
           </div>

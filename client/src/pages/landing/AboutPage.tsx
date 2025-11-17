@@ -26,11 +26,11 @@ export default function AboutPage() {
             <Link href="/landing" className="flex items-center space-x-3">
               <img 
                 src={curaLogoPath} 
-                alt="Cura EMR" 
+                alt="EMR Soft" 
                 className="h-12 w-auto"
               />
               <div className="flex flex-col">
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Halo Group</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by EMR SOFT</span>
               </div>
             </Link>
             
@@ -58,7 +58,7 @@ export default function AboutPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            About <span className="text-blue-600">Halo Group</span>
+            About <span className="text-blue-600">EMR SOFT</span>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             We're on a mission to revolutionise healthcare through intelligent technology, 
@@ -109,21 +109,21 @@ export default function AboutPage() {
           
           <div className="space-y-8 text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
             <p>
-              Founded in Manchester, United Kingdom, Halo Group emerged from a simple yet powerful observation: 
+              Founded in Manchester, United Kingdom, EMR SOFT emerged from a simple yet powerful observation: 
               healthcare professionals were spending more time navigating complex software systems than caring 
               for their patients. Our founders, a team of healthcare professionals and technology experts, 
               recognised that the industry needed a fundamental shift in how medical software is designed and implemented.
             </p>
             
             <p>
-              In 2024, we launched Cura EMR with the vision of creating the world's most intuitive and 
+              In 2024, we launched EMR Soft with the vision of creating the world's most intuitive and 
               intelligent electronic medical records system. Built from the ground up with input from 
-              hundreds of healthcare professionals, Cura combines the power of artificial intelligence 
+              hundreds of healthcare professionals, EMR Soft combines the power of artificial intelligence 
               with the wisdom of medical expertise.
             </p>
             
             <p>
-              Today, Cura EMR serves healthcare providers across the UK and beyond, processing millions 
+              Today, EMR Soft serves healthcare providers across the UK and beyond, processing millions 
               of patient interactions and helping reduce administrative overhead by up to 89%. Our platform 
               continues to evolve, incorporating the latest advances in AI, telemedicine, and mobile technology 
               to stay at the forefront of healthcare innovation.
@@ -231,7 +231,7 @@ export default function AboutPage() {
             Leadership Team
           </h2>
           <p className="text-xl text-center text-gray-600 dark:text-gray-300 mb-16">
-            Meet the experts driving healthcare innovation at Halo Group
+            Meet the experts driving healthcare innovation at EMR SOFT
           </p>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -284,7 +284,7 @@ export default function AboutPage() {
             Get in Touch
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-12">
-            Ready to learn more about how Cura EMR can transform your practice?
+            Ready to learn more about how EMR Soft can transform your practice?
           </p>
 
           <div className="grid md:grid-cols-2 gap-8 mb-12">
@@ -292,7 +292,7 @@ export default function AboutPage() {
               <CardContent className="p-8">
                 <h4 className="font-semibold text-lg mb-4">Headquarters</h4>
                 <div className="text-gray-600 dark:text-gray-300 space-y-2">
-                  <div>Halo Group Ltd</div>
+                  <div>EMR SOFT</div>
                   <div>123 Healthcare Street</div>
                   <div>Manchester Technology Centre</div>
                   <div>Manchester, M1 2AB</div>
@@ -316,7 +316,7 @@ export default function AboutPage() {
 
           <Link href="/auth/login">
             <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
-              Start Your Journey with Cura EMR
+              Start Your Journey with EMR Soft
             </Button>
           </Link>
         </div>
@@ -330,7 +330,7 @@ export default function AboutPage() {
               <div className="flex items-center space-x-3 mb-6">
                 <img 
                   src={curaLogoPath} 
-                  alt="Cura EMR - Electronic Medical Records" 
+                  alt="EMR Soft - Electronic Medical Records" 
                   className="h-12 w-auto"
                 />
               </div>

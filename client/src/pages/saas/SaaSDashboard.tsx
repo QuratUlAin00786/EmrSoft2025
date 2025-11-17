@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import SaaSUsers from './components/SaaSUsers';
 
-const curaLogoPath = "./cura-logo-chatbot.png";
+const emrLogoPath = "/emr-logo.png";
 import SaaSCustomers from './components/SaaSCustomers';
 import SaaSBilling from './components/SaaSBilling';
 import SaaSPackages from './components/SaaSPackages';
@@ -105,8 +105,8 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
               <div className="flex justify-between items-center h-16">
                 <div className="flex items-center space-x-4">
                   <img 
-                    src={curaLogoPath} 
-                    alt="Cura Software Limited" 
+                    src={emrLogoPath} 
+                    alt="EMR Soft" 
                     className="h-10 w-auto"
                   />
                   <div className="flex items-center space-x-2">
@@ -145,8 +145,8 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
               <div className="flex justify-between items-center h-16">
                 <div className="flex items-center space-x-4">
                   <img 
-                    src={curaLogoPath} 
-                    alt="Cura Software Limited" 
+                    src={emrLogoPath} 
+                    alt="EMR Soft" 
                     className="h-10 w-auto"
                   />
                   <div className="flex items-center space-x-2">

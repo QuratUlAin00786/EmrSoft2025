@@ -17,7 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-const curaLogoPath = "/cura-logo-chatbot.png";
+const emrLogoPath = "/emr-logo.png";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -124,7 +124,7 @@ export default function LoginPage() {
           </Link>
 
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <img src={curaLogoPath} alt="Cura EMR" className="h-10 w-auto" />
+            <img src={emrLogoPath} alt="EMR Soft" className="h-10 w-auto" />
             <span className="text-2xl font-bold text-gray-900 dark:text-white"></span>
           </div>
           <p className="text-gray-600 dark:text-gray-300">
@@ -335,7 +335,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-600 dark:text-gray-300">
-          <p>&copy; 2025 Halo Group Ltd. All rights reserved.</p>
+          <p>&copy; 2025 EMR SOFT. All rights reserved.</p>
           <div className="mt-2 space-x-4">
             <Link
               href="/landing/about"

@@ -310,7 +310,7 @@ export function Sidebar() {
           <div className="flex flex-col items-center text-center">
             <img
               src={organizationData?.settings?.theme?.logoUrl || tenant?.settings?.theme?.logoUrl || "/cura-logo-chatbot.png"}
-              alt={organizationData?.name || tenant?.name || "Cura"}
+              alt={organizationData?.name || tenant?.name || "EMR Soft"}
               className="h-30 w-auto mb-2"
             />
           </div>

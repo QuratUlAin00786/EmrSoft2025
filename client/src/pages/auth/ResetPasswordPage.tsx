@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "wouter";
 import { ArrowLeft, Lock, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
 
-const curaLogoPath = "/cura-logo-chatbot.png";
+const emrLogoPath = "/emr-logo.png";
 
 export default function ResetPasswordPage() {
   const [, setLocation] = useLocation();
@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
           </Link>
 
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <img src={curaLogoPath} alt="Cura EMR" className="h-10 w-auto" />
+            <img src={emrLogoPath} alt="EMR Soft" className="h-10 w-auto" />
             <span className="text-2xl font-bold text-gray-900 dark:text-white"></span>
           </div>
           <p className="text-gray-600 dark:text-gray-300">
@@ -214,7 +214,7 @@ export default function ResetPasswordPage() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-600 dark:text-gray-300">
-          <p>&copy; 2025 Halo Group Ltd. All rights reserved.</p>
+          <p>&copy; 2025 EMR SOFT. All rights reserved.</p>
         </div>
       </div>
     </div>
