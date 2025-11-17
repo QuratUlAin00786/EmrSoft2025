@@ -17923,7 +17923,7 @@ EMRSoft Team
     try {
       console.log('[CASH PAYMENT] Request received, body:', JSON.stringify(req.body, null, 2));
       const organizationId = requireOrgId(req);
-      const { patient_id, patientName, items, totalAmount, insuranceProvider, serviceDate, invoiceDate, dueDate, serviceType, serviceId } = req.body;
+      const { patient_id, patientName, items, totalAmount, insuranceProvider, paymentMethod, serviceDate, invoiceDate, dueDate, serviceType, serviceId } = req.body;
 
       // Fetch patient record to get formatted patientId (e.g., P000001)
       const patientRecord = await storage.getPatient(patient_id, organizationId);
@@ -17947,6 +17947,7 @@ EMRSoft Team
         dueDate: new Date(dueDate),
         status: 'paid',
         invoiceType: 'payment',
+        paymentMethod: paymentMethod || 'cash',
         subtotal: totalAmount,
         tax: 0,
         discount: 0,
@@ -17962,7 +17963,7 @@ EMRSoft Team
         payments: [{
           id: `PAY-${Date.now()}`,
           amount: totalAmount,
-          method: 'cash',
+          method: paymentMethod || 'cash',
           date: new Date().toISOString(),
           reference: invoiceNumber
         }],
@@ -17988,7 +17989,7 @@ EMRSoft Team
         transactionId: `CASH-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`,
         amount: totalAmount,
         currency: 'GBP',
-        paymentMethod: 'cash',
+        paymentMethod: paymentMethod || 'cash',
         paymentProvider: 'manual',
         paymentStatus: 'completed',
         paymentDate: new Date(),
@@ -17996,7 +17997,7 @@ EMRSoft Team
         metadata: {
           patientName: patientName
         },
-        notes: `Cash payment for lab test invoice ${invoiceNumber}`
+        notes: `${paymentMethod || 'cash'} payment for lab test invoice ${invoiceNumber}`
       };
 
       console.log('[CASH PAYMENT] Creating payment record...');
