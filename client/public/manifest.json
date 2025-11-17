@@ -1,7 +1,7 @@
 {
-  "name": "Cura - AI-Powered Healthcare Platform by Cura Software Limited",
+  "name": "EMRSoft - AI-Powered Healthcare Platform",
   "short_name": "EMR Soft",
-  "description": "Advanced Electronic Medical Records system with AI-powered insights, telemedicine capabilities, and comprehensive practice management tools for modern healthcare providers. Developed by Cura Software Limited.",
+  "description": "Advanced Electronic Medical Records system with AI-powered insights, telemedicine capabilities, and comprehensive practice management tools for modern healthcare providers. Developed by EMRSoft.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -27,8 +27,8 @@
   "lang": "en",
   "dir": "ltr",
   "developer": {
-    "name": "Cura Software Limited",
-    "url": "https://curaemr.ai"
+    "name": "EMRSoft",
+    "url": "https://emrsoft.ai"
   },
   "screenshots": [],
   "prefer_related_applications": false

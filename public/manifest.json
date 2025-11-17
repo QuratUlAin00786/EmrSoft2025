@@ -1,6 +1,6 @@
 {
-  "name": "Cura - AI-Powered Healthcare Platform",
-  "short_name": "Cura EMR",
+  "name": "EMRSoft - AI-Powered Healthcare Platform",
+  "short_name": "EMR Soft",
   "description": "Advanced EMR system with AI-powered insights and telemedicine capabilities",
   "start_url": "/",
   "display": "standalone",
