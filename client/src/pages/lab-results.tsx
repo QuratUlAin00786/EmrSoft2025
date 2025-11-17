@@ -3641,28 +3641,14 @@ Report generated from EMRSoft System`;
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => {
-                                            const resultData = {
-                                              testId: result.testId,
-                                              testType: result.testType,
-                                              patientName: getPatientName(result.patientId),
-                                              doctorName: result.doctorName || 'Dr. Sarah Williams',
-                                              status: result.status,
-                                              orderedAt: format(new Date(result.orderedAt), 'PPP'),
-                                            };
-                                            
-                                            if (navigator.share) {
-                                              navigator.share({
-                                                title: `Lab Result - ${result.testId}`,
-                                                text: `Lab Result for ${getPatientName(result.patientId)}\nTest: ${result.testType}\nStatus: ${result.status}\nOrdered: ${format(new Date(result.orderedAt), 'PPP')}`,
-                                              }).catch(() => {});
-                                            } else {
-                                              const shareText = `Lab Result - ${result.testId}\n\nPatient: ${getPatientName(result.patientId)}\nTest Type: ${result.testType}\nDoctor: ${result.doctorName || 'Dr. Sarah Williams'}\nStatus: ${result.status}\nOrdered: ${format(new Date(result.orderedAt), 'PPP')}`;
-                                              navigator.clipboard.writeText(shareText);
-                                              toast({
-                                                title: "Copied to Clipboard",
-                                                description: "Lab result details copied to clipboard",
-                                              });
-                                            }
+                                            setSelectedResult(result);
+                                            setShowShareDialog(true);
+                                            setShareFormData({
+                                              method: "email",
+                                              email: "",
+                                              whatsapp: "",
+                                              message: `Lab result for ${result.testType} (Test ID: ${result.testId}) is now available for review.`,
+                                            });
                                           }}
                                           className="h-8 w-8 p-0"
                                           data-testid={`button-share-${result.id}`}
@@ -4289,28 +4275,14 @@ Report generated from EMRSoft System`;
                                     variant="outline"
                                     size="sm"
                                     onClick={() => {
-                                      const resultData = {
-                                        testId: result.testId,
-                                        testType: result.testType,
-                                        patientName: getPatientName(result.patientId),
-                                        doctorName: result.doctorName || 'Dr. Sarah Williams',
-                                        status: result.status,
-                                        orderedAt: format(new Date(result.orderedAt), 'PPP'),
-                                      };
-                                      
-                                      if (navigator.share) {
-                                        navigator.share({
-                                          title: `Lab Result - ${result.testId}`,
-                                          text: `Lab Result for ${getPatientName(result.patientId)}\nTest: ${result.testType}\nStatus: ${result.status}\nOrdered: ${format(new Date(result.orderedAt), 'PPP')}`,
-                                        }).catch(() => {});
-                                      } else {
-                                        const shareText = `Lab Result - ${result.testId}\n\nPatient: ${getPatientName(result.patientId)}\nTest Type: ${result.testType}\nDoctor: ${result.doctorName || 'Dr. Sarah Williams'}\nStatus: ${result.status}\nOrdered: ${format(new Date(result.orderedAt), 'PPP')}`;
-                                        navigator.clipboard.writeText(shareText);
-                                        toast({
-                                          title: "Copied to Clipboard",
-                                          description: "Lab result details copied to clipboard",
-                                        });
-                                      }
+                                      setSelectedResult(result);
+                                      setShowShareDialog(true);
+                                      setShareFormData({
+                                        method: "email",
+                                        email: "",
+                                        whatsapp: "",
+                                        message: `Lab result for ${result.testType} (Test ID: ${result.testId}) is now available for review.`,
+                                      });
                                     }}
                                     className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
                                     data-testid={`button-share-lab-report-${result.id}`}
@@ -6324,57 +6296,34 @@ Report generated from EMRSoft System`;
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Share Lab Results</DialogTitle>
+            <DialogTitle>Share Lab Result</DialogTitle>
           </DialogHeader>
           {selectedResult && (
             <div className="space-y-4">
               <div className="text-sm text-gray-600">
-                Share results for{" "}
+                Share study for{" "}
                 <strong>{getPatientName(selectedResult.patientId)}</strong>
               </div>
 
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Contact Method</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="email"
-                      name="method"
-                      value="email"
-                      checked={shareFormData.method === "email"}
-                      onChange={(e) =>
-                        setShareFormData((prev) => ({
-                          ...prev,
-                          method: e.target.value,
-                        }))
-                      }
-                      className="w-4 h-4"
-                    />
-                    <Label htmlFor="email" className="text-sm">
-                      Email
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="whatsapp"
-                      name="method"
-                      value="whatsapp"
-                      checked={shareFormData.method === "whatsapp"}
-                      onChange={(e) =>
-                        setShareFormData((prev) => ({
-                          ...prev,
-                          method: e.target.value,
-                        }))
-                      }
-                      className="w-4 h-4"
-                    />
-                    <Label htmlFor="whatsapp" className="text-sm">
-                      WhatsApp
-                    </Label>
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactMethod" className="text-sm font-medium">Contact Method</Label>
+                <Select
+                  value={shareFormData.method}
+                  onValueChange={(value) =>
+                    setShareFormData((prev) => ({
+                      ...prev,
+                      method: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger id="contactMethod">
+                    <SelectValue placeholder="Select contact method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {shareFormData.method === "email" && (
@@ -6385,7 +6334,7 @@ Report generated from EMRSoft System`;
                   <Input
                     id="emailAddress"
                     type="email"
-                    placeholder="patient@example.com"
+                    placeholder="Enter email address"
                     value={shareFormData.email}
                     onChange={(e) =>
                       setShareFormData((prev) => ({
@@ -6426,7 +6375,7 @@ Report generated from EMRSoft System`;
                 </Label>
                 <Textarea
                   id="shareMessage"
-                  placeholder="Add a personal message..."
+                  placeholder="Lab result details..."
                   value={shareFormData.message}
                   onChange={(e) =>
                     setShareFormData((prev) => ({
@@ -6438,7 +6387,7 @@ Report generated from EMRSoft System`;
                 />
               </div>
 
-              <div className="flex justify-between items-center pt-4 border-t">
+              <div className="flex justify-between items-center pt-4">
                 <Button
                   variant="outline"
                   onClick={() => setShowShareDialog(false)}
@@ -6455,8 +6404,8 @@ Report generated from EMRSoft System`;
                         : shareFormData.whatsapp;
 
                     toast({
-                      title: "Results Shared",
-                      description: `Lab results sent to ${getPatientName(selectedResult.patientId)} via ${method} (${contact})`,
+                      title: "Study Shared",
+                      description: `Lab result sent to ${getPatientName(selectedResult.patientId)} via ${method} (${contact})`,
                     });
                     setShowShareDialog(false);
                     setShareFormData({
@@ -6475,7 +6424,8 @@ Report generated from EMRSoft System`;
                   }
                   className="bg-medical-blue hover:bg-blue-700"
                 >
-                  Send Results
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share Study
                 </Button>
               </div>
             </div>
