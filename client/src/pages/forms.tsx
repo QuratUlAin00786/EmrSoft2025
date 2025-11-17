@@ -3016,6 +3016,9 @@ Coverage Details: [Insurance Coverage]`;
           case "health-plus":
             logoHTML = `<div style="text-align: center; margin: 20px 0;"><div style="color: #059669; font-size: 32px; margin-bottom: 8px;">⚕️</div><div style="color: #059669; font-size: 18px; font-weight: bold;">${clinicInfo.name || "Health Plus"}</div></div>`;
             break;
+          case "emr-logo":
+            logoHTML = `<div style="text-align: center; margin: 20px 0;"><img src="/emr-logo.png" alt="EMR Logo" style="max-width: 200px; max-height: 100px; object-fit: contain;" /></div>`;
+            break;
         }
       }
 
@@ -6365,6 +6368,20 @@ Registration No: [Number]`
                     <div className="text-2xl mb-2 text-green-600">⚕️</div>
                     <div className="text-sm font-medium">Health Plus</div>
                     <div className="text-xs text-gray-500">Medical symbol</div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-auto p-4 flex flex-col items-center justify-center"
+                    onClick={() => insertLogo("emr-logo")}
+                  >
+                    <img 
+                      src="/emr-logo.png" 
+                      alt="EMR Logo" 
+                      className="w-12 h-12 mb-2 object-contain"
+                    />
+                    <div className="text-sm font-medium">EMR Logo</div>
+                    <div className="text-xs text-gray-500">EMR Soft branding</div>
                   </Button>
 
                   <Button
