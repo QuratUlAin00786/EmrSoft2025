@@ -44,7 +44,7 @@ export default function FeaturesPage() {
             <Link href="/landing" className="flex items-center space-x-3">
               <img 
                 src={curaLogoPath} 
-                alt="Cura EMR" 
+                alt="EMRSoft" 
                 className="h-12 w-auto"
                 style={{height: '60px'}}
               />
@@ -80,7 +80,7 @@ export default function FeaturesPage() {
             Complete <span className="text-blue-600">Healthcare Management</span> Suite
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            Discover every feature that makes Cura EMR the most comprehensive 
+            Discover every feature that makes EMRSoft the most comprehensive 
             and intelligent healthcare management platform available today.
           </p>
           <div className="flex items-center justify-center space-x-4 mb-12">
@@ -316,7 +316,7 @@ export default function FeaturesPage() {
                 <div className="flex items-center space-x-4">
                   <Smartphone className="h-10 w-10 text-blue-600" />
                   <div>
-                    <CardTitle className="text-2xl">Cura Patient App</CardTitle>
+                    <CardTitle className="text-2xl">EMRSoft Patient App</CardTitle>
                     <p className="text-gray-600 dark:text-gray-300">For patients and caregivers</p>
                   </div>
                 </div>
@@ -352,7 +352,7 @@ export default function FeaturesPage() {
                 <div className="flex items-center space-x-4">
                   <Stethoscope className="h-10 w-10 text-green-600" />
                   <div>
-                    <CardTitle className="text-2xl">Cura Doctor App</CardTitle>
+                    <CardTitle className="text-2xl">EMRSoft Doctor App</CardTitle>
                     <p className="text-gray-600 dark:text-gray-300">For healthcare providers</p>
                   </div>
                 </div>
@@ -500,10 +500,10 @@ export default function FeaturesPage() {
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-            Ready to Experience Cura EMR?
+            Ready to Experience EMRSoft?
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            Join thousands of healthcare professionals who have transformed their practice with Cura EMR.
+            Join thousands of healthcare professionals who have transformed their practice with EMRSoft.
             Start your free trial today and see the difference intelligent healthcare management can make.
           </p>
           
@@ -548,7 +548,7 @@ export default function FeaturesPage() {
               <div className="flex items-center space-x-3 mb-6">
                 <img 
                   src={curaLogoPath} 
-                  alt="Cura EMR - Electronic Medical Records" 
+                  alt="EMRSoft - Electronic Medical Records" 
                   className="h-12 w-auto"
                 />
               </div>
@@ -557,7 +557,7 @@ export default function FeaturesPage() {
                 Trusted, secure, and intelligent healthcare management.
               </p>
               <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-600 shadow-sm">
-                <div className="font-semibold text-gray-900 mb-2">Cura Software Limited</div>
+                <div className="font-semibold text-gray-900 mb-2">EMRSoft Software Limited</div>
                 <div>Ground Floor Unit 2, Drayton Court</div>
                 <div>Drayton Road, Solihull, England B90 4NG</div>
                 <div className="mt-2">Company Registration: 16556912</div>
@@ -599,7 +599,7 @@ export default function FeaturesPage() {
           <div className="border-t border-gray-200 mt-12 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="text-gray-600 text-sm mb-4 md:mb-0">
-                &copy; 2025 Cura Software Limited. All rights reserved. 
+                &copy; 2025 EMRSoft Software Limited. All rights reserved. 
                 <span className="ml-2">Company No: 16556912</span>
               </div>
               <div className="flex items-center space-x-6 text-sm">

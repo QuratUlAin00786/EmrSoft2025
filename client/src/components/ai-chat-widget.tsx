@@ -162,7 +162,7 @@ export function AIChatWidget() {
     {
       id: '1',
       type: 'assistant',
-      content: "Hello! I'm your Cura AI Assistant. Please select what you'd like to do:",
+      content: "Hello! I'm your EMRSoft AI Assistant. Please select what you'd like to do:",
       timestamp: new Date(),
       showMainOptions: true
     }
@@ -667,7 +667,7 @@ export function AIChatWidget() {
       const completionMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: "Thank you for using Cura AI Assistant! If you need any further assistance, feel free to ask.",
+        content: "Thank you for using EMRSoft AI Assistant! If you need any further assistance, feel free to ask.",
         timestamp: new Date(),
         showMainOptions: true
       };
@@ -710,7 +710,7 @@ export function AIChatWidget() {
       const completionMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: "Thank you for using Cura AI Assistant! If you need any further assistance, feel free to ask.",
+        content: "Thank you for using EMRSoft AI Assistant! If you need any further assistance, feel free to ask.",
         timestamp: new Date(),
         showMainOptions: true
       };
@@ -753,7 +753,7 @@ export function AIChatWidget() {
       const completionMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: "Thank you for using Cura AI Assistant! If you need any further assistance, feel free to ask.",
+        content: "Thank you for using EMRSoft AI Assistant! If you need any further assistance, feel free to ask.",
         timestamp: new Date(),
         showMainOptions: true
       };
@@ -1773,7 +1773,7 @@ export function AIChatWidget() {
         <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">Cura AI Assistant</CardTitle>
+            <CardTitle className="text-lg">EMRSoft AI Assistant</CardTitle>
           </div>
           <div className="flex items-center gap-2">
             <Button

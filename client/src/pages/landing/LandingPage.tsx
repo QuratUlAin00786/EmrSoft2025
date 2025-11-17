@@ -27,7 +27,7 @@ export default function LandingPage() {
             <div className="flex items-center space-x-3">
               <img 
                 src="/cura-logo.svg" 
-                alt="Cura EMR - Electronic Medical Records" 
+                alt="EMRSoft - Electronic Medical Records" 
                 className="h-14 w-auto"
               />
             </div>
@@ -80,7 +80,7 @@ export default function LandingPage() {
                 <span className="block text-blue-200">Electronic Medical Records</span>
               </h1>
               <p className="text-xl text-blue-100 mb-10 leading-relaxed">
-                Cura EMR transforms healthcare delivery with intelligent patient management, 
+                EMRSoft transforms healthcare delivery with intelligent patient management, 
                 AI-powered clinical insights, and comprehensive practice automation designed 
                 specifically for modern healthcare professionals.
               </p>
@@ -147,7 +147,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              See Cura EMR in Action
+              See EMRSoft in Action
             </h2>
             <p className="text-lg text-gray-600">
               Experience the power of intelligent healthcare management
@@ -158,7 +158,7 @@ export default function LandingPage() {
             <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl p-12 aspect-video flex items-center justify-center">
               <div className="text-center">
                 <Calendar className="w-20 h-20 mx-auto mb-4 text-blue-600" />
-                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Cura EMR Dashboard</h3>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">EMRSoft Dashboard</h3>
                 <p className="text-gray-600 dark:text-gray-400 mt-2">Complete Patient Management Interface</p>
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function LandingPage() {
               <span className="block text-blue-600">That Works For You</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
-              From patient records to AI-powered insights, Cura EMR provides everything your healthcare practice needs 
+              From patient records to AI-powered insights, EMRSoft provides everything your healthcare practice needs 
               to deliver exceptional care while maintaining the highest standards of security and compliance.
             </p>
           </div>
@@ -274,7 +274,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Why Choose Cura */}
+      {/* Why Choose EMRSoft */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
@@ -283,10 +283,10 @@ export default function LandingPage() {
             </div>
             <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
               Why Leading Healthcare
-              <span className="block text-blue-600">Practices Choose Cura</span>
+              <span className="block text-blue-600">Practices Choose EMRSoft</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
-              Over 500 healthcare practices across the UK trust Cura EMR to deliver exceptional patient care, 
+              Over 500 healthcare practices across the UK trust EMRSoft to deliver exceptional patient care, 
               streamline operations, and maintain the highest standards of clinical excellence.
             </p>
           </div>
@@ -402,7 +402,7 @@ export default function LandingPage() {
               <span className="block text-blue-600">Healthcare Leaders</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              Discover how leading healthcare practices are transforming patient care and operational efficiency with Cura EMR.
+              Discover how leading healthcare practices are transforming patient care and operational efficiency with EMRSoft.
             </p>
           </div>
           
@@ -441,7 +441,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <p className="text-gray-700 leading-relaxed mb-6">
-                "Security was our biggest concern, but Cura's GDPR compliance framework exceeded our expectations. 
+                "Security was our biggest concern, but EMRSoft's GDPR compliance framework exceeded our expectations. 
                 The seamless patient communication and data protection give us complete confidence."
               </p>
               <div className="flex items-center text-yellow-500">
@@ -463,7 +463,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <p className="text-gray-700 leading-relaxed mb-6">
-                "Managing multiple locations became effortless with Cura. The mobile apps allow real-time access 
+                "Managing multiple locations became effortless with EMRSoft. The mobile apps allow real-time access 
                 to patient records across all sites, and the implementation team made the transition seamless."
               </p>
               <div className="flex items-center text-yellow-500">
@@ -579,7 +579,7 @@ export default function LandingPage() {
               <div className="flex items-center space-x-3 mb-6">
                 <img 
                   src="/cura-logo.svg" 
-                  alt="Cura EMR - Electronic Medical Records" 
+                  alt="EMRSoft - Electronic Medical Records" 
                   className="h-12 w-auto"
                 />
               </div>
@@ -588,7 +588,7 @@ export default function LandingPage() {
                 Trusted, secure, and intelligent healthcare management.
               </p>
               <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-600 shadow-sm">
-                <div className="font-semibold text-gray-900 mb-2">Cura Software Limited</div>
+                <div className="font-semibold text-gray-900 mb-2">EMRSoft Software Limited</div>
                 <div>Ground Floor Unit 2, Drayton Court</div>
                 <div>Drayton Road, Solihull, England B90 4NG</div>
                 <div className="mt-2">Company Registration: 16556912</div>
@@ -630,7 +630,7 @@ export default function LandingPage() {
           <div className="border-t border-gray-200 mt-12 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="text-gray-600 text-sm mb-4 md:mb-0">
-                &copy; 2025 Cura Software Limited. All rights reserved. 
+                &copy; 2025 EMRSoft Software Limited. All rights reserved. 
                 <span className="ml-2">Company No: 16556912</span>
               </div>
               <div className="flex items-center space-x-6 text-sm">

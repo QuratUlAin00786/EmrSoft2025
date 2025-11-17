@@ -150,7 +150,7 @@ export default function SaaSLogin({ onLoginSuccess }: SaaSLoginProps) {
 
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-              This is a restricted area for Cura Software Limited owner only.
+              This is a restricted area for EMRSoft Software Limited owner only.
               <br />
               Unauthorized access is prohibited.
             </p>

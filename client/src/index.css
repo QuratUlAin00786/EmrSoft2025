@@ -210,7 +210,7 @@ button[data-testid="delete-customer-button"] {
   --ring: #4A7DFF;
   --radius: 0.5rem;
   
-  /* Cura brand colors - EXACT HEX VALUES FROM BRAND GUIDE */
+  /* EMRSoft brand colors - EXACT HEX VALUES FROM BRAND GUIDE */
   --cura-bluewave: #4A7DFF;        /* Primary - Bluewave */
   --cura-electric-lilac: #7279FB;  /* Secondary - Electric Lilac */
   --cura-electric-violet: #C073FF; /* Electric Violet */
@@ -254,7 +254,7 @@ button[data-testid="delete-customer-button"] {
   --ring: #4A7DFF;
   --radius: 0.5rem;
   
-  /* Cura brand colors for dark mode - exact hex values */
+  /* EMRSoft brand colors for dark mode - exact hex values */
   --cura-bluewave: #4A7DFF;
   --cura-electric-lilac: #7279FB;
   --cura-electric-violet: #C073FF;

@@ -10,7 +10,7 @@ export default function PricingPage() {
       name: "Free Trial",
       price: "£0",
       period: "14 days",
-      description: "Perfect for trying out Cura EMR",
+      description: "Perfect for trying out EMRSoft",
       icon: Star,
       color: "text-green-600",
       bgColor: "bg-green-50 dark:bg-green-900/20",
@@ -133,11 +133,11 @@ export default function PricingPage() {
             <Link href="/" className="flex items-center space-x-3">
               <img 
                 src={curaLogoPath} 
-                alt="Cura EMR" 
+                alt="EMRSoft" 
                 className="h-12 w-auto"
               />
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">Cura EMR</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">EMRSoft</span>
                 <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Halo Group</span>
               </div>
             </Link>
@@ -302,7 +302,7 @@ export default function PricingPage() {
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
                 No setup fees for any plan. We include free onboarding and training to help you 
-                get started quickly with Cura EMR.
+                get started quickly with EMRSoft.
               </p>
             </div>
 
@@ -351,7 +351,7 @@ export default function PricingPage() {
               <div className="flex items-center space-x-3 mb-6">
                 <img 
                   src={curaLogoPath} 
-                  alt="Cura EMR - Electronic Medical Records" 
+                  alt="EMRSoft - Electronic Medical Records" 
                   className="h-12 w-auto"
                 />
               </div>
@@ -360,7 +360,7 @@ export default function PricingPage() {
                 Trusted, secure, and intelligent healthcare management.
               </p>
               <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-600 shadow-sm">
-                <div className="font-semibold text-gray-900 mb-2">Cura Software Limited</div>
+                <div className="font-semibold text-gray-900 mb-2">EMRSoft Software Limited</div>
                 <div>Ground Floor Unit 2, Drayton Court</div>
                 <div>Drayton Road, Solihull, England B90 4NG</div>
                 <div className="mt-2">Company Registration: 16556912</div>
@@ -402,7 +402,7 @@ export default function PricingPage() {
           <div className="border-t border-gray-200 mt-12 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="text-gray-600 text-sm mb-4 md:mb-0">
-                &copy; 2025 Cura Software Limited. All rights reserved. 
+                &copy; 2025 EMRSoft Software Limited. All rights reserved. 
                 <span className="ml-2">Company No: 16556912</span>
               </div>
               <div className="flex items-center space-x-6 text-sm">

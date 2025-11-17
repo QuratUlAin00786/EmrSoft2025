@@ -14,7 +14,7 @@ export default function TermsOfService() {
             <Link href="/" className="flex items-center space-x-3">
               <img 
                 src={curaLogoPath} 
-                alt="Cura EMR" 
+                alt="EMRSoft" 
                 className="h-16 w-auto"
               />
             </Link>
@@ -45,8 +45,8 @@ export default function TermsOfService() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">1. Agreement to Terms</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              These Terms of Service ("Terms") govern your use of the Cura EMR platform operated by 
-              Cura Software Limited, a company incorporated in England & Wales under registration number 
+              These Terms of Service ("Terms") govern your use of the EMRSoft platform operated by 
+              EMRSoft Software Limited, a company incorporated in England & Wales under registration number 
               16556912, whose registered office is at Ground Floor Unit 2, Drayton Court, Drayton Road, 
               Solihull, England B90 4NG.
             </p>
@@ -59,7 +59,7 @@ export default function TermsOfService() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">2. Description of Service</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Cura EMR is a comprehensive Electronic Medical Records platform that provides:
+              EMRSoft is a comprehensive Electronic Medical Records platform that provides:
             </p>
             <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 space-y-2">
               <li>Patient management and medical record storage</li>
@@ -149,8 +149,8 @@ export default function TermsOfService() {
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">7. Intellectual Property</h2>
             <h3 className="text-xl font-medium mb-3 text-gray-800 dark:text-gray-200">Our Intellectual Property</h3>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              The Cura EMR platform, including all software, documentation, and related materials, 
-              is owned by Cura Software Limited and protected by copyright, trademark, and other 
+              The EMRSoft platform, including all software, documentation, and related materials, 
+              is owned by EMRSoft Software Limited and protected by copyright, trademark, and other 
               intellectual property laws.
             </p>
 
@@ -186,7 +186,7 @@ export default function TermsOfService() {
               </div>
             </div>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              To the maximum extent permitted by law, Cura Software Limited shall not be liable for:
+              To the maximum extent permitted by law, EMRSoft Software Limited shall not be liable for:
             </p>
             <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 space-y-2">
               <li>Any indirect, incidental, special, or consequential damages</li>

@@ -64,7 +64,7 @@ export function WebsiteChatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hello! I'm your Cura EMR assistant. I can help you with:\n\n• Book real appointments with doctors\n• Request prescription renewals\n• Schedule a system demo\n• Answer questions about features\n• Connect you with sales\n\nHow may I assist you today?",
+      text: "Hello! I'm your EMRSoft assistant. I can help you with:\n\n• Book real appointments with doctors\n• Request prescription renewals\n• Schedule a system demo\n• Answer questions about features\n• Connect you with sales\n\nHow may I assist you today?",
       isUser: false,
       timestamp: new Date(),
       quickActions: [
@@ -146,7 +146,7 @@ export function WebsiteChatbot() {
         form = 'prescription';
         break;
       case 'demo':
-        responseText = "Great! I'd love to schedule a personalized demo of Cura EMR for you. Please provide your contact details and preferred time.";
+        responseText = "Great! I'd love to schedule a personalized demo of EMRSoft for you. Please provide your contact details and preferred time.";
         form = 'demo';
         break;
       case 'sales':
@@ -185,7 +185,7 @@ export function WebsiteChatbot() {
         { label: "Learn About Process", action: "features", icon: Bot }
       ];
     } else if (userMessage.includes('demo') || userMessage.includes('trial')) {
-      responseText = "I'd be happy to schedule a personalized demo of Cura EMR for you. Our team can show you all the features and how they can benefit your practice.";
+      responseText = "I'd be happy to schedule a personalized demo of EMRSoft for you. Our team can show you all the features and how they can benefit your practice.";
       quickActions = [
         { label: "Schedule Demo", action: "demo", icon: Calendar },
         { label: "View Features", action: "features", icon: Bot }
@@ -197,7 +197,7 @@ export function WebsiteChatbot() {
         { label: "View Pricing Page", action: "pricing", icon: Mail }
       ];
     } else if (userMessage.includes('features') || userMessage.includes('what') || userMessage.includes('how')) {
-      responseText = "Cura EMR includes patient management, appointment scheduling, AI-powered insights, telemedicine, prescription management, and more. Would you like a demo or more specific information?";
+      responseText = "EMRSoft includes patient management, appointment scheduling, AI-powered insights, telemedicine, prescription management, and more. Would you like a demo or more specific information?";
       quickActions = [
         { label: "Schedule Demo", action: "demo", icon: Calendar },
         { label: "Contact Sales", action: "sales", icon: Phone }
@@ -634,7 +634,7 @@ export function WebsiteChatbot() {
             <div className="flex flex-col items-center">
               <img 
                 src="/emr-logo.png" 
-                alt="Cura Chat" 
+                alt="EMRSoft Chat" 
                 className="h-6 w-6 mb-0.5"
               />
               <span className="text-xs text-white font-medium">Chat</span>
@@ -653,11 +653,11 @@ export function WebsiteChatbot() {
                 <div className="flex items-center gap-3">
                   <img 
                     src="/emr-logo.png" 
-                    alt="Cura Logo" 
+                    alt="EMRSoft Logo" 
                     className="h-8 w-auto"
                   />
                   <div>
-                    <div className="font-semibold text-gray-800">Cura Assistant</div>
+                    <div className="font-semibold text-gray-800">EMRSoft Assistant</div>
                     <div className="text-xs text-gray-500">AI-Powered Healthcare Support</div>
                   </div>
                 </div>
@@ -682,7 +682,7 @@ export function WebsiteChatbot() {
                         {!message.isUser && (
                           <img 
                             src="/emr-logo.png" 
-                            alt="Cura" 
+                            alt="EMRSoft" 
                             className="h-4 w-4 mt-0.5 flex-shrink-0 rounded-sm"
                           />
                         )}
@@ -726,7 +726,7 @@ export function WebsiteChatbot() {
                     <div className="flex items-center gap-2">
                       <img 
                         src="/emr-logo.png" 
-                        alt="Cura" 
+                        alt="EMRSoft" 
                         className="h-4 w-4 rounded-sm"
                       />
                       <div className="flex space-x-1">

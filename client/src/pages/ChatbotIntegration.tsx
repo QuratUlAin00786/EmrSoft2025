@@ -114,8 +114,8 @@ add_action('wp_footer', 'add_cura_chatbot');
 // Add settings page for WordPress admin
 function cura_chatbot_settings_page() {
     add_options_page(
-        'Cura Chatbot Settings',
-        'Cura Chatbot',
+        'EMRSoft Chatbot Settings',
+        'EMRSoft Chatbot',
         'manage_options',
         'cura-chatbot',
         'cura_chatbot_settings_html'
@@ -129,7 +129,7 @@ add_action('admin_menu', 'cura_chatbot_settings_page');
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Chatbot Integration Guide</h1>
         <p className="text-gray-600">
-          Learn how to embed the Cura AI chatbot on your website to help patients book appointments and request prescriptions.
+          Learn how to embed the EMRSoft AI chatbot on your website to help patients book appointments and request prescriptions.
         </p>
       </div>
 

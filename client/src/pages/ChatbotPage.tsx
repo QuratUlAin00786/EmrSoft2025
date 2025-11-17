@@ -130,7 +130,7 @@ export default function ChatbotPage() {
   const generateEmbedCode = () => {
     if (!config) return '';
     
-    return `<!-- Cura Healthcare Chatbot -->
+    return `<!-- EMRSoft Healthcare Chatbot -->
 <script>
 (function() {
   // Create chatbot container

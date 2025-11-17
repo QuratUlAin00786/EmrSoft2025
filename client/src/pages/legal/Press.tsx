@@ -10,23 +10,23 @@ export default function Press() {
   const pressReleases = [
     {
       id: 1,
-      title: "Cura Software Limited Launches Revolutionary AI-Powered EMR Platform",
+      title: "EMRSoft Software Limited Launches Revolutionary AI-Powered EMR Platform",
       date: "15th January 2025",
-      summary: "Cura EMR introduces cutting-edge artificial intelligence capabilities to streamline healthcare workflows and improve patient outcomes across the UK.",
+      summary: "EMRSoft introduces cutting-edge artificial intelligence capabilities to streamline healthcare workflows and improve patient outcomes across the UK.",
       category: "Product Launch",
       featured: true
     },
     {
       id: 2,
-      title: "Cura Software Limited Expands Healthcare Technology Portfolio with Cura EMR",
+      title: "EMRSoft Software Limited Expands Healthcare Technology Portfolio with EMRSoft",
       date: "8th December 2024",
-      summary: "Strategic investment in healthcare technology demonstrates Cura Software Limited's commitment to transforming medical practice management.",
+      summary: "Strategic investment in healthcare technology demonstrates EMRSoft Software Limited's commitment to transforming medical practice management.",
       category: "Company News",
       featured: false
     },
     {
       id: 3,
-      title: "Cura EMR Achieves UK GDPR Compliance Certification",
+      title: "EMRSoft Achieves UK GDPR Compliance Certification",
       date: "22nd November 2024",
       summary: "Comprehensive data protection framework ensures patient privacy and regulatory compliance for healthcare providers.",
       category: "Compliance",
@@ -36,7 +36,7 @@ export default function Press() {
 
   const mediaAssets = [
     {
-      name: "Cura Logo Package",
+      name: "EMRSoft Logo Package",
       description: "High-resolution logos in various formats (PNG, SVG, PDF)",
       size: "2.4 MB",
       type: "Logos"
@@ -64,7 +64,7 @@ export default function Press() {
             <Link href="/" className="flex items-center space-x-3">
               <img 
                 src={curaLogoPath} 
-                alt="Cura EMR" 
+                alt="EMRSoft" 
                 className="h-16 w-auto"
               />
             </Link>
@@ -86,7 +86,7 @@ export default function Press() {
             Press & Media Centre
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            Latest news, press releases, and media resources for Cura Software Limited
+            Latest news, press releases, and media resources for EMRSoft Software Limited
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="bg-blue-600 hover:bg-blue-700">
@@ -185,7 +185,7 @@ export default function Press() {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Company Overview</h2>
               <div className="space-y-4 text-gray-700 dark:text-gray-300">
                 <p>
-                  <strong>Company Name:</strong> Cura Software Limited
+                  <strong>Company Name:</strong> EMRSoft Software Limited
                 </p>
                 <p>
                   <strong>Registration:</strong> England & Wales (16556912)

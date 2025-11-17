@@ -47,7 +47,7 @@ export default function SaaSSettings() {
 
   const [formData, setFormData] = useState({
     systemSettings: {
-      platformName: settings?.systemSettings?.platformName || 'Cura EMR Platform',
+      platformName: settings?.systemSettings?.platformName || 'EMRSoft Platform',
       supportEmail: settings?.systemSettings?.supportEmail || 'support@curaemr.ai',
       maintenanceMode: settings?.systemSettings?.maintenanceMode || false,
       registrationEnabled: settings?.systemSettings?.registrationEnabled || true,
@@ -59,7 +59,7 @@ export default function SaaSSettings() {
       smtpUsername: settings?.emailSettings?.smtpUsername || '',
       smtpPassword: settings?.emailSettings?.smtpPassword || '',
       fromEmail: settings?.emailSettings?.fromEmail || '',
-      fromName: settings?.emailSettings?.fromName || 'Cura Software Limited',
+      fromName: settings?.emailSettings?.fromName || 'EMRSoft Software Limited',
     },
     securitySettings: {
       passwordMinLength: settings?.securitySettings?.passwordMinLength || 8,
@@ -120,7 +120,7 @@ export default function SaaSSettings() {
   const resetToDefaults = () => {
     setFormData({
       systemSettings: {
-        platformName: 'Cura EMR Platform',
+        platformName: 'EMRSoft Platform',
         supportEmail: 'support@curaemr.ai',
         maintenanceMode: false,
         registrationEnabled: true,
@@ -132,7 +132,7 @@ export default function SaaSSettings() {
         smtpUsername: '',
         smtpPassword: '',
         fromEmail: '',
-        fromName: 'Cura Software Limited',
+        fromName: 'EMRSoft Software Limited',
       },
       securitySettings: {
         passwordMinLength: 8,

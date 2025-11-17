@@ -2430,9 +2430,9 @@ export default function BillingPage() {
         doc.setTextColor(107, 114, 128);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        const footerText = clinicFooter?.footerText || 'Thank you for choosing Cura Medical Practice for your healthcare needs.';
+        const footerText = clinicFooter?.footerText || 'Thank you for choosing EMRSoft Medical Practice for your healthcare needs.';
         doc.text(footerText, pageWidth / 2, footerY + 2, { align: 'center' });
-        doc.text('© 2025 Cura Software Limited - Powered by Halo Group & Averox Technologies', pageWidth / 2, footerY + 8, { align: 'center' });
+        doc.text('© 2025 EMRSoft Software Limited - Powered by Halo Group & Averox Technologies', pageWidth / 2, footerY + 8, { align: 'center' });
         doc.text(`Page ${pageNum}`, pageWidth - margin, footerY + 2, { align: 'right' });
       };
 
@@ -2654,9 +2654,9 @@ export default function BillingPage() {
       doc.setTextColor(107, 114, 128);
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      const footerText = clinicFooter?.footerText || 'Thank you for choosing Cura Medical Practice for your healthcare needs.';
+      const footerText = clinicFooter?.footerText || 'Thank you for choosing EMRSoft Medical Practice for your healthcare needs.';
       doc.text(footerText, pageWidth / 2, footerY + 2, { align: 'center' });
-      doc.text('© 2025 Cura Software Limited - Powered by Halo Group & Averox Technologies', pageWidth / 2, footerY + 8, { align: 'center' });
+      doc.text('© 2025 EMRSoft Software Limited - Powered by Halo Group & Averox Technologies', pageWidth / 2, footerY + 8, { align: 'center' });
       
       // Page number
       doc.text(`Page ${pageNum}`, pageWidth - margin, footerY + 2, { align: 'right' });
@@ -3594,7 +3594,7 @@ export default function BillingPage() {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     
-    // Cura Brand Colors
+    // EMRSoft Brand Colors
     const primaryColor = '#4A7DFF'; // Bluewave
     const accentColor = '#6CFFEB'; // Mint Drift
     const darkGray = '#1F2937';
@@ -3607,7 +3607,7 @@ export default function BillingPage() {
       pdf.setTextColor(100, 100, 100);
       pdf.text(`Generated: ${format(new Date(), 'MMM d, yyyy HH:mm')}`, 14, footerY);
       pdf.text(`Page ${pageNum}`, pageWidth - 30, footerY);
-      pdf.text('Cura EMR - Confidential', pageWidth / 2, footerY, { align: 'center' });
+      pdf.text('EMRSoft - Confidential', pageWidth / 2, footerY, { align: 'center' });
     };
     
     let currentPage = 1;

@@ -14,7 +14,7 @@ export default function GDPRCompliance() {
             <Link href="/" className="flex items-center space-x-3">
               <img 
                 src={curaLogoPath} 
-                alt="Cura EMR" 
+                alt="EMRSoft" 
                 className="h-16 w-auto"
               />
             </Link>
@@ -37,7 +37,7 @@ export default function GDPRCompliance() {
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white">GDPR Compliance</h1>
           </div>
           <p className="text-gray-600 dark:text-gray-300 text-lg">
-            How Cura Software Limited ensures full compliance with UK GDPR and data protection regulations
+            How EMRSoft Software Limited ensures full compliance with UK GDPR and data protection regulations
           </p>
         </div>
 
@@ -45,7 +45,7 @@ export default function GDPRCompliance() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Our Commitment to Data Protection</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Cura Software Limited is fully committed to protecting your personal data and respecting your privacy rights. 
+              EMRSoft Software Limited is fully committed to protecting your personal data and respecting your privacy rights. 
               As a healthcare technology company processing sensitive medical information, we maintain the highest standards 
               of data protection compliance.
             </p>
@@ -268,7 +268,7 @@ export default function GDPRCompliance() {
                 <div>
                   <strong className="text-blue-900 dark:text-blue-100">Our ICO Registration:</strong><br />
                   <span className="text-blue-800 dark:text-blue-200">
-                    Data Controller: Cura Software Limited<br />
+                    Data Controller: EMRSoft Software Limited<br />
                     Registration Number: [Available upon request]<br />
                     Status: Current and compliant
                   </span>
@@ -296,7 +296,7 @@ export default function GDPRCompliance() {
                 <div>
                   <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">Company Address</h3>
                   <p className="text-gray-700 dark:text-gray-300">
-                    Cura Software Limited<br />
+                    EMRSoft Software Limited<br />
                     Ground Floor Unit 2, Drayton Court<br />
                     Drayton Road, Solihull<br />
                     England B90 4NG<br />

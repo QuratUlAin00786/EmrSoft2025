@@ -99,7 +99,7 @@ export default function HelpCentre() {
             <Link href="/" className="flex items-center space-x-3">
               <img 
                 src={curaLogoPath} 
-                alt="Cura EMR" 
+                alt="EMRSoft" 
                 className="h-12 w-auto"
               />
               <div className="flex flex-col">
@@ -349,12 +349,12 @@ export default function HelpCentre() {
               <CardContent className="space-y-3">
                 <Link href="/auth/login" className="block p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                   <div className="font-medium">System Login</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Access your Cura EMR account</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Access your EMRSoft account</div>
                 </Link>
                 
                 <Link href="/landing/features" className="block p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                   <div className="font-medium">Feature Documentation</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Learn about Cura EMR features</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Learn about EMRSoft features</div>
                 </Link>
                 
                 <Link href="/legal/privacy" className="block p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">

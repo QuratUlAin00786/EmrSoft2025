@@ -1162,7 +1162,7 @@ export default function QuickBooks() {
             <DialogDescription>
               {connectionSuccess 
                 ? "Successfully connected to QuickBooks!"
-                : "Please authorize Cura to access your QuickBooks account"
+                : "Please authorize EMRSoft to access your QuickBooks account"
               }
             </DialogDescription>
           </DialogHeader>
@@ -1177,7 +1177,7 @@ export default function QuickBooks() {
                     QuickBooks Successfully Connected!
                   </h3>
                   <div className="mt-2 text-sm text-green-700">
-                    <p>Your QuickBooks account has been successfully integrated with Cura EMR.</p>
+                    <p>Your QuickBooks account has been successfully integrated with EMRSoft.</p>
                     {connectionRealmId && (
                       <p className="mt-1 font-mono text-xs">Realm ID: {connectionRealmId}</p>
                     )}

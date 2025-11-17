@@ -465,7 +465,7 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
         
         if (!data.emailAvailable) {
           if (data.associatedWithAnotherOrg) {
-            setEmailError("This email is associated with another Cura's organization.");
+            setEmailError("This email is associated with another EMRSoft's organization.");
           } else {
             setEmailError("This email is already in use.");
           }

@@ -104,7 +104,7 @@ export default function LiveApp() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Cura EMR Live Demo
+                  EMRSoft Live Demo
                 </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   by Halo Group & Averox
@@ -677,7 +677,7 @@ export default function LiveApp() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-              <span>© 2025 Cura EMR System</span>
+              <span>© 2025 EMRSoft System</span>
               <span>•</span>
               <span>by Halo Group & Averox</span>
             </div>

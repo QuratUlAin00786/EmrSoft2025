@@ -340,7 +340,7 @@ export default function AboutPage() {
                 Trusted, secure, and intelligent healthcare management.
               </p>
               <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-600 shadow-sm">
-                <div className="font-semibold text-gray-900 mb-2">Cura Software Limited</div>
+                <div className="font-semibold text-gray-900 mb-2">EMRSoft Software Limited</div>
                 <div>Ground Floor Unit 2, Drayton Court</div>
                 <div>Drayton Road, Solihull, England B90 4NG</div>
                 <div className="mt-2">Company Registration: 16556912</div>
@@ -382,7 +382,7 @@ export default function AboutPage() {
           <div className="border-t border-gray-200 mt-12 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="text-gray-600 text-sm mb-4 md:mb-0">
-                &copy; 2025 Cura Software Limited. All rights reserved. 
+                &copy; 2025 EMRSoft Software Limited. All rights reserved. 
                 <span className="ml-2">Company No: 16556912</span>
               </div>
               <div className="flex items-center space-x-6 text-sm">

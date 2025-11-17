@@ -1507,7 +1507,7 @@ export default function PrescriptionsPage() {
               { align: "center" },
             );
             pdf.text(
-              "Cura EMR Platform - Electronic Prescription System",
+              "EMRSoft Platform - Electronic Prescription System",
               105,
               footerY + 11,
               { align: "center" },
@@ -5755,7 +5755,7 @@ export default function PrescriptionsPage() {
                     <div className="grid grid-cols-2 gap-4 text-xs">
                       <div>
                         <p>
-                          <strong>Certificate Authority:</strong> Cura Health CA
+                          <strong>Certificate Authority:</strong> EMRSoft Health CA
                         </p>
                         <p>
                           <strong>Certificate Type:</strong> Medical

@@ -46,7 +46,7 @@ export default function TechSpecExport() {
     <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto p-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Cura EMR Technical Specification</h1>
+          <h1 className="text-3xl font-bold text-gray-900">EMRSoft Technical Specification</h1>
           <Button onClick={generatePDF} className="flex items-center gap-2">
             <Download className="h-4 w-4" />
             Download PDF
@@ -59,11 +59,11 @@ export default function TechSpecExport() {
             <div className="space-y-4">
               <img 
                 src="/api/placeholder/200/80" 
-                alt="Cura EMR Logo" 
+                alt="EMRSoft Logo" 
                 className="mx-auto"
                 style={{ width: '200px', height: '80px' }}
               />
-              <h1 className="text-4xl font-bold text-blue-900">Cura EMR System</h1>
+              <h1 className="text-4xl font-bold text-blue-900">EMRSoft System</h1>
               <h2 className="text-2xl font-semibold text-gray-700">Technical Specification Document</h2>
             </div>
             <div className="space-y-2 text-lg text-gray-600">
@@ -126,7 +126,7 @@ export default function TechSpecExport() {
             
             <h3 className="text-xl font-semibold text-gray-800 mb-3">1.1 System Overview</h3>
             <p className="text-gray-700 mb-4">
-              Cura EMR System is a comprehensive, multi-tenant Electronic Medical Records (EMR) platform designed for healthcare organizations. 
+              EMRSoft System is a comprehensive, multi-tenant Electronic Medical Records (EMR) platform designed for healthcare organizations. 
               The system provides complete healthcare management capabilities including patient management, appointment scheduling, medical records, 
               prescriptions, medical imaging, lab results, billing, and AI-powered clinical insights.
             </p>
@@ -180,7 +180,7 @@ export default function TechSpecExport() {
             
             <h3 className="text-xl font-semibold text-gray-800 mb-3">2.1 Architecture Patterns</h3>
             <p className="text-gray-700 mb-4">
-              Cura EMR follows a modern multi-tenant SaaS architecture with clear separation of concerns:
+              EMRSoft follows a modern multi-tenant SaaS architecture with clear separation of concerns:
             </p>
             <ul className="text-gray-700 list-disc ml-6 mb-4">
               <li><strong>Multi-tenant Architecture:</strong> Single application instance serves multiple healthcare organizations</li>
@@ -352,7 +352,7 @@ export default function TechSpecExport() {
             
             <h3 className="text-xl font-semibold text-gray-800 mb-3">4.1 API Overview</h3>
             <p className="text-gray-700 mb-4">
-              The Cura EMR API provides 294+ RESTful endpoints organized into functional domains. All endpoints require authentication 
+              The EMRSoft API provides 294+ RESTful endpoints organized into functional domains. All endpoints require authentication 
               and tenant context via headers.
             </p>
 
@@ -915,7 +915,7 @@ export default function TechSpecExport() {
             
             <h3 className="text-xl font-semibold text-gray-800 mb-3">9.1 Mobile Architecture</h3>
             <p className="text-gray-700 mb-4">
-              Cura EMR includes two Flutter-based mobile applications providing native iOS and Android experiences 
+              EMRSoft includes two Flutter-based mobile applications providing native iOS and Android experiences 
               for doctors and patients with full API integration.
             </p>
 
@@ -1119,9 +1119,9 @@ export default function TechSpecExport() {
 
           {/* Footer */}
           <div className="text-center text-sm text-gray-500 mt-8 pt-8 border-t border-gray-200">
-            <p>Cura EMR Technical Specification - Version 1.0</p>
+            <p>EMRSoft Technical Specification - Version 1.0</p>
             <p>Generated on {new Date().toLocaleDateString()}</p>
-            <p>© 2025 Cura EMR System - All Rights Reserved</p>
+            <p>© 2025 EMRSoft System - All Rights Reserved</p>
           </div>
         </div>
       </div>

@@ -67,16 +67,16 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
       {/* Company Header */}
       <div className="flex justify-between items-start mb-8">
         <div className="flex items-center space-x-4">
-          {/* Official Cura Logo */}
+          {/* Official EMRSoft Logo */}
           <div className="w-20 h-16">
             <img 
               src={curaLogo} 
-              alt="Cura Logo" 
+              alt="EMRSoft Logo" 
               className="w-full h-full object-contain"
             />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Cura Software Limited</h1>
+            <h1 className="text-2xl font-bold text-gray-900">EMRSoft Software Limited</h1>
             <p className="text-gray-600">Healthcare Management Solutions</p>
           </div>
         </div>
@@ -95,7 +95,7 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
         <div>
           <h3 className="font-semibold text-gray-900 mb-2">From:</h3>
           <div className="text-gray-700">
-            <p className="font-medium">Cura Software Limited</p>
+            <p className="font-medium">EMRSoft Software Limited</p>
             <p>Company Registration: 16556912</p>
             <p>Ground Floor Unit 2</p>
             <p>Drayton Court, Drayton Road</p>
@@ -155,7 +155,7 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
               ))
             ) : (
               <tr className="border-b border-gray-100">
-                <td className="py-3">{invoice.description || 'Cura EMR Software Subscription'}</td>
+                <td className="py-3">{invoice.description || 'EMRSoft Software Subscription'}</td>
                 <td className="py-3 text-right">1</td>
                 <td className="py-3 text-right">{formatCurrency(subtotal, invoice.currency)}</td>
                 <td className="py-3 text-right">{formatCurrency(subtotal, invoice.currency)}</td>
@@ -192,7 +192,7 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
           <h3 className="font-semibold text-gray-900 mb-2">Payment Information</h3>
           <div className="text-sm text-gray-700 bg-blue-50 p-4 rounded">
             <p className="font-medium mb-2">Bank Transfer Details:</p>
-            <p>Account Name: Cura Software Limited</p>
+            <p>Account Name: EMRSoft Software Limited</p>
             <p>Sort Code: 12-34-56</p>
             <p>Account Number: 12345678</p>
             <p>Reference: {invoice.invoiceNumber}</p>
@@ -215,13 +215,13 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
       {/* Footer */}
       <div className="text-center text-sm text-gray-500">
         <p>
-          Cura Software Limited • Registered in England & Wales • Company No. 16556912
+          EMRSoft Software Limited • Registered in England & Wales • Company No. 16556912
         </p>
         <p>
           VAT Registration Number: GB123 4567 89 • www.curaemr.ai
         </p>
         <p className="mt-2">
-          Thank you for choosing Cura EMR for your healthcare management needs.
+          Thank you for choosing EMRSoft for your healthcare management needs.
         </p>
       </div>
     </div>

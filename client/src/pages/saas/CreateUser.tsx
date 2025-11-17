@@ -249,7 +249,7 @@ export default function CreateUser() {
             <UserPlus className="h-8 w-8 text-indigo-600" />
             Create New User
           </h1>
-          <p className="text-gray-600 mt-2">Add a new user to the Cura EMR system</p>
+          <p className="text-gray-600 mt-2">Add a new user to the EMRSoft system</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

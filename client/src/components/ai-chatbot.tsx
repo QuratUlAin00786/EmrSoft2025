@@ -269,7 +269,7 @@ export function AIChatbot({ isOpen, onClose }: ChatbotProps) {
                   <span>Available 24/7</span>
                 </div>
               </div>
-              <span>Powered by Cura AI</span>
+              <span>Powered by EMRSoft AI</span>
             </div>
           </div>
         </CardContent>

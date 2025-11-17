@@ -14,7 +14,7 @@ export default function PrivacyPolicy() {
             <Link href="/" className="flex items-center space-x-3">
               <img 
                 src={curaLogoPath} 
-                alt="Cura EMR" 
+                alt="EMRSoft" 
                 className="h-16 w-auto"
               />
             </Link>
@@ -45,12 +45,12 @@ export default function PrivacyPolicy() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">1. Company Information</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              This Privacy Policy is provided by Cura Software Limited, a company incorporated in England & Wales 
+              This Privacy Policy is provided by EMRSoft Software Limited, a company incorporated in England & Wales 
               under registration number 16556912, whose registered office is situated at Ground Floor Unit 2, 
               Drayton Court, Drayton Road, Solihull, England B90 4NG.
             </p>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Cura Software Limited operates the Cura EMR platform.
+              EMRSoft Software Limited operates the EMRSoft platform.
             </p>
           </section>
 
@@ -84,7 +84,7 @@ export default function PrivacyPolicy() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">3. How We Use Your Information</h2>
             <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 space-y-2">
-              <li>To provide and maintain the Cura EMR service</li>
+              <li>To provide and maintain the EMRSoft service</li>
               <li>To process patient medical records and healthcare data</li>
               <li>To facilitate communication between healthcare providers and patients</li>
               <li>To generate clinical insights and AI-powered recommendations</li>

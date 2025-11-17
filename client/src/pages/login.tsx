@@ -70,12 +70,12 @@ export default function Login() {
           <div className="flex justify-center mb-6">
             <img 
               src={curaLogoPath} 
-              alt="Cura by halo group" 
+              alt="EMRSoft by halo group" 
               className="h-32 w-auto"
             />
           </div>
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-[hsl(235,45%,25%)] mb-3">Welcome to Cura</h1>
+            <h1 className="text-3xl font-bold text-[hsl(235,45%,25%)] mb-3">Welcome to EMRSoft</h1>
             <div className="space-y-2 text-sm text-[hsl(225,16%,65%)] max-w-sm mx-auto">
               <p className="font-medium text-base">AI-Powered Healthcare Platform</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -197,7 +197,7 @@ export default function Login() {
 
         {/* Footer */}
         <div className="text-center text-xs text-[hsl(225,16%,65%)]">
-          <p>Cura by halo group</p>
+          <p>EMRSoft by halo group</p>
           <p>Secure • Compliant • AI-Powered</p>
         </div>
       </div>

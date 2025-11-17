@@ -175,7 +175,7 @@ export default function SaaSBilling() {
       organizationAddress: `${payment.organizationName}\nHealthcare Organization\nUnited Kingdom`, // Default address format
       lineItems: [
         {
-          description: payment.description || 'Cura EMR Software Subscription',
+          description: payment.description || 'EMRSoft Software Subscription',
           quantity: 1,
           unitPrice: parseFloat(payment.amount),
           total: parseFloat(payment.amount)
