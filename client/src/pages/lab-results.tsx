@@ -1418,7 +1418,7 @@ export default function LabResultsPage() {
         invoiceId: data.invoice.invoiceNumber,
         patientName: pendingOrderData?.patientName,
         amount: invoiceData.totalAmount,
-        paymentMethod: "cash",
+        paymentMethod: invoiceData.paymentMethod,
       });
       setShowSummaryDialog(false);
       setShowPaymentConfirmation(true);
