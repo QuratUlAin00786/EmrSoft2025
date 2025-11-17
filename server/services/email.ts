@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import sgMail from '@sendgrid/mail';
+import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 
 interface EmailOptions {
   to: string;
@@ -30,15 +30,15 @@ class EmailService {
   constructor() {
     // Initialize with fallback transporter
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
+      host: "smtp.ethereal.email",
       port: 587,
       secure: false,
       auth: {
-        user: 'test@test.com',
-        pass: 'test'
-      }
+        user: "test@test.com",
+        pass: "test",
+      },
     });
-    
+
     // Initialize production email service
     this.initializeProductionEmailService();
   }
@@ -46,76 +46,86 @@ class EmailService {
   private async getSendGridCredentials() {
     try {
       const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-      const xReplitToken = process.env.REPL_IDENTITY 
-        ? 'repl ' + process.env.REPL_IDENTITY 
-        : process.env.WEB_REPL_RENEWAL 
-        ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-        : null;
+      const xReplitToken = process.env.REPL_IDENTITY
+        ? "repl " + process.env.REPL_IDENTITY
+        : process.env.WEB_REPL_RENEWAL
+          ? "depl " + process.env.WEB_REPL_RENEWAL
+          : null;
 
       if (!xReplitToken || !hostname) {
-        console.log('[EMAIL] SendGrid connector not available in this environment');
+        console.log(
+          "[EMAIL] SendGrid connector not available in this environment",
+        );
         return null;
       }
 
       this.sendGridConnectionSettings = await fetch(
-        'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=sendgrid',
+        "https://" +
+          hostname +
+          "/api/v2/connection?include_secrets=true&connector_names=sendgrid",
         {
           headers: {
-            'Accept': 'application/json',
-            'X_REPLIT_TOKEN': xReplitToken
-          }
-        }
-      ).then(res => res.json()).then(data => data.items?.[0]);
+            Accept: "application/json",
+            X_REPLIT_TOKEN: xReplitToken,
+          },
+        },
+      )
+        .then((res) => res.json())
+        .then((data) => data.items?.[0]);
 
-      if (!this.sendGridConnectionSettings || !this.sendGridConnectionSettings.settings?.api_key) {
-        console.log('[EMAIL] SendGrid not properly configured');
+      if (
+        !this.sendGridConnectionSettings ||
+        !this.sendGridConnectionSettings.settings?.api_key
+      ) {
+        console.log("[EMAIL] SendGrid not properly configured");
         return null;
       }
 
       return {
         apiKey: this.sendGridConnectionSettings.settings.api_key,
-        fromEmail: this.sendGridConnectionSettings.settings.from_email || 'noreply@curaemr.ai'
+        fromEmail:
+          this.sendGridConnectionSettings.settings.from_email ||
+          "noreply@curaemr.ai",
       };
     } catch (error) {
-      console.error('[EMAIL] Error getting SendGrid credentials:', error);
+      console.error("[EMAIL] Error getting SendGrid credentials:", error);
       return null;
     }
   }
 
   private async initializeProductionEmailService() {
     try {
-      console.log('[EMAIL] Initializing Gmail SMTP for all environments...');
-      
+      console.log("[EMAIL] Initializing Gmail SMTP for all environments...");
+
       // Force use Gmail SMTP for both development and production
-      console.log('[EMAIL] Using Gmail SMTP for email delivery...');
+      console.log("[EMAIL] Using Gmail SMTP for email delivery...");
       // Production-ready email configuration that works in hosting environments
       const smtpConfig = {
-        host: 'smtp.gmail.com',
+        host: "smtp.gmail.com",
         port: 465,
         secure: true,
         auth: {
-          user: 'noreply@curaemr.ai',
-          pass: 'wxndhigmfhgjjklr'
+          user: "noreply@curaemr.ai",
+          pass: "wxndhigmfhgjjklr",
         },
         debug: false,
         logger: false,
         tls: {
-          rejectUnauthorized: false
+          rejectUnauthorized: false,
         },
-        connectionTimeout: 60000,   // 60 seconds for large attachments
-        greetingTimeout: 30000,     // 30 seconds
-        socketTimeout: 60000        // 60 seconds for large attachments
+        connectionTimeout: 60000, // 60 seconds for large attachments
+        greetingTimeout: 30000, // 30 seconds
+        socketTimeout: 60000, // 60 seconds for large attachments
       };
-      
+
       this.transporter = nodemailer.createTransport(smtpConfig);
       // Gmail SMTP configured
       this.initialized = true;
-      
+
       // Skip verification in production to avoid blocking initialization
-      console.log('[EMAIL] ✅ Gmail SMTP configured for production');
-      
+      console.log("[EMAIL] ✅ Gmail SMTP configured for production");
     } catch (error) {
-      console.error('[EMAIL] Failed to initialize email service:', error);
+      console.error("[EMAIL] Failed to initialize email service:", error);
       this.initialized = true;
     }
   }
@@ -124,41 +134,47 @@ class EmailService {
     try {
       const credentials = await this.getSendGridCredentials();
       if (!credentials) {
-        console.log('[EMAIL] SendGrid credentials not available, will try SMTP fallback');
+        console.log(
+          "[EMAIL] SendGrid credentials not available, will try SMTP fallback",
+        );
         return false;
       }
 
       sgMail.setApiKey(credentials.apiKey);
 
       // Prepare attachments in SendGrid format
-      const sendGridAttachments = options.attachments?.map(att => ({
-        content: att.content ? att.content.toString('base64') : '',
-        filename: att.filename,
-        type: att.contentType || 'application/octet-stream',
-        disposition: 'attachment'
-      })) || [];
+      const sendGridAttachments =
+        options.attachments?.map((att) => ({
+          content: att.content ? att.content.toString("base64") : "",
+          filename: att.filename,
+          type: att.contentType || "application/octet-stream",
+          disposition: "attachment",
+        })) || [];
 
       const msg = {
         to: options.to,
         from: options.from || credentials.fromEmail,
         subject: options.subject,
-        text: options.text || '',
-        html: options.html || '',
-        attachments: sendGridAttachments
+        text: options.text || "",
+        html: options.html || "",
+        attachments: sendGridAttachments,
       };
 
-      console.log('[EMAIL] Sending email via SendGrid:', {
+      console.log("[EMAIL] Sending email via SendGrid:", {
         to: msg.to,
         from: msg.from,
         subject: msg.subject,
-        attachmentsCount: sendGridAttachments.length
+        attachmentsCount: sendGridAttachments.length,
       });
 
       await sgMail.send(msg);
-      console.log('[EMAIL] ✅ SendGrid email sent successfully');
+      console.log("[EMAIL] ✅ SendGrid email sent successfully");
       return true;
     } catch (error: any) {
-      console.error('[EMAIL] SendGrid failed:', error.response?.body || error.message);
+      console.error(
+        "[EMAIL] SendGrid failed:",
+        error.response?.body || error.message,
+      );
       return false;
     }
   }
@@ -172,23 +188,22 @@ class EmailService {
       }
 
       // Fallback to Gmail SMTP
-      console.log('[EMAIL] SendGrid unavailable, trying Gmail SMTP...');
+      console.log("[EMAIL] SendGrid unavailable, trying Gmail SMTP...");
       const result = await this.sendWithSMTP(options);
       if (result) {
         return true;
       }
-      
+
       // If both fail, log the email details for manual follow-up
-      console.log('[EMAIL] 🚨 EMAIL DELIVERY FAILED:');
-      console.log('[EMAIL] TO:', options.to);
-      console.log('[EMAIL] SUBJECT:', options.subject);
-      console.log('[EMAIL] CONTENT:', options.text?.substring(0, 200));
-      
+      console.log("[EMAIL] 🚨 EMAIL DELIVERY FAILED:");
+      console.log("[EMAIL] TO:", options.to);
+      console.log("[EMAIL] SUBJECT:", options.subject);
+      console.log("[EMAIL] CONTENT:", options.text?.substring(0, 200));
+
       // Return false to properly indicate delivery failure
       return false;
-      
     } catch (error) {
-      console.error('[EMAIL] Failed to send email:', error);
+      console.error("[EMAIL] Failed to send email:", error);
       // Return false to indicate delivery failure
       return false;
     }
@@ -200,7 +215,7 @@ class EmailService {
       const attachments = [...(options.attachments || [])];
 
       // Use authenticated Gmail address to match SMTP credentials (production-safe)
-      let fromAddress = options.from || 'noreply@curaemr.ai';
+      let fromAddress = options.from || "noreply@curaemr.ai";
 
       const mailOptions = {
         from: fromAddress,
@@ -208,41 +223,51 @@ class EmailService {
         subject: options.subject,
         text: options.text,
         html: options.html,
-        attachments
+        attachments,
       };
 
-      console.log('[EMAIL] Attempting to send email via SMTP:', {
+      console.log("[EMAIL] Attempting to send email via SMTP:", {
         from: mailOptions.from,
         to: mailOptions.to,
-        subject: mailOptions.subject
+        subject: mailOptions.subject,
       });
 
       // Try to send the email
       try {
         const result = await this.transporter.sendMail(mailOptions);
-        console.log('[EMAIL] SMTP email sent successfully:', result.messageId);
+        console.log("[EMAIL] SMTP email sent successfully:", result.messageId);
         return true;
       } catch (smtpError: any) {
-        console.log('[EMAIL] Primary SMTP failed:', smtpError.message);
-        
+        console.log("[EMAIL] Primary SMTP failed:", smtpError.message);
+
         // If primary fails due to domain issues, try fallback method
-        if (smtpError.code === 'ENOTFOUND' || smtpError.code === 'ECONNREFUSED') {
-          console.log('[EMAIL] Domain not configured, checking for fallback email credentials...');
-          
-          if (process.env.FALLBACK_EMAIL_USER && process.env.FALLBACK_EMAIL_PASS) {
-            console.log('[EMAIL] Attempting fallback email delivery...');
+        if (
+          smtpError.code === "ENOTFOUND" ||
+          smtpError.code === "ECONNREFUSED"
+        ) {
+          console.log(
+            "[EMAIL] Domain not configured, checking for fallback email credentials...",
+          );
+
+          if (
+            process.env.FALLBACK_EMAIL_USER &&
+            process.env.FALLBACK_EMAIL_PASS
+          ) {
+            console.log("[EMAIL] Attempting fallback email delivery...");
             return await this.sendWithFallback(mailOptions);
           } else {
-            console.log('[EMAIL] No fallback credentials available. Email delivery failed.');
+            console.log(
+              "[EMAIL] No fallback credentials available. Email delivery failed.",
+            );
             this.logEmailContent(mailOptions);
             return false; // Return false to indicate delivery failure
           }
         }
-        
+
         throw smtpError;
       }
     } catch (error) {
-      console.error('[EMAIL] Failed to send email via SMTP:', error);
+      console.error("[EMAIL] Failed to send email via SMTP:", error);
       return false;
     }
   }
@@ -251,38 +276,53 @@ class EmailService {
     try {
       // Create new transporter with fallback credentials
       const fallbackTransporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: "gmail",
         auth: {
           user: process.env.FALLBACK_EMAIL_USER,
-          pass: process.env.FALLBACK_EMAIL_PASS
-        }
+          pass: process.env.FALLBACK_EMAIL_PASS,
+        },
       });
 
       // Update from address to use the authenticated email
-      mailOptions.from = `Cura EMR <${process.env.FALLBACK_EMAIL_USER}>`;
-      
+      mailOptions.from = `EMRSoft <${process.env.FALLBACK_EMAIL_USER}>`;
+
       const result = await fallbackTransporter.sendMail(mailOptions);
-      console.log('[EMAIL] Fallback email sent successfully:', result.messageId);
+      console.log(
+        "[EMAIL] Fallback email sent successfully:",
+        result.messageId,
+      );
       return true;
     } catch (error) {
-      console.error('[EMAIL] Fallback email also failed:', error);
+      console.error("[EMAIL] Fallback email also failed:", error);
       this.logEmailContent(mailOptions);
       return false; // Return false to indicate delivery failure
     }
   }
 
   private logEmailContent(mailOptions: any): void {
-    console.log('[EMAIL] Email delivery failed - logging content:');
-    console.log('[EMAIL] From:', mailOptions.from);
-    console.log('[EMAIL] To:', mailOptions.to);
-    console.log('[EMAIL] Subject:', mailOptions.subject);
-    console.log('[EMAIL] Text:', mailOptions.text?.substring(0, 200) + '...');
-    console.log('[EMAIL] HTML:', mailOptions.html ? 'HTML content included' : 'No HTML content');
-    console.log('[EMAIL] Attachments:', mailOptions.attachments?.length || 0, 'files');
+    console.log("[EMAIL] Email delivery failed - logging content:");
+    console.log("[EMAIL] From:", mailOptions.from);
+    console.log("[EMAIL] To:", mailOptions.to);
+    console.log("[EMAIL] Subject:", mailOptions.subject);
+    console.log("[EMAIL] Text:", mailOptions.text?.substring(0, 200) + "...");
+    console.log(
+      "[EMAIL] HTML:",
+      mailOptions.html ? "HTML content included" : "No HTML content",
+    );
+    console.log(
+      "[EMAIL] Attachments:",
+      mailOptions.attachments?.length || 0,
+      "files",
+    );
   }
 
   // Template for appointment reminders
-  generateAppointmentReminderEmail(patientName: string, doctorName: string, appointmentDate: string, appointmentTime: string): EmailTemplate {
+  generateAppointmentReminderEmail(
+    patientName: string,
+    doctorName: string,
+    appointmentDate: string,
+    appointmentTime: string,
+  ): EmailTemplate {
     const subject = `Appointment Reminder - ${appointmentDate}`;
     const html = `
       <!DOCTYPE html>
@@ -300,7 +340,7 @@ class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Cura EMR</h1>
+            <h1>EMRSoft EMR</h1>
             <h2>Appointment Reminder</h2>
           </div>
           <div class="content">
@@ -317,16 +357,16 @@ class EmailService {
             <p>Please arrive 15 minutes early for check-in.</p>
             <p>If you need to reschedule or have any questions, please contact us.</p>
             
-            <p>Best regards,<br>Cura EMR Team</p>
+            <p>Best regards,<br>EMRSoft Team</p>
           </div>
           <div class="footer">
-            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+            <p>© 2025 EMRSoft by Health Group. All rights reserved.</p>
           </div>
         </div>
       </body>
       </html>
     `;
-    
+
     const text = `
 Dear ${patientName},
 
@@ -340,14 +380,19 @@ Please arrive 15 minutes early for check-in.
 If you need to reschedule or have any questions, please contact us.
 
 Best regards,
-Cura EMR Team
+ EMRSoft Team
     `;
 
     return { subject, html, text };
   }
 
   // Template for prescription notifications
-  generatePrescriptionNotificationEmail(patientName: string, medicationName: string, dosage: string, instructions: string): EmailTemplate {
+  generatePrescriptionNotificationEmail(
+    patientName: string,
+    medicationName: string,
+    dosage: string,
+    instructions: string,
+  ): EmailTemplate {
     const subject = `New Prescription - ${medicationName}`;
     const html = `
       <!DOCTYPE html>
@@ -365,7 +410,7 @@ Cura EMR Team
       <body>
         <div class="container">
           <div class="header">
-            <h1>Cura EMR</h1>
+            <h1>EMRSoft</h1>
             <h2>New Prescription</h2>
           </div>
           <div class="content">
@@ -382,16 +427,16 @@ Cura EMR Team
             <p>Please collect your prescription from the pharmacy and follow the instructions carefully.</p>
             <p>If you have any questions about this medication, please contact your healthcare provider.</p>
             
-            <p>Best regards,<br>Cura EMR Team</p>
+            <p>Best regards,<br>EMRSoft Team</p>
           </div>
           <div class="footer">
-            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+            <p>© 2025  EMRSoft by HealthCare Group. All rights reserved.</p>
           </div>
         </div>
       </body>
       </html>
     `;
-    
+
     const text = `
 Dear ${patientName},
 
@@ -405,14 +450,18 @@ Please collect your prescription from the pharmacy and follow the instructions c
 If you have any questions about this medication, please contact your healthcare provider.
 
 Best regards,
-Cura EMR Team
+EMRSoft Team
     `;
 
     return { subject, html, text };
   }
 
   // Template for test results
-  generateTestResultsEmail(patientName: string, testName: string, status: string): EmailTemplate {
+  generateTestResultsEmail(
+    patientName: string,
+    testName: string,
+    status: string,
+  ): EmailTemplate {
     const subject = `Test Results Available - ${testName}`;
     const html = `
       <!DOCTYPE html>
@@ -430,7 +479,7 @@ Cura EMR Team
       <body>
         <div class="container">
           <div class="header">
-            <h1>Cura EMR</h1>
+            <h1>EMRSoft</h1>
             <h2>Test Results Available</h2>
           </div>
           <div class="content">
@@ -446,16 +495,16 @@ Cura EMR Team
             <p>Please log into your patient portal or contact your healthcare provider to discuss the results.</p>
             <p>If you have any questions or concerns, please don't hesitate to reach out.</p>
             
-            <p>Best regards,<br>Cura EMR Team</p>
+            <p>Best regards,<br>EMRSoft Team</p>
           </div>
           <div class="footer">
-            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+            <p>© 2025 EMRSoft by HealthCare Group. All rights reserved.</p>
           </div>
         </div>
       </body>
       </html>
     `;
-    
+
     const text = `
 Dear ${patientName},
 
@@ -468,58 +517,93 @@ Please log into your patient portal or contact your healthcare provider to discu
 If you have any questions or concerns, please don't hesitate to reach out.
 
 Best regards,
-Cura EMR Team
+EMRSoft Team
     `;
 
     return { subject, html, text };
   }
 
   // Send appointment reminder
-  async sendAppointmentReminder(patientEmail: string, patientName: string, doctorName: string, appointmentDate: string, appointmentTime: string): Promise<boolean> {
-    const template = this.generateAppointmentReminderEmail(patientName, doctorName, appointmentDate, appointmentTime);
+  async sendAppointmentReminder(
+    patientEmail: string,
+    patientName: string,
+    doctorName: string,
+    appointmentDate: string,
+    appointmentTime: string,
+  ): Promise<boolean> {
+    const template = this.generateAppointmentReminderEmail(
+      patientName,
+      doctorName,
+      appointmentDate,
+      appointmentTime,
+    );
     return this.sendEmail({
       to: patientEmail,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
   }
 
   // Send prescription notification
-  async sendPrescriptionNotification(patientEmail: string, patientName: string, medicationName: string, dosage: string, instructions: string): Promise<boolean> {
-    const template = this.generatePrescriptionNotificationEmail(patientName, medicationName, dosage, instructions);
+  async sendPrescriptionNotification(
+    patientEmail: string,
+    patientName: string,
+    medicationName: string,
+    dosage: string,
+    instructions: string,
+  ): Promise<boolean> {
+    const template = this.generatePrescriptionNotificationEmail(
+      patientName,
+      medicationName,
+      dosage,
+      instructions,
+    );
     return this.sendEmail({
       to: patientEmail,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
   }
 
   // Send test results notification
-  async sendTestResultsNotification(patientEmail: string, patientName: string, testName: string, status: string): Promise<boolean> {
-    const template = this.generateTestResultsEmail(patientName, testName, status);
+  async sendTestResultsNotification(
+    patientEmail: string,
+    patientName: string,
+    testName: string,
+    status: string,
+  ): Promise<boolean> {
+    const template = this.generateTestResultsEmail(
+      patientName,
+      testName,
+      status,
+    );
     return this.sendEmail({
       to: patientEmail,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
   }
 
   // Template for general reminders (medication, follow-up, etc.)
-  generateGeneralReminderEmail(patientName: string, reminderType: string, message: string): EmailTemplate {
+  generateGeneralReminderEmail(
+    patientName: string,
+    reminderType: string,
+    message: string,
+  ): EmailTemplate {
     const typeLabels: Record<string, string> = {
-      'appointment_reminder': 'Appointment Reminder',
-      'medication_reminder': 'Medication Reminder', 
-      'follow_up_reminder': 'Follow-up Reminder',
-      'emergency_alert': 'Emergency Alert',
-      'preventive_care': 'Preventive Care Reminder',
-      'billing_notice': 'Billing Notice',
-      'health_check': 'Health Check Reminder'
+      appointment_reminder: "Appointment Reminder",
+      medication_reminder: "Medication Reminder",
+      follow_up_reminder: "Follow-up Reminder",
+      emergency_alert: "Emergency Alert",
+      preventive_care: "Preventive Care Reminder",
+      billing_notice: "Billing Notice",
+      health_check: "Health Check Reminder",
     };
-    
-    const subject = `${typeLabels[reminderType] || 'Healthcare Reminder'} - Cura EMR`;
+
+    const subject = `${typeLabels[reminderType] || "Healthcare Reminder"} - EMRSoft`;
     const html = `
       <!DOCTYPE html>
       <html>
@@ -536,8 +620,8 @@ Cura EMR Team
       <body>
         <div class="container">
           <div class="header">
-            <h1>Cura EMR</h1>
-            <h2>${typeLabels[reminderType] || 'Healthcare Reminder'}</h2>
+            <h1>EMRSoft</h1>
+            <h2>${typeLabels[reminderType] || "Healthcare Reminder"}</h2>
           </div>
           <div class="content">
             <p>Dear ${patientName},</p>
@@ -549,46 +633,58 @@ Cura EMR Team
             
             <p>If you have any questions or need to reschedule, please contact your healthcare provider.</p>
             
-            <p>Best regards,<br>Cura EMR Team</p>
+            <p>Best regards,<br>EMRSoft Team</p>
           </div>
           <div class="footer">
-            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+            <p>© 2025 EMRSoft by HealthCare Group. All rights reserved.</p>
           </div>
         </div>
       </body>
       </html>
     `;
-    
+
     const text = `
 Dear ${patientName},
 
-${typeLabels[reminderType] || 'Healthcare Reminder'}
+${typeLabels[reminderType] || "Healthcare Reminder"}
 
 ${message}
 
 If you have any questions or need to reschedule, please contact your healthcare provider.
 
 Best regards,
-Cura EMR Team
+EMRSoft Team
     `;
 
     return { subject, html, text };
   }
 
   // Send general reminder
-  async sendGeneralReminder(patientEmail: string, patientName: string, reminderType: string, message: string): Promise<boolean> {
-    const template = this.generateGeneralReminderEmail(patientName, reminderType, message);
+  async sendGeneralReminder(
+    patientEmail: string,
+    patientName: string,
+    reminderType: string,
+    message: string,
+  ): Promise<boolean> {
+    const template = this.generateGeneralReminderEmail(
+      patientName,
+      reminderType,
+      message,
+    );
     return this.sendEmail({
       to: patientEmail,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
   }
 
   // Template for password change notification
-  generatePasswordChangeEmail(userName: string, timestamp: string): EmailTemplate {
-    const subject = `Password Changed - Cura EMR`;
+  generatePasswordChangeEmail(
+    userName: string,
+    timestamp: string,
+  ): EmailTemplate {
+    const subject = `Password Changed - EMRSoft`;
     const html = `
       <!DOCTYPE html>
       <html>
@@ -607,7 +703,7 @@ Cura EMR Team
       <body>
         <div class="container">
           <div class="header">
-            <h1>Cura EMR</h1>
+            <h1>EMRSoft</h1>
             <h2>Password Changed</h2>
           </div>
           <div class="content">
@@ -633,23 +729,23 @@ Cura EMR Team
               <li>Enable two-factor authentication if available</li>
             </ul>
             
-            <p>Best regards,<br>Cura EMR Security Team</p>
+            <p>Best regards,<br>EMRSoft Security Team</p>
           </div>
           <div class="footer">
-            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+            <p>© 2025 EMRSoft by Healthcare Group. All rights reserved.</p>
             <p>This is an automated security notification.</p>
           </div>
         </div>
       </body>
       </html>
     `;
-    
+
     const text = `
 Dear ${userName},
 
 ⚠️ PASSWORD CHANGED
 
-Your Cura EMR account password was successfully changed.
+Your EMRSoft account password was successfully changed.
 
 Change Details:
 Date & Time: ${timestamp}
@@ -664,9 +760,9 @@ Security Best Practices:
 - Enable two-factor authentication if available
 
 Best regards,
-Cura EMR Security Team
+ EMRSoft Security Team
 
-© 2025 Cura EMR by Halo Group. All rights reserved.
+© 2025 EMRSoft by Healthcare Group. All rights reserved.
 This is an automated security notification.
     `;
 
@@ -674,28 +770,38 @@ This is an automated security notification.
   }
 
   // Send password change notification
-  async sendPasswordChangeNotification(userEmail: string, userName: string): Promise<boolean> {
-    const timestamp = new Date().toLocaleString('en-GB', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
+  async sendPasswordChangeNotification(
+    userEmail: string,
+    userName: string,
+  ): Promise<boolean> {
+    const timestamp = new Date().toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
     });
-    
+
     const template = this.generatePasswordChangeEmail(userName, timestamp);
     return this.sendEmail({
       to: userEmail,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
   }
 
   // Template for sharing imaging studies
-  generateImagingStudyShareEmail(recipientEmail: string, patientName: string, studyType: string, sharedBy: string, customMessage: string = '', reportUrl?: string): EmailTemplate {
+  generateImagingStudyShareEmail(
+    recipientEmail: string,
+    patientName: string,
+    studyType: string,
+    sharedBy: string,
+    customMessage: string = "",
+    reportUrl?: string,
+  ): EmailTemplate {
     const subject = `Imaging Study Shared - ${patientName}`;
     const html = `
       <!DOCTYPE html>
@@ -715,7 +821,7 @@ This is an automated security notification.
       <body>
         <div class="container">
           <div class="header">
-            <h1>Cura EMR</h1>
+            <h1>EMRSoft</h1>
             <h2>Imaging Study Shared</h2>
           </div>
           <div class="content">
@@ -730,33 +836,41 @@ This is an automated security notification.
               <p><strong>Date Shared:</strong> ${new Date().toLocaleDateString()}</p>
             </div>
             
-            ${customMessage ? `
+            ${
+              customMessage
+                ? `
             <div class="custom-message">
               <h4>Message from ${sharedBy}:</h4>
               <p>${customMessage}</p>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
             
-            ${reportUrl ? `
+            ${
+              reportUrl
+                ? `
             <div class="report-link">
               <h4>Report Access</h4>
               <p>Click the link below to view the imaging report:</p>
               <a href="${reportUrl}" style="display: inline-block; background-color: #3B82F6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">View Report</a>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
             
             <p>This study has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.</p>
             
-            <p>Best regards,<br>Cura EMR Team</p>
+            <p>Best regards,<br>EMRSoft Team</p>
           </div>
           <div class="footer">
-            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+            <p>© 2025 EMRSoft by Healthcare Group. All rights reserved.</p>
           </div>
         </div>
       </body>
       </html>
     `;
-    
+
     const text = `
 Dear Colleague,
 
@@ -767,38 +881,52 @@ Study Type: ${studyType}
 Shared by: ${sharedBy}
 Date Shared: ${new Date().toLocaleDateString()}
 
-${customMessage ? `Message from ${sharedBy}: ${customMessage}` : ''}
+${customMessage ? `Message from ${sharedBy}: ${customMessage}` : ""}
 
-${reportUrl ? `Report URL: ${reportUrl}` : ''}
+${reportUrl ? `Report URL: ${reportUrl}` : ""}
 
 This study has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.
 
 Best regards,
-Cura EMR Team
+EMRSoft Team
     `;
 
     return { subject, html, text };
   }
 
   // Send imaging study share email
-  async sendImagingStudyShare(recipientEmail: string, patientName: string, studyType: string, sharedBy: string, customMessage: string = '', reportUrl?: string): Promise<boolean> {
-    const template = this.generateImagingStudyShareEmail(recipientEmail, patientName, studyType, sharedBy, customMessage, reportUrl);
+  async sendImagingStudyShare(
+    recipientEmail: string,
+    patientName: string,
+    studyType: string,
+    sharedBy: string,
+    customMessage: string = "",
+    reportUrl?: string,
+  ): Promise<boolean> {
+    const template = this.generateImagingStudyShareEmail(
+      recipientEmail,
+      patientName,
+      studyType,
+      sharedBy,
+      customMessage,
+      reportUrl,
+    );
     return this.sendEmail({
       to: recipientEmail,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
   }
 
-  // Template for prescription PDF emails with clinic logo in header and Cura logo in footer
+  // Template for prescription PDF emails with clinic logo in header and EMRSoft logo in footer
   generatePrescriptionEmail(
-    patientName: string, 
-    pharmacyName: string, 
+    patientName: string,
+    pharmacyName: string,
     prescriptionData?: any,
     clinicLogoUrl?: string,
     organizationName?: string,
-    hasAttachments: boolean = true
+    hasAttachments: boolean = true,
   ): EmailTemplate {
     const subject = `Prescription PDF - ${patientName}`;
     const html = `
@@ -969,17 +1097,18 @@ Cura EMR Team
       <body>
         <div class="container">
           <div class="header">
-            ${clinicLogoUrl ? 
-              `<img src="${clinicLogoUrl}" alt="${organizationName || 'Medical Clinic'} Logo" class="clinic-logo">
+            ${
+              clinicLogoUrl
+                ? `<img src="${clinicLogoUrl}" alt="${organizationName || "Medical Clinic"} Logo" class="clinic-logo">
                <div class="header-info">
-                 <h1 class="clinic-name" style="color: grey;">${organizationName || 'Medical Clinic'}</h1>
-                 <p class="clinic-tagline" style="color: grey;">Powered by Cura EMR Platform</p>
-               </div>` :
-              `<div class="fallback-logo" style="width: 95px; height: 95px; margin-right: 20px; background: darkblue; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: black; font-size: 32px; font-weight: bold; box-shadow: 0 4px 20px rgba(74, 125, 255, 0.3);">
+                 <h1 class="clinic-name" style="color: grey;">${organizationName || "Medical Clinic"}</h1>
+                 <p class="clinic-tagline" style="color: grey;">Powered by EMRSoft Platform</p>
+               </div>`
+                : `<div class="fallback-logo" style="width: 95px; height: 95px; margin-right: 20px; background: darkblue; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: black; font-size: 32px; font-weight: bold; box-shadow: 0 4px 20px rgba(74, 125, 255, 0.3);">
                  C
                </div>
                <div class="header-info">
-                 <h1 class="clinic-name" style="color: grey;">Cura EMR</h1>
+                 <h1 class="clinic-name" style="color: grey;"> EMRSoft</h1>
                  <p class="clinic-tagline" style="color: grey;">AI-Powered Healthcare Platform</p>
                </div>`
             }
@@ -988,7 +1117,7 @@ Cura EMR Team
           <div class="content">
             <h2 style="color: #1f2937; margin-bottom: 20px;">Prescription Document</h2>
             
-            <p style="font-size: 16px; color: #4b5563;">Dear ${pharmacyName || 'Pharmacy Team'},</p>
+            <p style="font-size: 16px; color: #4b5563;">Dear ${pharmacyName || "Pharmacy Team"},</p>
             
             <p style="font-size: 16px; line-height: 1.6; color: #4b5563;">
               Please find attached the electronic prescription for <strong>${patientName}</strong>. 
@@ -1008,22 +1137,26 @@ Cura EMR Team
               </div>
               <div class="detail-item">
                 <span class="detail-label">System:</span>
-                <span class="detail-value">Cura EMR Platform</span>
+                <span class="detail-value">EMRSoft Platform</span>
               </div>
               <div class="detail-item">
                 <span class="detail-label">Generated:</span>
-                <span class="detail-value">${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}</span>
+                <span class="detail-value">${new Date().toLocaleDateString("en-GB")} at ${new Date().toLocaleTimeString("en-GB")}</span>
               </div>
             </div>
 
-            ${hasAttachments ? `<div class="attachment-notice">
+            ${
+              hasAttachments
+                ? `<div class="attachment-notice">
               <div class="attachment-icon">📄</div>
               <h3 style="color: #15803d; margin: 0 0 8px 0;">PDF Attachment Included</h3>
               <p style="margin: 0; color: #166534;">
                 The complete prescription document is attached to this email as a PDF file.
                 <br>Please review and process according to your standard procedures.
               </p>
-            </div>` : ''}
+            </div>`
+                : ""
+            }
 
             <h3 style="color: #1f2937; margin-top: 30px;">Important Notes:</h3>
             <ul style="color: #4b5563; line-height: 1.6; padding-left: 20px;">
@@ -1039,27 +1172,31 @@ Cura EMR Team
           </div>
           
           <div class="footer">
-            ${clinicLogoUrl ? `
+            ${
+              clinicLogoUrl
+                ? `
               <div style="margin-bottom: 15px;">
-                <img src="${clinicLogoUrl}" alt="${organizationName || 'Clinic'} Logo" style="width: 80px; height: 80px; object-fit: contain; border-radius: 8px; background: white; padding: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <img src="${clinicLogoUrl}" alt="${organizationName || "Clinic"} Logo" style="width: 80px; height: 80px; object-fit: contain; border-radius: 8px; background: white; padding: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               </div>
-            ` : ''}
-            <div class="footer-brand">Powered by Cura EMR</div>
+            `
+                : ""
+            }
+            <div class="footer-brand">Powered by EMRSoft</div>
             <p class="footer-text">
-              This email was automatically generated by the Cura EMR system.<br>
+              This email was automatically generated by the EMRSoft system.<br>
               For technical support, please contact your system administrator.<br>
-              © 2025 Cura Software Limited. All rights reserved.
+              © 2025 EMRSoft Software Limited. All rights reserved.
             </p>
           </div>
         </div>
       </body>
       </html>
     `;
-    
+
     const text = `
 Prescription Document
 
-Dear ${pharmacyName || 'Pharmacy Team'},
+Dear ${pharmacyName || "Pharmacy Team"},
 
 Please find attached the electronic prescription for ${patientName}.
 This document has been digitally generated and contains all necessary prescription details with electronic signature verification.
@@ -1067,14 +1204,18 @@ This document has been digitally generated and contains all necessary prescripti
 Prescription Details:
 - Patient: ${patientName}
 - Document: Electronic Prescription (PDF)
-- System: Cura EMR Platform
-- Generated: ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}
+- System: EMRSoft Platform
+- Generated: ${new Date().toLocaleDateString("en-GB")} at ${new Date().toLocaleTimeString("en-GB")}
 
-${hasAttachments ? `PDF Attachment Included
+${
+  hasAttachments
+    ? `PDF Attachment Included
 The complete prescription document is attached to this email as a PDF file.
 Please review and process according to your standard procedures.
 
-` : ''}Important Notes:
+`
+    : ""
+}Important Notes:
 - This prescription has been electronically signed and verified
 - Please check the PDF attachment for complete medication details
 - Contact our system if you need any clarification
@@ -1083,10 +1224,10 @@ Please review and process according to your standard procedures.
 Thank you for your professional service.
 
 ---
-Powered by Cura EMR
-This email was automatically generated by the Cura EMR system.
+Powered by EMRSoft
+This email was automatically generated by the EMRSoft system.
 For technical support, please contact your system administrator.
-© 2025 Cura Software Limited. All rights reserved.
+© 2025 EMRSoft Software Limited. All rights reserved.
     `;
 
     return { subject, html, text };
@@ -1094,16 +1235,22 @@ For technical support, please contact your system administrator.
 
   // Send prescription email with PDF attachment
   async sendPrescriptionEmail(
-    pharmacyEmail: string, 
-    patientName: string, 
-    pharmacyName: string, 
+    pharmacyEmail: string,
+    patientName: string,
+    pharmacyName: string,
     pdfBuffer: Buffer,
     prescriptionData?: any,
     clinicLogoUrl?: string,
-    organizationName?: string
+    organizationName?: string,
   ): Promise<boolean> {
-    const template = this.generatePrescriptionEmail(patientName, pharmacyName, prescriptionData, clinicLogoUrl, organizationName);
-    
+    const template = this.generatePrescriptionEmail(
+      patientName,
+      pharmacyName,
+      prescriptionData,
+      clinicLogoUrl,
+      organizationName,
+    );
+
     return this.sendEmail({
       to: pharmacyEmail,
       subject: template.subject,
@@ -1111,23 +1258,23 @@ For technical support, please contact your system administrator.
       text: template.text,
       attachments: [
         {
-          filename: `prescription-${patientName.replace(/\s+/g, '-')}-${Date.now()}.pdf`,
+          filename: `prescription-${patientName.replace(/\s+/g, "-")}-${Date.now()}.pdf`,
           content: pdfBuffer,
-          contentType: 'application/pdf'
-        }
-      ]
+          contentType: "application/pdf",
+        },
+      ],
     });
   }
 
   // Template for new user account creation
   generateNewUserAccountEmail(
-    userName: string, 
-    userEmail: string, 
+    userName: string,
+    userEmail: string,
     password: string,
     organizationName: string,
-    role: string
+    role: string,
   ): EmailTemplate {
-    const subject = `Welcome to Cura EMR - Your Account Has Been Created`;
+    const subject = `Welcome to EMRSoft - Your Account Has Been Created`;
     const html = `
       <!DOCTYPE html>
       <html>
@@ -1214,7 +1361,7 @@ For technical support, please contact your system administrator.
       <body>
         <div class="container">
           <div class="header">
-            <h1>Welcome to Cura EMR</h1>
+            <h1>Welcome to EMRSoft</h1>
             <p style="margin: 10px 0 0 0; font-size: 16px;">Your Healthcare Management Platform</p>
           </div>
           
@@ -1222,7 +1369,7 @@ For technical support, please contact your system administrator.
             <div class="welcome-message">
               <h2 style="margin-top: 0; color: #1f2937;">Hello ${userName}!</h2>
               <p>Your account has been successfully created at <strong>${organizationName}</strong>.</p>
-              <p>You have been assigned the role of <strong>${role}</strong> and can now access the Cura EMR system.</p>
+              <p>You have been assigned the role of <strong>${role}</strong> and can now access the EMRSoft system.</p>
             </div>
             
             <div class="credentials-box">
@@ -1255,7 +1402,7 @@ For technical support, please contact your system administrator.
             
             <div style="text-align: center; margin: 30px 0;">
               <p>Ready to get started? Click the button below to log in:</p>
-              <a href="https://app.curaemr.ai/auth/login" class="button">Login to Cura EMR</a>
+              <a href="https://app.curaemr.ai/auth/login" class="button">Login to EMRSoft</a>
             </div>
 
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 20px;">
@@ -1272,19 +1419,19 @@ For technical support, please contact your system administrator.
           </div>
           
           <div class="footer">
-            <p style="margin: 0 0 10px 0;"><strong>Cura Software Limited</strong></p>
-            <p style="margin: 0;">Ground Floor Unit 2, Drayton Court, Drayton Road</p>
-            <p style="margin: 0;">Solihull, England B90 4NG</p>
+            <p style="margin: 0 0 10px 0;"><strong>EMRSoft Software Limited</strong></p>
+            <p style="margin: 0;">45 Blue Area, G-6/3, Islamabad, Pakistan</p>
+         
             <p style="margin: 10px 0 0 0;">Company Registration: 16556912</p>
-            <p style="margin: 10px 0 0 0;">© 2025 Cura Software Limited. All rights reserved.</p>
+            <p style="margin: 10px 0 0 0;">© 2025 EMRSoft Software Limited. All rights reserved.</p>
           </div>
         </div>
       </body>
       </html>
     `;
-    
+
     const text = `
-Welcome to Cura EMR!
+Welcome to EMRSoft EMR!
 
 Hello ${userName},
 
@@ -1311,12 +1458,11 @@ NEXT STEPS:
 If you have any questions or need assistance, please contact your system administrator.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
-Cura Software Limited
-Ground Floor Unit 2, Drayton Court, Drayton Road
-Solihull, England B90 4NG
+EMRSoft Software Limited
+45 Blue Area, G-6/3, Islamabad, Pakistan
 Company Registration: 16556912
 
-© 2025 Cura Software Limited. All rights reserved.
+© 2025 EMRSoft Software Limited. All rights reserved.
     `;
 
     return { subject, html, text };
@@ -1328,22 +1474,31 @@ Company Registration: 16556912
     userName: string,
     password: string,
     organizationName: string,
-    role: string
+    role: string,
   ): Promise<boolean> {
-    const template = this.generateNewUserAccountEmail(userName, userEmail, password, organizationName, role);
+    const template = this.generateNewUserAccountEmail(
+      userName,
+      userEmail,
+      password,
+      organizationName,
+      role,
+    );
     return this.sendEmail({
       to: userEmail,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
   }
 
-  generatePasswordResetEmail(userFirstName: string, resetToken: string): EmailTemplate {
-    const baseUrl = process.env.REPLIT_DEV_DOMAIN || 'your-domain.com';
+  generatePasswordResetEmail(
+    userFirstName: string,
+    resetToken: string,
+  ): EmailTemplate {
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN || "your-domain.com";
     const resetUrl = `https://${baseUrl}/auth/reset-password?token=${resetToken}`;
-    const subject = 'Password Reset Request - Cura EMR';
-    
+    const subject = "Password Reset Request - EMRSoft";
+
     const html = `
 <!DOCTYPE html>
 <html>
@@ -1360,7 +1515,7 @@ Company Registration: 16556912
           <tr>
             <td style="padding: 40px 40px 30px 40px; background: linear-gradient(135deg, #4A7DFF 0%, #7279FB 100%); border-radius: 8px 8px 0 0;">
               <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold; text-align: center;">
-                Cura EMR
+               EMRSoft
               </h1>
             </td>
           </tr>
@@ -1376,7 +1531,7 @@ Company Registration: 16556912
               </p>
               
               <p style="margin: 0 0 30px 0; color: #4a5568; font-size: 16px; line-height: 1.6;">
-                You requested to reset your password for your Cura EMR account. Click the button below to create a new password:
+                You requested to reset your password for your EMRSoft account. Click the button below to create a new password:
               </p>
               
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -1414,12 +1569,12 @@ Company Registration: 16556912
             <td style="padding: 30px 40px; background-color: #f7fafc; border-radius: 0 0 8px 8px; border-top: 1px solid #e2e8f0;">
               <p style="margin: 0 0 10px 0; color: #718096; font-size: 14px; text-align: center;">
                 Best regards,<br>
-                <strong style="color: #4a5568;">Cura EMR Team</strong>
+                <strong style="color: #4a5568;">EMRSoft Team</strong>
               </p>
               
               <p style="margin: 20px 0 0 0; color: #a0aec0; font-size: 12px; text-align: center; line-height: 1.5;">
                 This is an automated message. Please do not reply to this email.<br>
-                &copy; ${new Date().getFullYear()} Cura EMR. All rights reserved.
+                &copy; ${new Date().getFullYear()} EMRSoft. All rights reserved.
               </p>
             </td>
           </tr>
@@ -1430,10 +1585,10 @@ Company Registration: 16556912
 </body>
 </html>
     `;
-    
+
     const text = `Hello ${userFirstName},
 
-You requested to reset your password for your Cura EMR account.
+You requested to reset your password for your EMRSoft account.
 
 Please click the following link to reset your password:
 ${resetUrl}
@@ -1443,26 +1598,30 @@ This link will expire in 1 hour.
 If you did not request a password reset, please ignore this email and your password will remain unchanged.
 
 Best regards,
-Cura EMR Team`;
-    
+EMRSoft Team`;
+
     return { subject, html, text };
   }
 
-  async sendPasswordResetEmail(toEmail: string, resetToken: string, userFirstName: string): Promise<boolean> {
+  async sendPasswordResetEmail(
+    toEmail: string,
+    resetToken: string,
+    userFirstName: string,
+  ): Promise<boolean> {
     const template = this.generatePasswordResetEmail(userFirstName, resetToken);
     return this.sendEmail({
       to: toEmail,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
   }
 
   generatePasswordResetConfirmationEmail(userFirstName: string): EmailTemplate {
-    const subject = 'Password Successfully Changed - Cura EMR';
-    const baseUrl = process.env.REPLIT_DEV_DOMAIN || 'your-domain.com';
+    const subject = "Password Successfully Changed - EMRSoft";
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN || "your-domain.com";
     const loginUrl = `https://${baseUrl}/auth/login`;
-    
+
     const html = `
 <!DOCTYPE html>
 <html>
@@ -1479,7 +1638,7 @@ Cura EMR Team`;
           <tr>
             <td style="padding: 40px 40px 30px 40px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-radius: 8px 8px 0 0;">
               <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold; text-align: center;">
-                Cura EMR
+                EMRSoft
               </h1>
             </td>
           </tr>
@@ -1503,7 +1662,7 @@ Cura EMR Team`;
               </p>
               
               <p style="margin: 0 0 30px 0; color: #4a5568; font-size: 16px; line-height: 1.6; text-align: center;">
-                Your password has been successfully changed for your Cura EMR account.
+                Your password has been successfully changed for your EMRSoft account.
               </p>
               
               <div style="margin: 30px 0; padding: 20px; background-color: #fffaf0; border-left: 4px solid #ed8936; border-radius: 4px;">
@@ -1529,12 +1688,12 @@ Cura EMR Team`;
             <td style="padding: 30px 40px; background-color: #f7fafc; border-radius: 0 0 8px 8px; border-top: 1px solid #e2e8f0;">
               <p style="margin: 0 0 10px 0; color: #718096; font-size: 14px; text-align: center;">
                 Best regards,<br>
-                <strong style="color: #4a5568;">Cura EMR Team</strong>
+                <strong style="color: #4a5568;">EMRSoft Team</strong>
               </p>
               
               <p style="margin: 20px 0 0 0; color: #a0aec0; font-size: 12px; text-align: center; line-height: 1.5;">
                 This is an automated message. Please do not reply to this email.<br>
-                &copy; ${new Date().getFullYear()} Cura EMR. All rights reserved.
+                &copy; ${new Date().getFullYear()} EMRSoft. All rights reserved.
               </p>
             </td>
           </tr>
@@ -1545,28 +1704,31 @@ Cura EMR Team`;
 </body>
 </html>
     `;
-    
+
     const text = `Hello ${userFirstName},
 
-Your password has been successfully changed for your Cura EMR account.
+Your password has been successfully changed for your EMRSoft account.
 
 If you did not make this change, please contact our support team immediately.
 
 You can now sign in at: ${loginUrl}
 
 Best regards,
-Cura EMR Team`;
-    
+EMRSoft Team`;
+
     return { subject, html, text };
   }
 
-  async sendPasswordResetConfirmationEmail(toEmail: string, userFirstName: string): Promise<boolean> {
+  async sendPasswordResetConfirmationEmail(
+    toEmail: string,
+    userFirstName: string,
+  ): Promise<boolean> {
     const template = this.generatePasswordResetConfirmationEmail(userFirstName);
     return this.sendEmail({
       to: toEmail,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
   }
 }

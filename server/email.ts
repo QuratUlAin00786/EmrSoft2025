@@ -75,7 +75,7 @@ export function generatePrescriptionEmailHTML(
   // Default values if no clinic header provided
   const headerData = clinicHeader || {
     logoPosition: 'center',
-    clinicName: 'Cura EMR',
+    clinicName: 'EMRSoft',
     clinicNameFontSize: '24pt',
     fontSize: '12pt',
     fontFamily: 'verdana',
@@ -86,7 +86,7 @@ export function generatePrescriptionEmailHTML(
 
   // Default footer if not provided
   const footerData = clinicFooter || {
-    footerText: 'Cura EMR Platform',
+    footerText: 'EMR Platform',
     backgroundColor: '#4A7DFF',
     textColor: '#FFFFFF',
     showSocial: false

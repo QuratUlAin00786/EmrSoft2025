@@ -10,12 +10,17 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
-import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useRolePermissions } from "@/hooks/use-role-permissions";
 
 // Load Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
 
 // Medical Specialties Data Structure
 const medicalSpecialties = {
@@ -290,11 +295,14 @@ const TEST_TYPES = [
 
 // Test field definitions for dynamic lab result generation
 // Keys must match exactly with LAB_TEST_OPTIONS in billing.tsx
-const TEST_FIELD_DEFINITIONS: Record<string, Array<{
-  name: string;
-  unit: string;
-  referenceRange: string;
-}>> = {
+const TEST_FIELD_DEFINITIONS: Record<
+  string,
+  Array<{
+    name: string;
+    unit: string;
+    referenceRange: string;
+  }>
+> = {
   "Complete Blood Count (CBC)": [
     { name: "Hemoglobin (Hb)", unit: "g/dL", referenceRange: "13.0 - 17.0" },
     { name: "Total WBC Count", unit: "x10³/L", referenceRange: "4.0 - 10.0" },
@@ -346,7 +354,11 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
   ],
   "Hemoglobin A1C (HbA1c)": [
     { name: "Hemoglobin A1C (HbA1c)", unit: "%", referenceRange: "4.0 - 5.6" },
-    { name: "Estimated Average Glucose (eAG)", unit: "mg/dL", referenceRange: "< 117" },
+    {
+      name: "Estimated Average Glucose (eAG)",
+      unit: "mg/dL",
+      referenceRange: "< 117",
+    },
   ],
   "Comprehensive Metabolic Panel (CMP)": [
     { name: "Glucose", unit: "mg/dL", referenceRange: "70 - 100" },
@@ -386,22 +398,46 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
   ],
   "Vitamin D": [
     { name: "25-Hydroxyvitamin D", unit: "ng/mL", referenceRange: "30 - 100" },
-    { name: "Vitamin D2 (Ergocalciferol)", unit: "ng/mL", referenceRange: "Variable" },
-    { name: "Vitamin D3 (Cholecalciferol)", unit: "ng/mL", referenceRange: "Variable" },
+    {
+      name: "Vitamin D2 (Ergocalciferol)",
+      unit: "ng/mL",
+      referenceRange: "Variable",
+    },
+    {
+      name: "Vitamin D3 (Cholecalciferol)",
+      unit: "ng/mL",
+      referenceRange: "Variable",
+    },
     { name: "Total Vitamin D", unit: "ng/mL", referenceRange: "30 - 100" },
   ],
   "Iron Studies (Serum Iron, TIBC, Ferritin)": [
     { name: "Serum Iron", unit: "μg/dL", referenceRange: "60 - 170" },
-    { name: "TIBC (Total Iron Binding Capacity)", unit: "μg/dL", referenceRange: "240 - 450" },
-    { name: "UIBC (Unsaturated Iron Binding Capacity)", unit: "μg/dL", referenceRange: "111 - 343" },
+    {
+      name: "TIBC (Total Iron Binding Capacity)",
+      unit: "μg/dL",
+      referenceRange: "240 - 450",
+    },
+    {
+      name: "UIBC (Unsaturated Iron Binding Capacity)",
+      unit: "μg/dL",
+      referenceRange: "111 - 343",
+    },
     { name: "Transferrin Saturation", unit: "%", referenceRange: "20 - 50" },
     { name: "Ferritin", unit: "ng/mL", referenceRange: "12 - 300" },
     { name: "Transferrin", unit: "mg/dL", referenceRange: "200 - 360" },
   ],
   "Kidney Function Tests (Creatinine, BUN, eGFR)": [
     { name: "Creatinine", unit: "mg/dL", referenceRange: "0.6 - 1.2" },
-    { name: "BUN (Blood Urea Nitrogen)", unit: "mg/dL", referenceRange: "7 - 20" },
-    { name: "eGFR (Estimated Glomerular Filtration Rate)", unit: "mL/min/1.73m²", referenceRange: ">60" },
+    {
+      name: "BUN (Blood Urea Nitrogen)",
+      unit: "mg/dL",
+      referenceRange: "7 - 20",
+    },
+    {
+      name: "eGFR (Estimated Glomerular Filtration Rate)",
+      unit: "mL/min/1.73m²",
+      referenceRange: ">60",
+    },
     { name: "BUN/Creatinine Ratio", unit: "", referenceRange: "10 - 20" },
     { name: "Urea", unit: "mg/dL", referenceRange: "15 - 44" },
   ],
@@ -413,21 +449,49 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Anion Gap", unit: "mmol/L", referenceRange: "8 - 16" },
   ],
   "Blood Glucose (Fasting / Random / Postprandial)": [
-    { name: "Fasting Blood Glucose", unit: "mg/dL", referenceRange: "70 - 100" },
+    {
+      name: "Fasting Blood Glucose",
+      unit: "mg/dL",
+      referenceRange: "70 - 100",
+    },
     { name: "Random Blood Glucose", unit: "mg/dL", referenceRange: "70 - 140" },
-    { name: "Postprandial Glucose (2 hours)", unit: "mg/dL", referenceRange: "<140" },
+    {
+      name: "Postprandial Glucose (2 hours)",
+      unit: "mg/dL",
+      referenceRange: "<140",
+    },
   ],
   "C-Reactive Protein (CRP)": [
     { name: "CRP", unit: "mg/L", referenceRange: "<3.0" },
-    { name: "High-Sensitivity CRP (hs-CRP)", unit: "mg/L", referenceRange: "<1.0" },
+    {
+      name: "High-Sensitivity CRP (hs-CRP)",
+      unit: "mg/L",
+      referenceRange: "<1.0",
+    },
   ],
   "Erythrocyte Sedimentation Rate (ESR)": [
-    { name: "ESR (Westergren Method)", unit: "mm/hr", referenceRange: "0 - 20" },
+    {
+      name: "ESR (Westergren Method)",
+      unit: "mm/hr",
+      referenceRange: "0 - 20",
+    },
   ],
   "Coagulation Tests (PT, PTT, INR)": [
-    { name: "Prothrombin Time (PT)", unit: "seconds", referenceRange: "11 - 13.5" },
-    { name: "Partial Thromboplastin Time (PTT)", unit: "seconds", referenceRange: "25 - 35" },
-    { name: "INR (International Normalized Ratio)", unit: "", referenceRange: "0.8 - 1.2" },
+    {
+      name: "Prothrombin Time (PT)",
+      unit: "seconds",
+      referenceRange: "11 - 13.5",
+    },
+    {
+      name: "Partial Thromboplastin Time (PTT)",
+      unit: "seconds",
+      referenceRange: "25 - 35",
+    },
+    {
+      name: "INR (International Normalized Ratio)",
+      unit: "",
+      referenceRange: "0.8 - 1.2",
+    },
     { name: "Fibrinogen", unit: "mg/dL", referenceRange: "200 - 400" },
   ],
   "Albumin / Total Protein": [
@@ -437,14 +501,34 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "A/G Ratio", unit: "", referenceRange: "1.0 - 2.5" },
   ],
   "Vitamin B12 / Folate": [
-    { name: "Vitamin B12 (Cobalamin)", unit: "pg/mL", referenceRange: "200 - 900" },
-    { name: "Folate (Folic Acid)", unit: "ng/mL", referenceRange: "2.7 - 17.0" },
+    {
+      name: "Vitamin B12 (Cobalamin)",
+      unit: "pg/mL",
+      referenceRange: "200 - 900",
+    },
+    {
+      name: "Folate (Folic Acid)",
+      unit: "ng/mL",
+      referenceRange: "2.7 - 17.0",
+    },
     { name: "RBC Folate", unit: "ng/mL", referenceRange: "140 - 628" },
   ],
   "Hormone Panels (e.g., LH, FSH, Testosterone, Estrogen)": [
-    { name: "LH (Luteinizing Hormone)", unit: "mIU/mL", referenceRange: "1.5 - 9.3" },
-    { name: "FSH (Follicle-Stimulating Hormone)", unit: "mIU/mL", referenceRange: "1.4 - 18.1" },
-    { name: "Testosterone (Total)", unit: "ng/dL", referenceRange: "300 - 1000" },
+    {
+      name: "LH (Luteinizing Hormone)",
+      unit: "mIU/mL",
+      referenceRange: "1.5 - 9.3",
+    },
+    {
+      name: "FSH (Follicle-Stimulating Hormone)",
+      unit: "mIU/mL",
+      referenceRange: "1.4 - 18.1",
+    },
+    {
+      name: "Testosterone (Total)",
+      unit: "ng/dL",
+      referenceRange: "300 - 1000",
+    },
     { name: "Free Testosterone", unit: "pg/mL", referenceRange: "9 - 30" },
     { name: "Estrogen (Estradiol)", unit: "pg/mL", referenceRange: "15 - 350" },
     { name: "Progesterone", unit: "ng/mL", referenceRange: "0.1 - 25" },
@@ -455,9 +539,21 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Free/Total PSA Ratio", unit: "%", referenceRange: ">25" },
   ],
   "Thyroid Antibodies (e.g. Anti-TPO, Anti-TG)": [
-    { name: "Anti-TPO (Thyroid Peroxidase Antibodies)", unit: "IU/mL", referenceRange: "<35" },
-    { name: "Anti-TG (Thyroglobulin Antibodies)", unit: "IU/mL", referenceRange: "<40" },
-    { name: "TSI (Thyroid-Stimulating Immunoglobulin)", unit: "%", referenceRange: "<140" },
+    {
+      name: "Anti-TPO (Thyroid Peroxidase Antibodies)",
+      unit: "IU/mL",
+      referenceRange: "<35",
+    },
+    {
+      name: "Anti-TG (Thyroglobulin Antibodies)",
+      unit: "IU/mL",
+      referenceRange: "<40",
+    },
+    {
+      name: "TSI (Thyroid-Stimulating Immunoglobulin)",
+      unit: "%",
+      referenceRange: "<140",
+    },
   ],
   "Creatine Kinase (CK)": [
     { name: "Total CK", unit: "U/L", referenceRange: "30 - 200" },
@@ -468,7 +564,11 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Troponin I", unit: "ng/mL", referenceRange: "<0.04" },
     { name: "Troponin T", unit: "ng/mL", referenceRange: "<0.01" },
     { name: "CK-MB", unit: "ng/mL", referenceRange: "<5" },
-    { name: "BNP (B-type Natriuretic Peptide)", unit: "pg/mL", referenceRange: "<100" },
+    {
+      name: "BNP (B-type Natriuretic Peptide)",
+      unit: "pg/mL",
+      referenceRange: "<100",
+    },
     { name: "NT-proBNP", unit: "pg/mL", referenceRange: "<125" },
   ],
   "Electrolyte Panel": [
@@ -489,37 +589,81 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Pancreatic Amylase", unit: "U/L", referenceRange: "13 - 53" },
   ],
   "Hepatitis B / C Serologies": [
-    { name: "HBsAg (Hepatitis B Surface Antigen)", unit: "", referenceRange: "Negative" },
-    { name: "Anti-HBs (Hepatitis B Surface Antibody)", unit: "mIU/mL", referenceRange: ">10" },
-    { name: "Anti-HBc (Hepatitis B Core Antibody)", unit: "", referenceRange: "Negative" },
-    { name: "HBeAg (Hepatitis B e-Antigen)", unit: "", referenceRange: "Negative" },
-    { name: "Anti-HCV (Hepatitis C Antibody)", unit: "", referenceRange: "Negative" },
-    { name: "HCV RNA (Quantitative)", unit: "IU/mL", referenceRange: "Not Detected" },
+    {
+      name: "HBsAg (Hepatitis B Surface Antigen)",
+      unit: "",
+      referenceRange: "Negative",
+    },
+    {
+      name: "Anti-HBs (Hepatitis B Surface Antibody)",
+      unit: "mIU/mL",
+      referenceRange: ">10",
+    },
+    {
+      name: "Anti-HBc (Hepatitis B Core Antibody)",
+      unit: "",
+      referenceRange: "Negative",
+    },
+    {
+      name: "HBeAg (Hepatitis B e-Antigen)",
+      unit: "",
+      referenceRange: "Negative",
+    },
+    {
+      name: "Anti-HCV (Hepatitis C Antibody)",
+      unit: "",
+      referenceRange: "Negative",
+    },
+    {
+      name: "HCV RNA (Quantitative)",
+      unit: "IU/mL",
+      referenceRange: "Not Detected",
+    },
   ],
   "HIV Antibody / Viral Load": [
     { name: "HIV-1/2 Antibody", unit: "", referenceRange: "Negative" },
     { name: "HIV p24 Antigen", unit: "", referenceRange: "Negative" },
-    { name: "HIV Viral Load (RNA)", unit: "copies/mL", referenceRange: "Not Detected" },
+    {
+      name: "HIV Viral Load (RNA)",
+      unit: "copies/mL",
+      referenceRange: "Not Detected",
+    },
     { name: "CD4 Count", unit: "cells/μL", referenceRange: "500 - 1500" },
     { name: "CD4/CD8 Ratio", unit: "", referenceRange: "0.9 - 3.0" },
   ],
   "HCG (Pregnancy / Quantitative)": [
-    { name: "Quantitative hCG (Beta-hCG)", unit: "mIU/mL", referenceRange: "<5" },
+    {
+      name: "Quantitative hCG (Beta-hCG)",
+      unit: "mIU/mL",
+      referenceRange: "<5",
+    },
     { name: "Qualitative hCG", unit: "", referenceRange: "Negative" },
   ],
   "Autoimmune Panels (ANA, ENA, Rheumatoid Factor)": [
-    { name: "ANA (Antinuclear Antibody)", unit: "", referenceRange: "Negative" },
+    {
+      name: "ANA (Antinuclear Antibody)",
+      unit: "",
+      referenceRange: "Negative",
+    },
     { name: "Anti-dsDNA", unit: "IU/mL", referenceRange: "<30" },
     { name: "Anti-Sm (Smith)", unit: "", referenceRange: "Negative" },
     { name: "Anti-RNP", unit: "", referenceRange: "Negative" },
     { name: "Anti-SSA (Ro)", unit: "", referenceRange: "Negative" },
     { name: "Anti-SSB (La)", unit: "", referenceRange: "Negative" },
     { name: "Rheumatoid Factor (RF)", unit: "IU/mL", referenceRange: "<20" },
-    { name: "Anti-CCP (Anti-Cyclic Citrullinated Peptide)", unit: "U/mL", referenceRange: "<20" },
+    {
+      name: "Anti-CCP (Anti-Cyclic Citrullinated Peptide)",
+      unit: "U/mL",
+      referenceRange: "<20",
+    },
   ],
   "Tumor Markers (e.g. CA-125, CEA, AFP)": [
     { name: "CA-125 (Ovarian)", unit: "U/mL", referenceRange: "<35" },
-    { name: "CEA (Carcinoembryonic Antigen)", unit: "ng/mL", referenceRange: "<3.0" },
+    {
+      name: "CEA (Carcinoembryonic Antigen)",
+      unit: "ng/mL",
+      referenceRange: "<3.0",
+    },
     { name: "AFP (Alpha-Fetoprotein)", unit: "ng/mL", referenceRange: "<10" },
     { name: "CA 19-9 (Pancreatic)", unit: "U/mL", referenceRange: "<37" },
     { name: "CA 15-3 (Breast)", unit: "U/mL", referenceRange: "<30" },
@@ -528,7 +672,11 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Culture Result", unit: "", referenceRange: "No Growth" },
     { name: "Organism Identified", unit: "", referenceRange: "None" },
     { name: "Sensitivity Pattern", unit: "", referenceRange: "N/A" },
-    { name: "Blood Culture Time to Positivity", unit: "hours", referenceRange: "N/A" },
+    {
+      name: "Blood Culture Time to Positivity",
+      unit: "hours",
+      referenceRange: "N/A",
+    },
   ],
   "Stool Culture / Ova & Parasites": [
     { name: "Stool Culture", unit: "", referenceRange: "No Pathogens" },
@@ -552,15 +700,29 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
   "Hormonal tests (Cortisol, ACTH)": [
     { name: "Cortisol (AM)", unit: "μg/dL", referenceRange: "6 - 23" },
     { name: "Cortisol (PM)", unit: "μg/dL", referenceRange: "3 - 16" },
-    { name: "ACTH (Adrenocorticotropic Hormone)", unit: "pg/mL", referenceRange: "10 - 60" },
-    { name: "24-hour Urinary Free Cortisol", unit: "μg/24hr", referenceRange: "10 - 100" },
+    {
+      name: "ACTH (Adrenocorticotropic Hormone)",
+      unit: "pg/mL",
+      referenceRange: "10 - 60",
+    },
+    {
+      name: "24-hour Urinary Free Cortisol",
+      unit: "μg/24hr",
+      referenceRange: "10 - 100",
+    },
   ],
 };
 
 // Database-driven lab results - no more mock data
 
 // Stripe Payment Form Component
-function StripePaymentForm({ onSuccess, onCancel }: { onSuccess: (paymentIntentId: string) => void, onCancel: () => void }) {
+function StripePaymentForm({
+  onSuccess,
+  onCancel,
+}: {
+  onSuccess: (paymentIntentId: string) => void;
+  onCancel: () => void;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -581,7 +743,7 @@ function StripePaymentForm({ onSuccess, onCancel }: { onSuccess: (paymentIntentI
         confirmParams: {
           return_url: window.location.origin,
         },
-        redirect: 'if_required'
+        redirect: "if_required",
       });
 
       if (error) {
@@ -590,7 +752,7 @@ function StripePaymentForm({ onSuccess, onCancel }: { onSuccess: (paymentIntentI
           description: error.message || "An error occurred during payment",
           variant: "destructive",
         });
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+      } else if (paymentIntent && paymentIntent.status === "succeeded") {
         onSuccess(paymentIntent.id);
       }
     } catch (err: any) {
@@ -655,9 +817,13 @@ export default function LabResultsPage() {
   const [testTypePopoverOpen, setTestTypePopoverOpen] = useState(false);
   const [generateFormData, setGenerateFormData] = useState<any>({});
   const [fillResultFormData, setFillResultFormData] = useState<any>({});
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [expandedResults, setExpandedResults] = useState<Set<number>>(new Set());
-  
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
+  const [expandedResults, setExpandedResults] = useState<Set<number>>(
+    new Set(),
+  );
+
   // Invoice workflow states
   const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
@@ -665,14 +831,14 @@ export default function LabResultsPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [pendingOrderData, setPendingOrderData] = useState<any>(null);
   const [invoiceData, setInvoiceData] = useState<any>({
-    serviceDate: new Date().toISOString().split('T')[0],
-    invoiceDate: new Date().toISOString().split('T')[0],
-    dueDate: new Date().toISOString().split('T')[0],
+    serviceDate: new Date().toISOString().split("T")[0],
+    invoiceDate: new Date().toISOString().split("T")[0],
+    dueDate: new Date().toISOString().split("T")[0],
     items: [] as any[],
     totalAmount: 0,
-    paymentMethod: '',
-    insuranceProvider: '',
-    notes: ''
+    paymentMethod: "",
+    insuranceProvider: "",
+    notes: "",
   });
   const [paymentResult, setPaymentResult] = useState<any>(null);
   const [stripeClientSecret, setStripeClientSecret] = useState<string>("");
@@ -682,7 +848,10 @@ export default function LabResultsPage() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [signature, setSignature] = useState<string>("");
   const [signatureSaved, setSignatureSaved] = useState(false);
-  const [lastPosition, setLastPosition] = useState<{ x: number; y: number } | null>(null);
+  const [lastPosition, setLastPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
   // Fetch roles from the roles table filtered by organization_id
@@ -742,37 +911,41 @@ export default function LabResultsPage() {
   const [orderNameSearchOpen, setOrderNameSearchOpen] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [activeTab, setActiveTab] = useState<"request" | "generate" | "generated">("request");
+  const [activeTab, setActiveTab] = useState<
+    "request" | "generate" | "generated"
+  >("request");
   const [showTestResults, setShowTestResults] = useState(false);
 
   // Helper function to generate random value within reference range
   const generateValueFromRange = (referenceRange: string): string | null => {
     // Handle different range formats
-    if (referenceRange.includes(' - ')) {
+    if (referenceRange.includes(" - ")) {
       // Format: "13.0 - 17.0" or "4.0 - 10.0"
-      const parts = referenceRange.split(' - ').map(v => parseFloat(v.trim()));
+      const parts = referenceRange
+        .split(" - ")
+        .map((v) => parseFloat(v.trim()));
       if (parts.some(isNaN)) return null; // Skip non-numeric ranges
       const [min, max] = parts;
       const value = min + Math.random() * (max - min);
       // Determine decimal places from original range
-      const decimals = referenceRange.includes('.') ? 1 : 0;
+      const decimals = referenceRange.includes(".") ? 1 : 0;
       return value.toFixed(decimals);
-    } else if (referenceRange.startsWith('<')) {
+    } else if (referenceRange.startsWith("<")) {
       // Format: "<2" or "<200"
       const max = parseFloat(referenceRange.substring(1).trim());
       if (isNaN(max)) return null; // Skip non-numeric ranges
       const value = Math.random() * (max * 0.8); // Use 80% of max for safety
-      const decimals = referenceRange.includes('.') ? 1 : 0;
+      const decimals = referenceRange.includes(".") ? 1 : 0;
       return value.toFixed(decimals);
-    } else if (referenceRange.startsWith('>')) {
+    } else if (referenceRange.startsWith(">")) {
       // Format: ">10" or ">150"
       const min = parseFloat(referenceRange.substring(1).trim());
       if (isNaN(min)) return null; // Skip non-numeric ranges
       const value = min + Math.random() * (min * 0.5); // Use min + 50% for safety
-      const decimals = referenceRange.includes('.') ? 1 : 0;
+      const decimals = referenceRange.includes(".") ? 1 : 0;
       return value.toFixed(decimals);
     }
-    
+
     // Skip other formats (e.g., "negative", "positive", etc.)
     return null;
   };
@@ -798,39 +971,59 @@ export default function LabResultsPage() {
       // Check if the current user role is Patient
       if (user.role === "patient") {
         // Get the patient ID from session/auth - match by email first for accuracy
-        console.log("🔍 LAB RESULTS: Looking for patient matching user:", { 
-          userEmail: user.email, 
+        console.log("🔍 LAB RESULTS: Looking for patient matching user:", {
+          userEmail: user.email,
           userName: `${user.firstName} ${user.lastName}`,
-          userId: user.id 
+          userId: user.id,
         });
-        console.log("📋 LAB RESULTS: Available patients:", patients.map((p: any) => ({ 
-          id: p.id, 
-          email: p.email, 
-          name: `${p.firstName} ${p.lastName}` 
-        })));
-        
-        // Try email match first (most reliable)
-        let currentPatient = patients.find((patient: any) => 
-          patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+        console.log(
+          "📋 LAB RESULTS: Available patients:",
+          patients.map((p: any) => ({
+            id: p.id,
+            email: p.email,
+            name: `${p.firstName} ${p.lastName}`,
+          })),
         );
-        
+
+        // Try email match first (most reliable)
+        let currentPatient = patients.find(
+          (patient: any) =>
+            patient.email &&
+            user.email &&
+            patient.email.toLowerCase() === user.email.toLowerCase(),
+        );
+
         // If no email match, try exact name match
         if (!currentPatient) {
-          currentPatient = patients.find((patient: any) => 
-            patient.firstName && user.firstName && patient.lastName && user.lastName &&
-            patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
-            patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+          currentPatient = patients.find(
+            (patient: any) =>
+              patient.firstName &&
+              user.firstName &&
+              patient.lastName &&
+              user.lastName &&
+              patient.firstName.toLowerCase() ===
+                user.firstName.toLowerCase() &&
+              patient.lastName.toLowerCase() === user.lastName.toLowerCase(),
           );
         }
-        
+
         if (currentPatient) {
-          console.log("✅ LAB RESULTS: Found matching patient:", currentPatient);
+          console.log(
+            "✅ LAB RESULTS: Found matching patient:",
+            currentPatient,
+          );
           // Fetch lab results filtered by patient ID
-          const response = await apiRequest("GET", `/api/lab-results?patientId=${currentPatient.id}`);
+          const response = await apiRequest(
+            "GET",
+            `/api/lab-results?patientId=${currentPatient.id}`,
+          );
           return await response.json();
         } else {
           // If patient doesn't exist, return empty array
-          console.log("❌ LAB RESULTS: Patient not found for user:", user.email);
+          console.log(
+            "❌ LAB RESULTS: Patient not found for user:",
+            user.email,
+          );
           return [];
         }
       } else if (isDoctorLike(user.role)) {
@@ -840,10 +1033,13 @@ export default function LabResultsPage() {
         const response = await apiRequest("GET", "/api/lab-results");
         const allResults = await response.json();
         // Filter results where doctor_name matches logged in doctor's name
-        const doctorResults = allResults.filter((result: any) => 
-          result.doctorName === doctorFullName
+        const doctorResults = allResults.filter(
+          (result: any) => result.doctorName === doctorFullName,
         );
-        console.log("✅ LAB RESULTS: Filtered results for doctor:", doctorResults.length);
+        console.log(
+          "✅ LAB RESULTS: Filtered results for doctor:",
+          doctorResults.length,
+        );
         return doctorResults;
       } else {
         // For other roles (admin, etc.), show all lab results
@@ -857,7 +1053,9 @@ export default function LabResultsPage() {
   // Compute unique test IDs for filter dropdown
   const uniqueTestIds = useMemo(() => {
     if (!Array.isArray(labResults) || labResults.length === 0) return [];
-    const testIds = Array.from(new Set(labResults.map((result: DatabaseLabResult) => result.testId))).filter(Boolean);
+    const testIds = Array.from(
+      new Set(labResults.map((result: DatabaseLabResult) => result.testId)),
+    ).filter(Boolean);
     return testIds.sort();
   }, [labResults]);
 
@@ -867,7 +1065,7 @@ export default function LabResultsPage() {
       if (!labResults || labResults.length === 0) return;
 
       const existenceChecks: Record<number, boolean> = {};
-      
+
       for (const result of labResults) {
         try {
           const token = localStorage.getItem("auth_token");
@@ -890,7 +1088,10 @@ export default function LabResultsPage() {
             existenceChecks[result.id] = false;
           }
         } catch (error) {
-          console.error(`Error checking file existence for result ${result.id}:`, error);
+          console.error(
+            `Error checking file existence for result ${result.id}:`,
+            error,
+          );
           existenceChecks[result.id] = false;
         }
       }
@@ -946,8 +1147,8 @@ export default function LabResultsPage() {
   const doctors =
     selectedSpecialtyCategory || selectedSubSpecialty
       ? filteredDoctorsData?.doctors || []
-      : medicalStaffData?.staff?.filter(
-          (staff: any) => isDoctorLike(staff.role),
+      : medicalStaffData?.staff?.filter((staff: any) =>
+          isDoctorLike(staff.role),
         ) || [];
 
   const { data: users = [] } = useQuery<User[]>({
@@ -960,7 +1161,7 @@ export default function LabResultsPage() {
 
   const { data: labTestPricing = [] } = useQuery({
     queryKey: ["/api/pricing/lab-tests"],
-    enabled: user?.role !== 'patient', // Disable for patient users who only view their own lab results
+    enabled: user?.role !== "patient", // Disable for patient users who only view their own lab results
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/pricing/lab-tests");
       return res.json();
@@ -969,18 +1170,23 @@ export default function LabResultsPage() {
 
   // Generate test types from lab_test_pricing table (filtered by organization_id)
   const dynamicTestTypes = Array.from(
-    new Set(labTestPricing.map((item: any) => item.testName).filter(Boolean))
+    new Set(labTestPricing.map((item: any) => item.testName).filter(Boolean)),
   );
-  
+
   // Use dynamic test types if available, otherwise fall back to default TEST_TYPES
-  const availableTestTypes = dynamicTestTypes.length > 0 ? dynamicTestTypes : TEST_TYPES;
+  const availableTestTypes =
+    dynamicTestTypes.length > 0 ? dynamicTestTypes : TEST_TYPES;
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const createLabOrderMutation = useMutation({
     mutationFn: async (labOrderData: any) => {
-      const response = await apiRequest("POST", "/api/lab-results", labOrderData);
+      const response = await apiRequest(
+        "POST",
+        "/api/lab-results",
+        labOrderData,
+      );
       return response.json();
     },
     onSuccess: (labResult, variables) => {
@@ -989,39 +1195,44 @@ export default function LabResultsPage() {
         ...variables,
         patientName: orderFormData.patientName,
         testTypes: orderFormData.testType,
-        testId: labResult.testId  // Store the generated testId
+        testId: labResult.testId, // Store the generated testId
       });
-      
+
       // Prepare invoice items from test types
       const testTypes = orderFormData.testType;
       const invoiceItems = testTypes.map((testType: string, index: number) => {
         // Find matching price from lab_test_pricing table where test_name equals description
-        const pricingData = labTestPricing.find((item: any) => item.testName === testType);
-        const unitPrice = pricingData?.basePrice || 50.00; // Use base_price or default to 50.00
-        
+        const pricingData = labTestPricing.find(
+          (item: any) => item.testName === testType,
+        );
+        const unitPrice = pricingData?.basePrice || 50.0; // Use base_price or default to 50.00
+
         return {
-          code: `LAB-${(index + 1).toString().padStart(3, '0')}`,
+          code: `LAB-${(index + 1).toString().padStart(3, "0")}`,
           description: testType,
           quantity: 1,
           unitPrice: unitPrice,
-          total: unitPrice * 1
+          total: unitPrice * 1,
         };
       });
-      
-      const totalAmount = invoiceItems.reduce((sum, item) => sum + item.total, 0);
-      
+
+      const totalAmount = invoiceItems.reduce(
+        (sum, item) => sum + item.total,
+        0,
+      );
+
       setInvoiceData({
         ...invoiceData,
         items: invoiceItems,
-        totalAmount: totalAmount
+        totalAmount: totalAmount,
       });
-      
+
       // Close order dialog and open invoice dialog
       setShowOrderDialog(false);
       setShowInvoiceDialog(true);
-      
+
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
-      
+
       // Don't reset form data yet - we'll need it for the invoice
     },
     onError: (error: any) => {
@@ -1033,10 +1244,13 @@ export default function LabResultsPage() {
     },
   });
 
-  const [showPermissionErrorDialog, setShowPermissionErrorDialog] = useState(false);
+  const [showPermissionErrorDialog, setShowPermissionErrorDialog] =
+    useState(false);
   const [permissionErrorMessage, setPermissionErrorMessage] = useState("");
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [fileExistenceMap, setFileExistenceMap] = useState<Record<number, boolean>>({});
+  const [fileExistenceMap, setFileExistenceMap] = useState<
+    Record<number, boolean>
+  >({});
 
   const updateLabResultMutation = useMutation({
     mutationFn: async (updateData: { id: number; data: any }) => {
@@ -1045,15 +1259,17 @@ export default function LabResultsPage() {
         `/api/lab-results/${updateData.id}`,
         updateData.data,
       );
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        const error: any = new Error(errorData.error || "Failed to update lab result");
+        const error: any = new Error(
+          errorData.error || "Failed to update lab result",
+        );
         error.status = response.status;
         error.data = errorData;
         throw error;
       }
-      
+
       const updatedData = await response.json();
       return { updateData, updatedData };
     },
@@ -1064,26 +1280,28 @@ export default function LabResultsPage() {
       });
       setIsEditMode(false);
       setEditingStatusId(null);
-      
+
       // Update selectedResult with the new data
       if (selectedResult && result.updateData.id === selectedResult.id) {
         setSelectedResult({
           ...selectedResult,
-          ...result.updateData.data
+          ...result.updateData.data,
         });
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
     },
     onError: (error: any) => {
       if (error.status === 403) {
         // Skip showing permission error for doctors/admins - they should have access
         if (isDoctor() || isAdmin()) {
-          console.log('Permission error suppressed for doctor/admin role');
+          console.log("Permission error suppressed for doctor/admin role");
           setEditingStatusId(null);
           return;
         }
-        setPermissionErrorMessage(error.data?.error || "Insufficient permissions");
+        setPermissionErrorMessage(
+          error.data?.error || "Insufficient permissions",
+        );
         setShowPermissionErrorDialog(true);
         setEditingStatusId(null);
       } else {
@@ -1113,16 +1331,19 @@ export default function LabResultsPage() {
     onError: (error: any) => {
       // For doctors and admins, suppress permission errors
       const errorMessage = error.message || "Failed to delete lab result";
-      const isPermissionError = errorMessage.includes('403') || 
-                                 errorMessage.toLowerCase().includes('permission') ||
-                                 errorMessage.toLowerCase().includes('forbidden');
-      
+      const isPermissionError =
+        errorMessage.includes("403") ||
+        errorMessage.toLowerCase().includes("permission") ||
+        errorMessage.toLowerCase().includes("forbidden");
+
       // Skip showing error for doctors/admins with permission issues - they should have access
       if ((isDoctor() || isAdmin()) && isPermissionError) {
-        console.log('Permission error suppressed for doctor/admin role on delete');
+        console.log(
+          "Permission error suppressed for doctor/admin role on delete",
+        );
         return;
       }
-      
+
       toast({
         title: "Error",
         description: errorMessage,
@@ -1134,26 +1355,34 @@ export default function LabResultsPage() {
   // Cash payment mutation
   const createCashPaymentMutation = useMutation({
     mutationFn: async (paymentData: any) => {
-      const response = await apiRequest("POST", "/api/payments/cash", paymentData);
+      const response = await apiRequest(
+        "POST",
+        "/api/payments/cash",
+        paymentData,
+      );
       return response.json();
     },
     onSuccess: async (data) => {
       // Update Lab_Request_Generated to true
       if (pendingOrderData?.testId) {
         try {
-          await apiRequest("PATCH", `/api/lab-results/${pendingOrderData.testId}`, {
-            labRequestGenerated: true
-          });
+          await apiRequest(
+            "PATCH",
+            `/api/lab-results/${pendingOrderData.testId}`,
+            {
+              labRequestGenerated: true,
+            },
+          );
         } catch (error) {
           console.error("Failed to update Lab_Request_Generated:", error);
         }
       }
-      
+
       setPaymentResult({
         invoiceId: data.invoice.invoiceNumber,
         patientName: pendingOrderData?.patientName,
         amount: invoiceData.totalAmount,
-        paymentMethod: 'cash'
+        paymentMethod: "cash",
       });
       setShowSummaryDialog(false);
       setShowPaymentConfirmation(true);
@@ -1171,7 +1400,11 @@ export default function LabResultsPage() {
   // Stripe payment mutation
   const createStripePaymentMutation = useMutation({
     mutationFn: async (paymentData: any) => {
-      const response = await apiRequest("POST", "/api/payments/stripe", paymentData);
+      const response = await apiRequest(
+        "POST",
+        "/api/payments/stripe",
+        paymentData,
+      );
       return response.json();
     },
     onSuccess: (data) => {
@@ -1192,14 +1425,23 @@ export default function LabResultsPage() {
     // For patient role users, automatically set their patient ID
     if (user?.role === "patient") {
       // Find the current patient based on user authentication data
-      const currentPatient = patients.find((patient: any) => 
-        patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
-      ) || patients.find((patient: any) => 
-        patient.firstName && user.firstName && patient.lastName && user.lastName &&
-        patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
-        patient.lastName.toLowerCase() === user.lastName.toLowerCase()
-      );
-      
+      const currentPatient =
+        patients.find(
+          (patient: any) =>
+            patient.email &&
+            user.email &&
+            patient.email.toLowerCase() === user.email.toLowerCase(),
+        ) ||
+        patients.find(
+          (patient: any) =>
+            patient.firstName &&
+            user.firstName &&
+            patient.lastName &&
+            user.lastName &&
+            patient.firstName.toLowerCase() === user.firstName.toLowerCase() &&
+            patient.lastName.toLowerCase() === user.lastName.toLowerCase(),
+        );
+
       if (currentPatient) {
         setOrderFormData((prev) => ({
           ...prev,
@@ -1217,7 +1459,7 @@ export default function LabResultsPage() {
         selectedUserName: `${user.firstName} ${user.lastName}`,
       }));
     }
-    
+
     setShowOrderDialog(true);
   };
 
@@ -1230,45 +1472,49 @@ export default function LabResultsPage() {
 
   const handleCreateInvoiceForTest = (result: DatabaseLabResult) => {
     // Parse test types from the result
-    const testTypes = result.testType.split(' | ');
-    
+    const testTypes = result.testType.split(" | ");
+
     // Prepare invoice items from test types
     const invoiceItems = testTypes.map((testType: string, index: number) => {
       // Find matching price from lab_test_pricing table where test_name equals description
-      const pricingData = labTestPricing.find((item: any) => item.testName === testType);
-      const unitPrice = pricingData?.basePrice || 50.00; // Use base_price or default to 50.00
-      
+      const pricingData = labTestPricing.find(
+        (item: any) => item.testName === testType,
+      );
+      const unitPrice = pricingData?.basePrice || 50.0; // Use base_price or default to 50.00
+
       return {
-        code: `LAB-${(index + 1).toString().padStart(3, '0')}`,
+        code: `LAB-${(index + 1).toString().padStart(3, "0")}`,
         description: testType,
         quantity: 1,
         unitPrice: unitPrice,
-        total: unitPrice * 1
+        total: unitPrice * 1,
       };
     });
-    
+
     const totalAmount = invoiceItems.reduce((sum, item) => sum + item.total, 0);
-    
+
     // Set pending order data with the existing test
     setPendingOrderData({
       patientId: result.patientId,
       patientName: getPatientName(result.patientId),
       testTypes: testTypes,
-      testId: result.testId
+      testId: result.testId,
     });
-    
+
     // Populate invoice form with test details
     setInvoiceData({
-      serviceDate: new Date().toISOString().split('T')[0],
-      invoiceDate: new Date().toISOString().split('T')[0],
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      serviceDate: new Date().toISOString().split("T")[0],
+      invoiceDate: new Date().toISOString().split("T")[0],
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
       items: invoiceItems,
       totalAmount: totalAmount,
-      paymentMethod: '',
-      insuranceProvider: '',
-      notes: ''
+      paymentMethod: "",
+      insuranceProvider: "",
+      notes: "",
     });
-    
+
     // Open the invoice dialog
     setShowInvoiceDialog(true);
   };
@@ -1278,42 +1524,48 @@ export default function LabResultsPage() {
       // Check if invoice exists for this lab result
       const response = await apiRequest(
         "GET",
-        `/api/invoices/by-service?serviceType=lab_result&serviceId=${result.testId}`
+        `/api/invoices/by-service?serviceType=lab_result&serviceId=${result.testId}`,
       );
-      
+
       if (response.ok) {
         // Invoice exists - populate form with existing data for editing
         const existingInvoice = await response.json();
-        
+
         // Set pending order data
         setPendingOrderData({
           patientId: result.patientId,
           patientName: getPatientName(result.patientId),
-          testTypes: result.testType.split(' | '),
-          testId: result.testId
+          testTypes: result.testType.split(" | "),
+          testId: result.testId,
         });
-        
+
         // Populate invoice form with existing invoice data
         setInvoiceData({
           id: existingInvoice.id,
           invoiceNumber: existingInvoice.invoiceNumber,
-          serviceDate: new Date(existingInvoice.dateOfService).toISOString().split('T')[0],
-          invoiceDate: new Date(existingInvoice.invoiceDate).toISOString().split('T')[0],
-          dueDate: new Date(existingInvoice.dueDate).toISOString().split('T')[0],
+          serviceDate: new Date(existingInvoice.dateOfService)
+            .toISOString()
+            .split("T")[0],
+          invoiceDate: new Date(existingInvoice.invoiceDate)
+            .toISOString()
+            .split("T")[0],
+          dueDate: new Date(existingInvoice.dueDate)
+            .toISOString()
+            .split("T")[0],
           items: existingInvoice.items || [],
           totalAmount: parseFloat(existingInvoice.totalAmount),
-          paymentMethod: existingInvoice.insurance?.provider || '',
-          insuranceProvider: existingInvoice.insurance?.provider || '',
-          notes: existingInvoice.notes || ''
+          paymentMethod: existingInvoice.insurance?.provider || "",
+          insuranceProvider: existingInvoice.insurance?.provider || "",
+          notes: existingInvoice.notes || "",
         });
-        
+
         // Open the invoice dialog for editing
         setShowInvoiceDialog(true);
       } else if (response.status === 404) {
         // No invoice exists - create new one
         handleCreateInvoiceForTest(result);
       } else {
-        throw new Error('Failed to check invoice status');
+        throw new Error("Failed to check invoice status");
       }
     } catch (error) {
       console.error("Error checking invoice:", error);
@@ -1432,7 +1684,9 @@ Report generated from EMRSoft System`;
       subSpecialty: selectedResult.subSpecialty || "",
     });
     setSelectedEditRole("");
-    setSelectedTestTypes(selectedResult.testType ? [selectedResult.testType] : []);
+    setSelectedTestTypes(
+      selectedResult.testType ? [selectedResult.testType] : [],
+    );
     setIsEditMode(true);
   };
 
@@ -1638,26 +1892,37 @@ Report generated from EMRSoft System`;
           <body>
             <div class="prescription-content">
               <div style="display: grid; grid-template-columns: auto 1fr auto; align-items: center; border-bottom: 1px solid #ccc; padding: 1rem 0; position: relative;">
-                ${clinicHeader?.logoBase64 && (clinicHeader?.logoPosition === 'left' || clinicHeader?.logoPosition === 'center') ? `
+                ${
+                  clinicHeader?.logoBase64 &&
+                  (clinicHeader?.logoPosition === "left" ||
+                    clinicHeader?.logoPosition === "center")
+                    ? `
                   <div style="grid-column: 1 / 2;">
                     <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 80px; max-height: 80px;" />
                   </div>
-                ` : '<div></div>'}
+                `
+                    : "<div></div>"
+                }
 
                 <div style="grid-column: 2 / 3; text-align: center;">
-                  <span style="font-size: ${clinicHeader?.clinicNameFontSize || '25px'}; color: darkblue; font-weight: ${clinicHeader?.fontWeight || '700'}; font-family: ${clinicHeader?.fontFamily || 'verdana'}; font-style: ${clinicHeader?.fontStyle || 'normal'}; text-decoration: ${clinicHeader?.textDecoration || 'none'};">${clinicHeader?.clinicName || 'CURA EMR SYSTEM'}</span>
-                  <h2 style="margin: 4px 0; font-size: ${clinicHeader?.fontSize || '12pt'}; font-family: ${clinicHeader?.fontFamily || 'verdana'};">Laboratory Test Prescription</h2>
-                  ${clinicHeader?.address ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.address}</p>` : ''}
-                  ${clinicHeader?.phone ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.phone}</p>` : ''}
-                  ${clinicHeader?.email ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.email}</p>` : ''}
-                  ${clinicHeader?.website ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.website}</p>` : ''}
+                  <span style="font-size: ${clinicHeader?.clinicNameFontSize || "25px"}; color: darkblue; font-weight: ${clinicHeader?.fontWeight || "700"}; font-family: ${clinicHeader?.fontFamily || "verdana"}; font-style: ${clinicHeader?.fontStyle || "normal"}; text-decoration: ${clinicHeader?.textDecoration || "none"};">${clinicHeader?.clinicName || "EMRSoft Health System"}</span>
+                  <h2 style="margin: 4px 0; font-size: ${clinicHeader?.fontSize || "12pt"}; font-family: ${clinicHeader?.fontFamily || "verdana"};">Laboratory Test Prescription</h2>
+                  ${clinicHeader?.address ? `<p style="font-size: ${clinicHeader.fontSize || "12pt"}; font-family: ${clinicHeader.fontFamily || "verdana"}; margin: 2px 0;">${clinicHeader.address}</p>` : ""}
+                  ${clinicHeader?.phone ? `<p style="font-size: ${clinicHeader.fontSize || "12pt"}; font-family: ${clinicHeader.fontFamily || "verdana"}; margin: 2px 0;">${clinicHeader.phone}</p>` : ""}
+                  ${clinicHeader?.email ? `<p style="font-size: ${clinicHeader.fontSize || "12pt"}; font-family: ${clinicHeader.fontFamily || "verdana"}; margin: 2px 0;">${clinicHeader.email}</p>` : ""}
+                  ${clinicHeader?.website ? `<p style="font-size: ${clinicHeader.fontSize || "12pt"}; font-family: ${clinicHeader.fontFamily || "verdana"}; margin: 2px 0;">${clinicHeader.website}</p>` : ""}
                 </div>
 
-                ${clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'right' ? `
+                ${
+                  clinicHeader?.logoBase64 &&
+                  clinicHeader?.logoPosition === "right"
+                    ? `
                   <div style="grid-column: 3 / 4;">
                     <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 80px; max-height: 80px;" />
                   </div>
-                ` : '<div></div>'}
+                `
+                    : "<div></div>"
+                }
               </div>
 
               <div style="display: flex; justify-content: space-between; gap: 2rem; margin-top: 1rem;">
@@ -1667,24 +1932,36 @@ Report generated from EMRSoft System`;
                     <strong>Name:</strong>
                     <span style="margin-left: 0.5rem;">${selectedResult.doctorName || "Doctor"}</span>
                   </div>
-                  ${selectedResult.mainSpecialty ? `
+                  ${
+                    selectedResult.mainSpecialty
+                      ? `
                   <div style="margin-bottom: 0.25rem;">
                     <strong>Main Specialization:</strong>
                     <span style="margin-left: 0.5rem;">${selectedResult.mainSpecialty}</span>
                   </div>
-                  ` : ""}
-                  ${selectedResult.subSpecialty ? `
+                  `
+                      : ""
+                  }
+                  ${
+                    selectedResult.subSpecialty
+                      ? `
                   <div style="margin-bottom: 0.25rem;">
                     <strong>Sub-Specialization:</strong>
                     <span style="margin-left: 0.5rem;">${selectedResult.subSpecialty}</span>
                   </div>
-                  ` : ""}
-                  ${selectedResult.priority ? `
+                  `
+                      : ""
+                  }
+                  ${
+                    selectedResult.priority
+                      ? `
                   <div style="margin-bottom: 0.25rem;">
                     <strong>Priority:</strong>
                     <span style="margin-left: 0.5rem;">${selectedResult.priority.toUpperCase()}</span>
                   </div>
-                  ` : ""}
+                  `
+                      : ""
+                  }
                 </div>
 
                 <div style="flex: 1;">
@@ -1730,39 +2007,59 @@ Report generated from EMRSoft System`;
                   </div>
                 </div>
               </div>
-              ${selectedResult.results && selectedResult.results.length > 0 ? `
+              ${
+                selectedResult.results && selectedResult.results.length > 0
+                  ? `
                 <div class="test-results">
                   <div class="results-title">Test Results:</div>
-                  ${selectedResult.results.map((testResult: any) => `
+                  ${selectedResult.results
+                    .map(
+                      (testResult: any) => `
                     <div class="result-item">
                       <strong>${testResult.name}:</strong> ${testResult.value} ${testResult.unit} 
                       (Reference: ${testResult.referenceRange}) - Status: ${testResult.status.replace("_", " ").toUpperCase()}
                     </div>
-                  `).join("")}
+                  `,
+                    )
+                    .join("")}
                 </div>
-              ` : ""}
+              `
+                  : ""
+              }
 
-              ${selectedResult.notes ? `
+              ${
+                selectedResult.notes
+                  ? `
                 <div class="notes-section">
                   <strong>Clinical Notes:</strong><br>
                   ${selectedResult.notes}
                 </div>
-              ` : ""}
+              `
+                  : ""
+              }
 
-              ${selectedResult.criticalValues ? `
+              ${
+                selectedResult.criticalValues
+                  ? `
                 <div style="margin-top: 20px; padding: 15px; background: #fef2f2; border: 2px solid #dc2626; border-radius: 8px;">
                   <strong style="color: #dc2626;">⚠️ CRITICAL VALUES DETECTED</strong><br>
                   <span style="color: #991b1b;">This lab result contains critical values that require immediate attention.</span>
                 </div>
-              ` : ""}
+              `
+                  : ""
+              }
 
               <div style="margin-top: 50px; text-align: center; border-top: 1px solid #ddd; padding-top: 20px;">
                 <div style="margin-bottom: 30px;">
-                  ${selectedResult.signatureData ? `
+                  ${
+                    selectedResult.signatureData
+                      ? `
                     <div style="margin-bottom: 15px;">
                       <img src="${selectedResult.signatureData}" alt="E-Signature" style="height: 80px; max-width: 250px; margin: 0 auto; display: block;" />
                     </div>
-                  ` : ""}
+                  `
+                      : ""
+                  }
                   <div style="border-top: 2px solid #333; width: 300px; margin: 0 auto 10px;"></div>
                   <div style="font-weight: bold;">${selectedResult.doctorName || "Doctor"}</div>
                   ${selectedResult.mainSpecialty ? `<div style="font-size: 12px; color: #666;">${selectedResult.mainSpecialty}</div>` : ""}
@@ -1777,32 +2074,35 @@ Report generated from EMRSoft System`;
       `;
 
       // Create a temporary container
-      const tempDiv = document.createElement('div');
+      const tempDiv = document.createElement("div");
       tempDiv.innerHTML = printHTML;
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.width = '800px';
+      tempDiv.style.position = "absolute";
+      tempDiv.style.left = "-9999px";
+      tempDiv.style.width = "800px";
       document.body.appendChild(tempDiv);
 
       // Wait for images to load
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Capture the content as canvas
-      const canvas = await html2canvas(tempDiv.querySelector('.prescription-content')!, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff'
-      });
+      const canvas = await html2canvas(
+        tempDiv.querySelector(".prescription-content")!,
+        {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+        },
+      );
 
       // Remove temporary element
       document.body.removeChild(tempDiv);
 
       // Create PDF
       const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
       });
 
       const imgWidth = 210; // A4 width in mm
@@ -1812,14 +2112,28 @@ Report generated from EMRSoft System`;
       let position = 0;
 
       // Add first page
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(
+        canvas.toDataURL("image/png"),
+        "PNG",
+        0,
+        position,
+        imgWidth,
+        imgHeight,
+      );
       heightLeft -= pageHeight;
 
       // Add additional pages if needed
       while (heightLeft > 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(
+          canvas.toDataURL("image/png"),
+          "PNG",
+          0,
+          position,
+          imgWidth,
+          imgHeight,
+        );
         heightLeft -= pageHeight;
       }
 
@@ -2053,28 +2367,38 @@ Report generated from EMRSoft System`;
       <div style="display: grid; grid-template-columns: auto 1fr auto; align-items: center; border-bottom: 1px solid #ccc; padding: 1rem 0; position: relative;">
   
   <!-- Left Icon -->
-  ${clinicHeader?.logoBase64 && (clinicHeader?.logoPosition === 'left' || clinicHeader?.logoPosition === 'center') ? `
+  ${
+    clinicHeader?.logoBase64 &&
+    (clinicHeader?.logoPosition === "left" ||
+      clinicHeader?.logoPosition === "center")
+      ? `
     <div style="grid-column: 1 / 2;">
       <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 80px; max-height: 80px;" />
     </div>
-  ` : '<div></div>'}
+  `
+      : "<div></div>"
+  }
 
   <!-- Centered Text Content -->
   <div style="grid-column: 2 / 3; text-align: center;">
-    <span style="font-size: ${clinicHeader?.clinicNameFontSize || '25px'}; color: darkblue; font-weight: ${clinicHeader?.fontWeight || '700'}; font-family: ${clinicHeader?.fontFamily || 'verdana'}; font-style: ${clinicHeader?.fontStyle || 'normal'}; text-decoration: ${clinicHeader?.textDecoration || 'none'};">${clinicHeader?.clinicName || 'CURA EMR SYSTEM'}</span>
-    <h2 style="margin: 4px 0; font-size: ${clinicHeader?.fontSize || '12pt'}; font-family: ${clinicHeader?.fontFamily || 'verdana'};">Laboratory Test Prescription</h2>
-    ${clinicHeader?.address ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.address}</p>` : ''}
-    ${clinicHeader?.phone ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.phone}</p>` : ''}
-    ${clinicHeader?.email ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.email}</p>` : ''}
-    ${clinicHeader?.website ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.website}</p>` : ''}
+    <span style="font-size: ${clinicHeader?.clinicNameFontSize || "25px"}; color: darkblue; font-weight: ${clinicHeader?.fontWeight || "700"}; font-family: ${clinicHeader?.fontFamily || "verdana"}; font-style: ${clinicHeader?.fontStyle || "normal"}; text-decoration: ${clinicHeader?.textDecoration || "none"};">${clinicHeader?.clinicName || "EMRSoft Health System"}</span>
+    <h2 style="margin: 4px 0; font-size: ${clinicHeader?.fontSize || "12pt"}; font-family: ${clinicHeader?.fontFamily || "verdana"};">Laboratory Test Prescription</h2>
+    ${clinicHeader?.address ? `<p style="font-size: ${clinicHeader.fontSize || "12pt"}; font-family: ${clinicHeader.fontFamily || "verdana"}; margin: 2px 0;">${clinicHeader.address}</p>` : ""}
+    ${clinicHeader?.phone ? `<p style="font-size: ${clinicHeader.fontSize || "12pt"}; font-family: ${clinicHeader.fontFamily || "verdana"}; margin: 2px 0;">${clinicHeader.phone}</p>` : ""}
+    ${clinicHeader?.email ? `<p style="font-size: ${clinicHeader.fontSize || "12pt"}; font-family: ${clinicHeader.fontFamily || "verdana"}; margin: 2px 0;">${clinicHeader.email}</p>` : ""}
+    ${clinicHeader?.website ? `<p style="font-size: ${clinicHeader.fontSize || "12pt"}; font-family: ${clinicHeader.fontFamily || "verdana"}; margin: 2px 0;">${clinicHeader.website}</p>` : ""}
   </div>
 
   <!-- Right Logo or Placeholder -->
-  ${clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'right' ? `
+  ${
+    clinicHeader?.logoBase64 && clinicHeader?.logoPosition === "right"
+      ? `
     <div style="grid-column: 3 / 4;">
       <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 80px; max-height: 80px;" />
     </div>
-  ` : '<div></div>'}
+  `
+      : "<div></div>"
+  }
 </div>
 
             <div style="display: flex; justify-content: space-between; gap: 2rem; margin-top: 1rem;">
@@ -2216,11 +2540,15 @@ Report generated from EMRSoft System`;
             <!-- Footer -->
             <div style="margin-top: 50px; text-align: center; border-top: 1px solid #ddd; padding-top: 20px;">
               <div style="margin-bottom: 30px;">
-                ${selectedResult.signatureData ? `
+                ${
+                  selectedResult.signatureData
+                    ? `
                   <div style="margin-bottom: 15px;">
                     <img src="${selectedResult.signatureData}" alt="E-Signature" style="height: 80px; max-width: 250px; margin: 0 auto; display: block;" />
                   </div>
-                ` : ""}
+                `
+                    : ""
+                }
                 <div style="border-top: 2px solid #333; width: 300px; margin: 0 auto 10px;"></div>
                 <div style="font-weight: bold;">${selectedResult.doctorName || "Doctor"}</div>
                 ${selectedResult.mainSpecialty ? `<div style="font-size: 12px; color: #666;">${selectedResult.mainSpecialty}</div>` : ""}
@@ -2537,15 +2865,15 @@ Report generated from EMRSoft System`;
         const matchesStatus =
           statusFilter === "all" || result.status === statusFilter;
 
-        const matchesTestId =
-          !filterTestId || result.testId === filterTestId;
+        const matchesTestId = !filterTestId || result.testId === filterTestId;
 
         const matchesTab =
           activeTab === "request"
             ? result.status === "pending"
             : activeTab === "generate"
-            ? result.labReportGenerated === false && result.labRequestGenerated === true
-            : result.status === "completed";
+              ? result.labReportGenerated === false &&
+                result.labRequestGenerated === true
+              : result.status === "completed";
 
         return matchesSearch && matchesStatus && matchesTestId && matchesTab;
       })
@@ -2629,8 +2957,9 @@ Report generated from EMRSoft System`;
                     </p>
                     <p className="text-2xl font-bold">
                       {
-                        searchFilteredResults.filter((r) => r.status === "pending")
-                          .length
+                        searchFilteredResults.filter(
+                          (r) => r.status === "pending",
+                        ).length
                       }
                     </p>
                   </div>
@@ -2649,7 +2978,7 @@ Report generated from EMRSoft System`;
                     <p className="text-2xl font-bold">
                       {
                         searchFilteredResults.filter(
-                          (r) => r.criticalValues === true
+                          (r) => r.criticalValues === true,
                         ).length
                       }
                     </p>
@@ -2669,7 +2998,7 @@ Report generated from EMRSoft System`;
                     <p className="text-2xl font-bold">
                       {
                         searchFilteredResults.filter(
-                          (r) => r.status === "completed"
+                          (r) => r.status === "completed",
                         ).length
                       }
                     </p>
@@ -2697,204 +3026,798 @@ Report generated from EMRSoft System`;
           </div>
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "request" | "generate" | "generated")} className="w-full">
-            <TabsList className={`w-full mb-6 ${user?.role === 'patient' ? 'grid grid-cols-2' : 'grid grid-cols-3'}`}>
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) =>
+              setActiveTab(value as "request" | "generate" | "generated")
+            }
+            className="w-full"
+          >
+            <TabsList
+              className={`w-full mb-6 ${user?.role === "patient" ? "grid grid-cols-2" : "grid grid-cols-3"}`}
+            >
               <TabsTrigger value="request">Request Report</TabsTrigger>
-              {user?.role !== "patient" && <TabsTrigger value="generate">Generate Reports</TabsTrigger>}
+              {user?.role !== "patient" && (
+                <TabsTrigger value="generate">Generate Reports</TabsTrigger>
+              )}
               <TabsTrigger value="generated">Lab Results</TabsTrigger>
             </TabsList>
             <TabsContent value={activeTab} className="mt-0">
-
-          {/* Filters */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search lab results..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="collected">Collected</SelectItem>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Test ID Filter (Admin Only) */}
-                {isAdmin() && uniqueTestIds.length > 0 && (
-                  <Popover open={testIdPopoverOpen} onOpenChange={setTestIdPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={testIdPopoverOpen}
-                        className="w-[220px] justify-between"
-                        data-testid="button-filter-testid"
-                      >
-                        {filterTestId || "Filter by Test ID"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[220px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Search test ID..." />
-                        <CommandList>
-                          <CommandEmpty>No test ID found.</CommandEmpty>
-                          <CommandGroup>
-                            <CommandItem
-                              value=""
-                              onSelect={() => {
-                                setFilterTestId("");
-                                setTestIdPopoverOpen(false);
-                              }}
-                              data-testid="option-testid-all"
-                            >
-                              <Check
-                                className={`mr-2 h-4 w-4 ${filterTestId === "" ? "opacity-100" : "opacity-0"}`}
-                              />
-                              All Test IDs
-                            </CommandItem>
-                            {uniqueTestIds.map((testId) => (
-                              <CommandItem
-                                key={testId}
-                                value={testId}
-                                onSelect={(currentValue) => {
-                                  setFilterTestId(currentValue === filterTestId ? "" : currentValue);
-                                  setTestIdPopoverOpen(false);
-                                }}
-                                data-testid={`option-testid-${testId}`}
-                              >
-                                <Check
-                                  className={`mr-2 h-4 w-4 ${filterTestId === testId ? "opacity-100" : "opacity-0"}`}
-                                />
-                                {testId}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                )}
-
-                {/* View Mode Toggle */}
-                <div className="flex gap-1 border rounded-lg p-1">
-                  <Button
-                    variant={viewMode === "grid" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("grid")}
-                    className="h-8 w-8 p-0"
-                    data-testid="button-view-grid"
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "list" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("list")}
-                    className="h-8 w-8 p-0"
-                    data-testid="button-view-list"
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {/* Right Side: Buttons */}
-                {user?.role !== "patient" && activeTab === "request" && (
-                  <div className="flex gap-3 ml-auto">
-                    <Button
-                      onClick={handleOrderTest}
-                      className="bg-medical-blue hover:bg-blue-700"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Order Lab Test
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Lab Results List */}
-          <div className="space-y-4">
-            {filteredResults.length === 0 ? (
+              {/* Filters */}
               <Card>
-                <CardContent className="p-12 text-center">
-                  <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-2">
-                    No lab results found
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Try adjusting your search terms or filters
-                  </p>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative flex-1 max-w-sm">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search lab results..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+
+                    <Select
+                      value={statusFilter}
+                      onValueChange={setStatusFilter}
+                    >
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="collected">Collected</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {/* Test ID Filter (Admin Only) */}
+                    {isAdmin() && uniqueTestIds.length > 0 && (
+                      <Popover
+                        open={testIdPopoverOpen}
+                        onOpenChange={setTestIdPopoverOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={testIdPopoverOpen}
+                            className="w-[220px] justify-between"
+                            data-testid="button-filter-testid"
+                          >
+                            {filterTestId || "Filter by Test ID"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[220px] p-0">
+                          <Command>
+                            <CommandInput placeholder="Search test ID..." />
+                            <CommandList>
+                              <CommandEmpty>No test ID found.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandItem
+                                  value=""
+                                  onSelect={() => {
+                                    setFilterTestId("");
+                                    setTestIdPopoverOpen(false);
+                                  }}
+                                  data-testid="option-testid-all"
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${filterTestId === "" ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                  All Test IDs
+                                </CommandItem>
+                                {uniqueTestIds.map((testId) => (
+                                  <CommandItem
+                                    key={testId}
+                                    value={testId}
+                                    onSelect={(currentValue) => {
+                                      setFilterTestId(
+                                        currentValue === filterTestId
+                                          ? ""
+                                          : currentValue,
+                                      );
+                                      setTestIdPopoverOpen(false);
+                                    }}
+                                    data-testid={`option-testid-${testId}`}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${filterTestId === testId ? "opacity-100" : "opacity-0"}`}
+                                    />
+                                    {testId}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+
+                    {/* View Mode Toggle */}
+                    <div className="flex gap-1 border rounded-lg p-1">
+                      <Button
+                        variant={viewMode === "grid" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setViewMode("grid")}
+                        className="h-8 w-8 p-0"
+                        data-testid="button-view-grid"
+                      >
+                        <Grid className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={viewMode === "list" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setViewMode("list")}
+                        className="h-8 w-8 p-0"
+                        data-testid="button-view-list"
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Right Side: Buttons */}
+                    {user?.role !== "patient" && activeTab === "request" && (
+                      <div className="flex gap-3 ml-auto">
+                        <Button
+                          onClick={handleOrderTest}
+                          className="bg-medical-blue hover:bg-blue-700"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Order Lab Test
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
-            ) : viewMode === "list" ? (
-              /* List View - Table Format */
-              <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Test ID
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Patient Name
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Test Type
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Ordered
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Priority
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Sample Collected
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Report Generated
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Test Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Payment Method
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white dark:bg-card divide-y divide-gray-200 dark:divide-gray-700">
-                        {filteredResults.map((result) => (
-                          <tr
-                            key={result.id}
-                            className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                            data-testid={`row-lab-result-${result.id}`}
+
+              {/* Lab Results List */}
+              <div className="space-y-4">
+                {filteredResults.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-2">
+                        No lab results found
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        Try adjusting your search terms or filters
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : viewMode === "list" ? (
+                  /* List View - Table Format */
+                  <Card>
+                    <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Test ID
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Patient Name
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Test Type
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Ordered
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Priority
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Sample Collected
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Report Generated
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Test Status
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Status
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Payment Method
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white dark:bg-card divide-y divide-gray-200 dark:divide-gray-700">
+                            {filteredResults.map((result) => (
+                              <tr
+                                key={result.id}
+                                className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                data-testid={`row-lab-result-${result.id}`}
+                              >
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  <div className="space-y-1">
+                                    <div>{result.testId}</div>
+                                    {activeTab !== "request" && (
+                                      <Button
+                                        variant="link"
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedResult(result);
+                                          setShowPrescriptionDialog(true);
+                                        }}
+                                        className="h-auto p-0 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                                        data-testid={`link-view-prescription-${result.id}`}
+                                      >
+                                        View Prescription
+                                      </Button>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                  {getPatientName(result.patientId)}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                                  {(() => {
+                                    const tests = result.testType.split(" | ");
+                                    if (tests.length <= 3) {
+                                      return result.testType;
+                                    }
+                                    const visibleTests = tests
+                                      .slice(0, 3)
+                                      .join(" | ");
+                                    const hiddenCount = tests.length - 3;
+                                    return (
+                                      <div className="group relative inline-block">
+                                        <span>
+                                          {visibleTests}{" "}
+                                          <span className="text-blue-600 dark:text-blue-400 cursor-help">
+                                            +{hiddenCount} more
+                                          </span>
+                                        </span>
+                                        <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-3 min-w-[300px]">
+                                          <div className="text-sm font-medium mb-2">
+                                            All Tests:
+                                          </div>
+                                          <div className="space-y-1">
+                                            {tests.map((test, idx) => (
+                                              <div
+                                                key={idx}
+                                                className="text-sm"
+                                              >
+                                                {test}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                  {format(
+                                    new Date(result.orderedAt),
+                                    "MMM dd, yyyy",
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <Badge
+                                    variant={
+                                      result.priority === "urgent"
+                                        ? "destructive"
+                                        : "secondary"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {result.priority || "routine"}
+                                  </Badge>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <Badge
+                                    variant={
+                                      result.sampleCollected
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {result.sampleCollected
+                                      ? "Collected"
+                                      : "Not Collected"}
+                                  </Badge>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <Badge
+                                    variant={
+                                      result.labReportGenerated
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                    className={`text-xs flex items-center gap-1 ${
+                                      result.labReportGenerated
+                                        ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800"
+                                        : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+                                    }`}
+                                  >
+                                    {result.labReportGenerated ? (
+                                      <CheckCircle className="h-3 w-3" />
+                                    ) : (
+                                      <Clock className="h-3 w-3" />
+                                    )}
+                                    {result.labReportGenerated
+                                      ? "Report Generated"
+                                      : "Report Not Generated"}
+                                  </Badge>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <Badge
+                                    variant={
+                                      result.criticalValues
+                                        ? "destructive"
+                                        : "secondary"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {result.criticalValues
+                                      ? "Critical"
+                                      : "Normal"}
+                                  </Badge>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  {editingStatusId === result.id ? (
+                                    <Select
+                                      value={result.status}
+                                      onValueChange={(newStatus) => {
+                                        updateLabResultMutation.mutate({
+                                          id: result.id,
+                                          data: { status: newStatus },
+                                        });
+                                        setEditingStatusId(null);
+                                      }}
+                                    >
+                                      <SelectTrigger className="w-32">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="pending">
+                                          pending
+                                        </SelectItem>
+                                        <SelectItem value="collected">
+                                          collected
+                                        </SelectItem>
+                                        <SelectItem value="processing">
+                                          processing
+                                        </SelectItem>
+                                        <SelectItem value="completed">
+                                          completed
+                                        </SelectItem>
+                                        <SelectItem value="cancelled">
+                                          cancelled
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <Badge
+                                        className={getStatusColor(
+                                          result.status,
+                                        )}
+                                      >
+                                        {result.status}
+                                      </Badge>
+                                      {user?.role !== "patient" && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            setEditingStatusId(result.id)
+                                          }
+                                          className="h-6 w-6 p-0"
+                                          data-testid={`button-edit-status-${result.id}`}
+                                        >
+                                          <Edit className="h-3 w-3" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700"
+                                  >
+                                    {(result as any).paymentMethod || "N/A"}
+                                  </Badge>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <div className="flex items-center gap-2">
+                                    {activeTab === "request" ? (
+                                      <>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleViewResult(result)
+                                          }
+                                          className="h-8 w-8 p-0"
+                                          data-testid={`button-view-${result.id}`}
+                                        >
+                                          <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                        </Button>
+                                        {user?.role !== "patient" && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleViewResult(result)
+                                            }
+                                            className="h-8 w-8 p-0"
+                                            data-testid={`button-edit-${result.id}`}
+                                          >
+                                            <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                          </Button>
+                                        )}
+                                        {user?.role !== "patient" && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleManageInvoice(result)
+                                            }
+                                            className="h-8 w-8 p-0"
+                                            data-testid={`button-manage-invoice-${result.id}`}
+                                          >
+                                            <PoundSterling className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                          </Button>
+                                        )}
+                                        {user?.role === "admin" && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleCreateInvoiceForTest(result)
+                                            }
+                                            className="h-8 w-8 p-0"
+                                            data-testid={`button-create-invoice-${result.id}`}
+                                          >
+                                            <Receipt className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                          </Button>
+                                        )}
+                                        {user?.role !== "patient" && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                              setSelectedResult(result);
+                                              setShowESignDialog(true);
+                                            }}
+                                            className="h-8 w-8 p-0"
+                                            data-testid={`button-esign-${result.id}`}
+                                          >
+                                            <PenTool className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                          </Button>
+                                        )}
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleGeneratePrescription(result)
+                                          }
+                                          className="h-8 w-8 p-0"
+                                          data-testid={`button-prescription-${result.id}`}
+                                        >
+                                          <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={async () => {
+                                            setSelectedResult(result);
+                                            setShowPrescriptionDialog(true);
+                                            await new Promise((resolve) =>
+                                              setTimeout(resolve, 100),
+                                            );
+                                            await handleGeneratePDF();
+                                            setShowPrescriptionDialog(false);
+                                          }}
+                                          className="h-8 w-8 p-0"
+                                          data-testid={`button-download-${result.id}`}
+                                        >
+                                          <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                        </Button>
+                                      </>
+                                    ) : activeTab === "generate" ? (
+                                      <>
+                                        {user?.role !== "patient" && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                              setSelectedLabOrder(result);
+                                              setShowFillResultDialog(true);
+                                            }}
+                                            className="h-8 w-8 p-0"
+                                            data-testid={`button-generate-${result.id}`}
+                                          >
+                                            <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                          </Button>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleGeneratePrescription(result)
+                                          }
+                                          className="h-8 w-8 p-0"
+                                          data-testid={`button-prescription-${result.id}`}
+                                        >
+                                          <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={async () => {
+                                            setSelectedResult(result);
+                                            setShowPrescriptionDialog(true);
+                                            await new Promise((resolve) =>
+                                              setTimeout(resolve, 100),
+                                            );
+                                            await handleGeneratePDF();
+                                            setShowPrescriptionDialog(false);
+                                          }}
+                                          className="h-8 w-8 p-0"
+                                          data-testid={`button-print-${result.id}`}
+                                        >
+                                          <Printer className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={async () => {
+                                            setSelectedResult(result);
+                                            setShowPrescriptionDialog(true);
+                                            await new Promise((resolve) =>
+                                              setTimeout(resolve, 100),
+                                            );
+                                            await handleGeneratePDF();
+                                            setShowPrescriptionDialog(false);
+                                          }}
+                                          className="h-8 w-8 p-0"
+                                          data-testid={`button-download-${result.id}`}
+                                        >
+                                          <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                        </Button>
+                                      </>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  filteredResults.map((result) => (
+                    <Card
+                      key={result.id}
+                      className="hover:shadow-md transition-shadow"
+                    >
+                      <CardContent className="p-6 relative">
+                        {/* Doctor information - Top Right Position */}
+                        <div className="absolute top-6 right-6 w-70">
+                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center gap-2 mb-3">
+                              <User className="h-4 w-4 text-blue-600" />
+                              <h4 className="font-semibold text-blue-900">
+                                {result.doctorName || "Dr. Sarah Williams"}
+                              </h4>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="text-sm">
+                                <span className="font-medium text-gray-800">
+                                  Main Specialization:
+                                </span>
+                                <div className="text-blue-600">
+                                  {result.mainSpecialty ||
+                                    "Diagnostic Specialties"}
+                                </div>
+                              </div>
+                              <div className="text-sm">
+                                <span className="font-medium text-gray-800">
+                                  Sub-Specialization:
+                                </span>
+                                <div className="text-blue-600">
+                                  {result.subSpecialty || "Neurosurgeon"}
+                                </div>
+                              </div>
+                              <div className="text-sm">
+                                <span className="font-medium text-gray-800">
+                                  Priority:
+                                </span>
+                                <div className="text-green-600">
+                                  {result.priority || "urgent"}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Header with patient name and status - with right margin for blue box */}
+                        <div className="flex items-center gap-3 mb-4 mr-72">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {getPatientName(result.patientId)}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            {editingStatusId === result.id ? (
+                              <Select
+                                value={result.status}
+                                onValueChange={(newStatus) => {
+                                  updateLabResultMutation.mutate({
+                                    id: result.id,
+                                    data: { status: newStatus },
+                                  });
+                                  setEditingStatusId(null);
+                                }}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">
+                                    pending
+                                  </SelectItem>
+                                  <SelectItem value="collected">
+                                    collected
+                                  </SelectItem>
+                                  <SelectItem value="processing">
+                                    processing
+                                  </SelectItem>
+                                  <SelectItem value="completed">
+                                    completed
+                                  </SelectItem>
+                                  <SelectItem value="cancelled">
+                                    cancelled
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <>
+                                <Badge
+                                  className={getStatusColor(result.status)}
+                                >
+                                  {result.status}
+                                </Badge>
+                                {user?.role !== "patient" && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                      setEditingStatusId(result.id)
+                                    }
+                                    className="h-6 w-6 p-0"
+                                    data-testid="button-edit-status-list"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                          {result.criticalValues && (
+                            <Badge
+                              variant="destructive"
+                              className="flex items-center gap-1"
+                            >
+                              <AlertTriangle className="h-3 w-3" />
+                              Critical
+                            </Badge>
+                          )}
+                          <Badge
+                            variant={
+                              result.sampleCollected ? "default" : "secondary"
+                            }
+                            className={`text-xs flex items-center gap-1 ${
+                              result.sampleCollected
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+                            }`}
                           >
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                              <div className="space-y-1">
-                                <div>{result.testId}</div>
+                            {result.sampleCollected ? (
+                              <CheckCircle className="h-3 w-3" />
+                            ) : (
+                              <Clock className="h-3 w-3" />
+                            )}
+                            {result.sampleCollected
+                              ? "Sample Collected"
+                              : "Sample Not Collected"}
+                          </Badge>
+                          <Badge
+                            variant={
+                              result.labReportGenerated
+                                ? "default"
+                                : "secondary"
+                            }
+                            className={`text-xs flex items-center gap-1 ${
+                              result.labReportGenerated
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+                            }`}
+                          >
+                            {result.labReportGenerated ? (
+                              <CheckCircle className="h-3 w-3" />
+                            ) : (
+                              <Clock className="h-3 w-3" />
+                            )}
+                            {result.labReportGenerated
+                              ? "Report Generated"
+                              : "Report Not Generated"}
+                          </Badge>
+                        </div>
+
+                        {/* Main content area - with right margin for blue box */}
+                        <div className="mr-72">
+                          {/* Test details and Notes */}
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <div className="text-sm text-gray-600 dark:text-gray-300">
+                                <span className="font-medium">Ordered:</span>{" "}
+                                {format(
+                                  new Date(result.orderedAt),
+                                  "MMM dd, yyyy HH:mm",
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-600 dark:text-gray-300">
+                                <span className="font-medium">Test:</span>{" "}
+                                {(() => {
+                                  const tests = result.testType.split(" | ");
+                                  if (tests.length <= 3) {
+                                    return result.testType;
+                                  }
+                                  const visibleTests = tests
+                                    .slice(0, 3)
+                                    .join(" | ");
+                                  const hiddenCount = tests.length - 3;
+                                  return (
+                                    <span className="group relative inline-block">
+                                      <span>
+                                        {visibleTests}{" "}
+                                        <span className="text-blue-600 dark:text-blue-400 cursor-help font-medium">
+                                          +{hiddenCount} more
+                                        </span>
+                                      </span>
+                                      <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-3 min-w-[400px] max-w-[600px]">
+                                        <div className="text-sm font-semibold mb-2 text-gray-900 dark:text-gray-100">
+                                          All Tests ({tests.length}):
+                                        </div>
+                                        <div className="space-y-1 max-h-[300px] overflow-y-auto">
+                                          {tests.map((test, idx) => (
+                                            <div
+                                              key={idx}
+                                              className="text-sm text-gray-700 dark:text-gray-300 py-0.5"
+                                            >
+                                              {test}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                              <div className="text-sm text-gray-600 dark:text-gray-300">
+                                <span className="font-medium">Test ID:</span>{" "}
+                                {result.testId}
                                 {activeTab !== "request" && (
                                   <Button
                                     variant="link"
@@ -2903,820 +3826,403 @@ Report generated from EMRSoft System`;
                                       setSelectedResult(result);
                                       setShowPrescriptionDialog(true);
                                     }}
-                                    className="h-auto p-0 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                                    data-testid={`link-view-prescription-${result.id}`}
+                                    className="h-auto p-0 ml-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                                    data-testid={`link-view-prescription-card-${result.id}`}
                                   >
                                     View Prescription
                                   </Button>
                                 )}
                               </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                              {getPatientName(result.patientId)}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                              {(() => {
-                                const tests = result.testType.split(' | ');
-                                if (tests.length <= 3) {
-                                  return result.testType;
-                                }
-                                const visibleTests = tests.slice(0, 3).join(' | ');
-                                const hiddenCount = tests.length - 3;
-                                return (
-                                  <div className="group relative inline-block">
-                                    <span>{visibleTests} <span className="text-blue-600 dark:text-blue-400 cursor-help">+{hiddenCount} more</span></span>
-                                    <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-3 min-w-[300px]">
-                                      <div className="text-sm font-medium mb-2">All Tests:</div>
-                                      <div className="space-y-1">
-                                        {tests.map((test, idx) => (
-                                          <div key={idx} className="text-sm">{test}</div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                              {format(new Date(result.orderedAt), "MMM dd, yyyy")}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <Badge
-                                variant={result.priority === "urgent" ? "destructive" : "secondary"}
-                                className="text-xs"
-                              >
-                                {result.priority || "routine"}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <Badge
-                                variant={result.sampleCollected ? "default" : "secondary"}
-                                className="text-xs"
-                              >
-                                {result.sampleCollected ? "Collected" : "Not Collected"}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <Badge
-                                variant={result.labReportGenerated ? "default" : "secondary"}
-                                className={`text-xs flex items-center gap-1 ${
-                                  result.labReportGenerated 
-                                    ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800" 
-                                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
-                                }`}
-                              >
-                                {result.labReportGenerated ? (
-                                  <CheckCircle className="h-3 w-3" />
-                                ) : (
-                                  <Clock className="h-3 w-3" />
-                                )}
-                                {result.labReportGenerated ? "Report Generated" : "Report Not Generated"}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <Badge
-                                variant={result.criticalValues ? "destructive" : "secondary"}
-                                className="text-xs"
-                              >
-                                {result.criticalValues ? "Critical" : "Normal"}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              {editingStatusId === result.id ? (
-                                <Select
-                                  value={result.status}
-                                  onValueChange={(newStatus) => {
-                                    updateLabResultMutation.mutate({
-                                      id: result.id,
-                                      data: { status: newStatus },
-                                    });
-                                    setEditingStatusId(null);
-                                  }}
-                                >
-                                  <SelectTrigger className="w-32">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="pending">pending</SelectItem>
-                                    <SelectItem value="collected">collected</SelectItem>
-                                    <SelectItem value="processing">processing</SelectItem>
-                                    <SelectItem value="completed">completed</SelectItem>
-                                    <SelectItem value="cancelled">cancelled</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              ) : (
-                                <div className="flex items-center gap-2">
-                                  <Badge className={getStatusColor(result.status)}>
-                                    {result.status}
-                                  </Badge>
-                                  {user?.role !== 'patient' && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => setEditingStatusId(result.id)}
-                                      className="h-6 w-6 p-0"
-                                      data-testid={`button-edit-status-${result.id}`}
-                                    >
-                                      <Edit className="h-3 w-3" />
-                                    </Button>
+                              {result.completedAt && (
+                                <div className="text-sm text-gray-600 dark:text-gray-300">
+                                  <span className="font-medium">
+                                    Completed:
+                                  </span>{" "}
+                                  {format(
+                                    new Date(result.completedAt),
+                                    "MMM dd, yyyy HH:mm",
                                   )}
                                 </div>
                               )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700">
-                                {(result as any).paymentMethod || 'N/A'}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <div className="flex items-center gap-2">
-                                {activeTab === "request" ? (
-                                  <>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleViewResult(result)}
-                                      className="h-8 w-8 p-0"
-                                      data-testid={`button-view-${result.id}`}
-                                    >
-                                      <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                    </Button>
-                                    {user?.role !== 'patient' && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleViewResult(result)}
-                                        className="h-8 w-8 p-0"
-                                        data-testid={`button-edit-${result.id}`}
-                                      >
-                                        <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                      </Button>
-                                    )}
-                                    {user?.role !== 'patient' && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleManageInvoice(result)}
-                                        className="h-8 w-8 p-0"
-                                        data-testid={`button-manage-invoice-${result.id}`}
-                                      >
-                                        <PoundSterling className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                      </Button>
-                                    )}
-                                    {user?.role === 'admin' && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleCreateInvoiceForTest(result)}
-                                        className="h-8 w-8 p-0"
-                                        data-testid={`button-create-invoice-${result.id}`}
-                                      >
-                                        <Receipt className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                      </Button>
-                                    )}
-                                    {user?.role !== 'patient' && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                          setSelectedResult(result);
-                                          setShowESignDialog(true);
-                                        }}
-                                        className="h-8 w-8 p-0"
-                                        data-testid={`button-esign-${result.id}`}
-                                      >
-                                        <PenTool className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                      </Button>
-                                    )}
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleGeneratePrescription(result)}
-                                      className="h-8 w-8 p-0"
-                                      data-testid={`button-prescription-${result.id}`}
-                                    >
-                                      <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={async () => {
-                                        setSelectedResult(result);
-                                        setShowPrescriptionDialog(true);
-                                        await new Promise((resolve) => setTimeout(resolve, 100));
-                                        await handleGeneratePDF();
-                                        setShowPrescriptionDialog(false);
-                                      }}
-                                      className="h-8 w-8 p-0"
-                                      data-testid={`button-download-${result.id}`}
-                                    >
-                                      <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                    </Button>
-                                  </>
-                                ) : activeTab === "generate" ? (
-                                  <>
-                                    {user?.role !== 'patient' && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                          setSelectedLabOrder(result);
-                                          setShowFillResultDialog(true);
-                                        }}
-                                        className="h-8 w-8 p-0"
-                                        data-testid={`button-generate-${result.id}`}
-                                      >
-                                        <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                      </Button>
-                                    )}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleGeneratePrescription(result)}
-                                      className="h-8 w-8 p-0"
-                                      data-testid={`button-prescription-${result.id}`}
-                                    >
-                                      <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={async () => {
-                                        setSelectedResult(result);
-                                        setShowPrescriptionDialog(true);
-                                        await new Promise((resolve) => setTimeout(resolve, 100));
-                                        await handleGeneratePDF();
-                                        setShowPrescriptionDialog(false);
-                                      }}
-                                      className="h-8 w-8 p-0"
-                                      data-testid={`button-print-${result.id}`}
-                                    >
-                                      <Printer className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={async () => {
-                                        setSelectedResult(result);
-                                        setShowPrescriptionDialog(true);
-                                        await new Promise((resolve) => setTimeout(resolve, 100));
-                                        await handleGeneratePDF();
-                                        setShowPrescriptionDialog(false);
-                                      }}
-                                      className="h-8 w-8 p-0"
-                                      data-testid={`button-download-${result.id}`}
-                                    >
-                                      <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              filteredResults.map((result) => (
-                <Card
-                  key={result.id}
-                  className="hover:shadow-md transition-shadow"
-                >
-                  <CardContent className="p-6 relative">
-                    {/* Doctor information - Top Right Position */}
-                    <div className="absolute top-6 right-6 w-70">
-                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex items-center gap-2 mb-3">
-                          <User className="h-4 w-4 text-blue-600" />
-                          <h4 className="font-semibold text-blue-900">
-                            {result.doctorName || "Dr. Sarah Williams"}
-                          </h4>
-                        </div>
+                            </div>
 
-                        <div className="space-y-2">
-                          <div className="text-sm">
-                            <span className="font-medium text-gray-800">
-                              Main Specialization:
-                            </span>
-                            <div className="text-blue-600">
-                              {result.mainSpecialty || "Diagnostic Specialties"}
-                            </div>
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-medium text-gray-800">
-                              Sub-Specialization:
-                            </span>
-                            <div className="text-blue-600">
-                              {result.subSpecialty || "Neurosurgeon"}
-                            </div>
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-medium text-gray-800">
-                              Priority:
-                            </span>
-                            <div className="text-green-600">
-                              {result.priority || "urgent"}
+                            {/* Notes section */}
+                            <div>
+                              <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                                Notes
+                              </h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                {result.notes || "no no"}
+                              </p>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* Header with patient name and status - with right margin for blue box */}
-                    <div className="flex items-center gap-3 mb-4 mr-72">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {getPatientName(result.patientId)}
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        {editingStatusId === result.id ? (
-                          <Select
-                            value={result.status}
-                            onValueChange={(newStatus) => {
-                              updateLabResultMutation.mutate({
-                                id: result.id,
-                                data: { status: newStatus },
-                              });
-                              setEditingStatusId(null);
-                            }}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pending">pending</SelectItem>
-                              <SelectItem value="collected">
-                                collected
-                              </SelectItem>
-                              <SelectItem value="processing">
-                                processing
-                              </SelectItem>
-                              <SelectItem value="completed">
-                                completed
-                              </SelectItem>
-                              <SelectItem value="cancelled">
-                                cancelled
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <>
-                            <Badge className={getStatusColor(result.status)}>
-                              {result.status}
-                            </Badge>
-                            {user?.role !== 'patient' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setEditingStatusId(result.id)}
-                                className="h-6 w-6 p-0"
-                                data-testid="button-edit-status-list"
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </>
-                        )}
-                      </div>
-                      {result.criticalValues && (
-                        <Badge
-                          variant="destructive"
-                          className="flex items-center gap-1"
-                        >
-                          <AlertTriangle className="h-3 w-3" />
-                          Critical
-                        </Badge>
-                      )}
-                      <Badge
-                        variant={result.sampleCollected ? "default" : "secondary"}
-                        className={`text-xs flex items-center gap-1 ${
-                          result.sampleCollected 
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800" 
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
-                        }`}
-                      >
-                        {result.sampleCollected ? (
-                          <CheckCircle className="h-3 w-3" />
-                        ) : (
-                          <Clock className="h-3 w-3" />
-                        )}
-                        {result.sampleCollected ? "Sample Collected" : "Sample Not Collected"}
-                      </Badge>
-                      <Badge
-                        variant={result.labReportGenerated ? "default" : "secondary"}
-                        className={`text-xs flex items-center gap-1 ${
-                          result.labReportGenerated 
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800" 
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
-                        }`}
-                      >
-                        {result.labReportGenerated ? (
-                          <CheckCircle className="h-3 w-3" />
-                        ) : (
-                          <Clock className="h-3 w-3" />
-                        )}
-                        {result.labReportGenerated ? "Report Generated" : "Report Not Generated"}
-                      </Badge>
-                    </div>
-
-                    {/* Main content area - with right margin for blue box */}
-                    <div className="mr-72">
-                      {/* Test details and Notes */}
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="text-sm text-gray-600 dark:text-gray-300">
-                            <span className="font-medium">Ordered:</span>{" "}
-                            {format(
-                              new Date(result.orderedAt),
-                              "MMM dd, yyyy HH:mm",
-                            )}
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-300">
-                            <span className="font-medium">Test:</span>{" "}
-                            {(() => {
-                              const tests = result.testType.split(' | ');
-                              if (tests.length <= 3) {
-                                return result.testType;
-                              }
-                              const visibleTests = tests.slice(0, 3).join(' | ');
-                              const hiddenCount = tests.length - 3;
-                              return (
-                                <span className="group relative inline-block">
-                                  <span>{visibleTests} <span className="text-blue-600 dark:text-blue-400 cursor-help font-medium">+{hiddenCount} more</span></span>
-                                  <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-3 min-w-[400px] max-w-[600px]">
-                                    <div className="text-sm font-semibold mb-2 text-gray-900 dark:text-gray-100">All Tests ({tests.length}):</div>
-                                    <div className="space-y-1 max-h-[300px] overflow-y-auto">
-                                      {tests.map((test, idx) => (
-                                        <div key={idx} className="text-sm text-gray-700 dark:text-gray-300 py-0.5">{test}</div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </span>
-                              );
-                            })()}
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-300">
-                            <span className="font-medium">Test ID:</span>{" "}
-                            {result.testId}
-                            {activeTab !== "request" && (
-                              <Button
-                                variant="link"
-                                size="sm"
+                        {/* Test Results section (if available) - with right margin for blue box */}
+                        {result.results &&
+                          result.results.length > 0 &&
+                          activeTab !== "generate" && (
+                            <div className="mt-6 mr-72">
+                              <button
                                 onClick={() => {
-                                  setSelectedResult(result);
-                                  setShowPrescriptionDialog(true);
+                                  setExpandedResults((prev) => {
+                                    const newSet = new Set(prev);
+                                    if (newSet.has(result.id)) {
+                                      newSet.delete(result.id);
+                                    } else {
+                                      newSet.add(result.id);
+                                    }
+                                    return newSet;
+                                  });
                                 }}
-                                className="h-auto p-0 ml-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                                data-testid={`link-view-prescription-card-${result.id}`}
+                                className="flex items-center gap-2 font-medium mb-3 hover:text-blue-600 transition-colors"
+                                data-testid="button-toggle-test-results"
                               >
-                                View Prescription
-                              </Button>
-                            )}
-                          </div>
-                          {result.completedAt && (
-                            <div className="text-sm text-gray-600 dark:text-gray-300">
-                              <span className="font-medium">Completed:</span>{" "}
-                              {format(
-                                new Date(result.completedAt),
-                                "MMM dd, yyyy HH:mm",
+                                {expandedResults.has(result.id) ? (
+                                  <ChevronDown className="h-5 w-5" />
+                                ) : (
+                                  <ChevronRight className="h-5 w-5" />
+                                )}
+                                <span>Test Results:</span>
+                              </button>
+
+                              {expandedResults.has(result.id) && (
+                                <div className="grid gap-3">
+                                  {result.results.map(
+                                    (testResult: any, index: number) => (
+                                      <div
+                                        key={index}
+                                        className="p-3 rounded-lg border bg-gray-50 border-gray-200"
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <span className="font-medium">
+                                            {testResult.name}
+                                          </span>
+                                          <Badge
+                                            className={getResultStatusColor(
+                                              testResult.status,
+                                            )}
+                                          >
+                                            {testResult.status
+                                              .replace("_", " ")
+                                              .toUpperCase()}
+                                          </Badge>
+                                        </div>
+                                        <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                          <span className="font-medium">
+                                            {testResult.value} {testResult.unit}
+                                          </span>
+                                          <span className="ml-2">
+                                            Ref: {testResult.referenceRange}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    ),
+                                  )}
+                                </div>
                               )}
                             </div>
                           )}
-                        </div>
 
-                        {/* Notes section */}
-                        <div>
-                          <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                            Notes
-                          </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {result.notes || "no no"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Test Results section (if available) - with right margin for blue box */}
-                    {result.results && result.results.length > 0 && activeTab !== "generate" && (
-                      <div className="mt-6 mr-72">
-                        <button
-                          onClick={() => {
-                            setExpandedResults((prev) => {
-                              const newSet = new Set(prev);
-                              if (newSet.has(result.id)) {
-                                newSet.delete(result.id);
-                              } else {
-                                newSet.add(result.id);
-                              }
-                              return newSet;
-                            });
-                          }}
-                          className="flex items-center gap-2 font-medium mb-3 hover:text-blue-600 transition-colors"
-                          data-testid="button-toggle-test-results"
-                        >
-                          {expandedResults.has(result.id) ? (
-                            <ChevronDown className="h-5 w-5" />
-                          ) : (
-                            <ChevronRight className="h-5 w-5" />
-                          )}
-                          <span>Test Results:</span>
-                        </button>
-                        
-                        {expandedResults.has(result.id) && (
-                          <div className="grid gap-3">
-                            {result.results.map(
-                              (testResult: any, index: number) => (
-                                <div
-                                  key={index}
-                                  className="p-3 rounded-lg border bg-gray-50 border-gray-200"
+                        {/* Action buttons at bottom - with right margin for blue box */}
+                        <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-200">
+                          {activeTab === "request" ? (
+                            <>
+                              {user?.role !== "patient" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleViewResult(result)}
                                 >
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-medium">
-                                      {testResult.name}
-                                    </span>
-                                    <Badge
-                                      className={getResultStatusColor(
-                                        testResult.status,
-                                      )}
-                                    >
-                                      {testResult.status
-                                        .replace("_", " ")
-                                        .toUpperCase()}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                                    <span className="font-medium">
-                                      {testResult.value} {testResult.unit}
-                                    </span>
-                                    <span className="ml-2">
-                                      Ref: {testResult.referenceRange}
-                                    </span>
-                                  </div>
-                                </div>
-                              ),
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit
+                                </Button>
+                              )}
+                              {user?.role !== "patient" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleManageInvoice(result)}
+                                  className="text-xs sm:text-sm px-2 sm:px-3"
+                                  data-testid={`button-manage-invoice-card-${result.id}`}
+                                >
+                                  <PoundSterling className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                  <span className="hidden lg:inline">
+                                    Invoice
+                                  </span>
+                                  <span className="lg:hidden">£</span>
+                                </Button>
+                              )}
+                              {user?.role !== "patient" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedResult(result);
+                                    setShowESignDialog(true);
+                                  }}
+                                  className="text-xs sm:text-sm px-2 sm:px-3"
+                                  data-testid="button-esign-card"
+                                >
+                                  <PenTool className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                  <span className="hidden lg:inline">
+                                    E-Sign
+                                  </span>
+                                  <span className="lg:hidden">Sign</span>
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleGeneratePrescription(result)
+                                }
+                                className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
+                              >
+                                <FileText className="h-4 w-4 mr-2" />
+                                {user?.role === "patient"
+                                  ? "View Prescription"
+                                  : "Generate Prescription"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={async () => {
+                                  setSelectedResult(result);
+                                  setShowPrescriptionDialog(true);
+                                  await new Promise((resolve) =>
+                                    setTimeout(resolve, 100),
+                                  );
+                                  await handleGeneratePDF();
+                                  setShowPrescriptionDialog(false);
+                                }}
+                                className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                              </Button>
+                              {user?.role !== "patient" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeleteResult(result.id)}
+                                  className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                                  data-testid="button-delete-lab-result"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </Button>
+                              )}
+                            </>
+                          ) : activeTab === "generate" ? (
+                            <>
+                              {user?.role !== "patient" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedLabOrder(result);
+                                    setShowFillResultDialog(true);
+                                  }}
+                                  className="bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
+                                  data-testid="button-generate-lab-result"
+                                >
+                                  <FileText className="h-4 w-4 mr-2" />
+                                  Generate Test Result
+                                </Button>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {fileExistenceMap[result.id] && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                      try {
+                                        const token =
+                                          localStorage.getItem("auth_token");
+                                        const headers: Record<string, string> =
+                                          {
+                                            "X-Tenant-Subdomain":
+                                              getActiveSubdomain(),
+                                          };
+                                        if (token) {
+                                          headers["Authorization"] =
+                                            `Bearer ${token}`;
+                                        }
 
-                    {/* Action buttons at bottom - with right margin for blue box */}
-                      <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-200">
-                      {activeTab === "request" ? (
-                        <>
-                          {user?.role !== 'patient' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewResult(result)}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </Button>
+                                        const response = await fetch(
+                                          `/api/files/${result.id}/signed-url`,
+                                          {
+                                            headers,
+                                            credentials: "include",
+                                          },
+                                        );
+
+                                        if (!response.ok) {
+                                          throw new Error(
+                                            "Failed to generate signed URL",
+                                          );
+                                        }
+
+                                        const data = await response.json();
+                                        window.open(data.signedUrl, "_blank");
+                                      } catch (error) {
+                                        console.error(
+                                          "Error viewing PDF:",
+                                          error,
+                                        );
+                                        toast({
+                                          title: "Error",
+                                          description:
+                                            "Failed to view lab report. Please try again.",
+                                          variant: "destructive",
+                                        });
+                                      }
+                                    }}
+                                    className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800"
+                                    data-testid="button-view-lab-report"
+                                  >
+                                    <FileText className="h-4 w-4 mr-2" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                      try {
+                                        const token =
+                                          localStorage.getItem("auth_token");
+                                        const headers: Record<string, string> =
+                                          {
+                                            "X-Tenant-Subdomain":
+                                              getActiveSubdomain(),
+                                          };
+                                        if (token) {
+                                          headers["Authorization"] =
+                                            `Bearer ${token}`;
+                                        }
+
+                                        const response = await fetch(
+                                          `/api/files/${result.id}/signed-url`,
+                                          {
+                                            headers,
+                                            credentials: "include",
+                                          },
+                                        );
+
+                                        if (!response.ok) {
+                                          throw new Error(
+                                            "Failed to generate signed URL",
+                                          );
+                                        }
+
+                                        const data = await response.json();
+
+                                        // Open PDF in new window for printing
+                                        const printWindow = window.open(
+                                          data.signedUrl,
+                                          "_blank",
+                                        );
+                                        if (printWindow) {
+                                          printWindow.onload = () => {
+                                            printWindow.print();
+                                          };
+                                        }
+                                      } catch (error) {
+                                        console.error(
+                                          "Error printing PDF:",
+                                          error,
+                                        );
+                                        toast({
+                                          title: "Error",
+                                          description:
+                                            "Failed to print lab report. Please try again.",
+                                          variant: "destructive",
+                                        });
+                                      }
+                                    }}
+                                    className="bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200"
+                                    data-testid="button-print-lab-report"
+                                  >
+                                    <Printer className="h-4 w-4 mr-2" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                      try {
+                                        const token =
+                                          localStorage.getItem("auth_token");
+                                        const headers: Record<string, string> =
+                                          {
+                                            "X-Tenant-Subdomain":
+                                              getActiveSubdomain(),
+                                          };
+                                        if (token) {
+                                          headers["Authorization"] =
+                                            `Bearer ${token}`;
+                                        }
+
+                                        const response = await fetch(
+                                          `/api/files/${result.id}/signed-url`,
+                                          {
+                                            headers,
+                                            credentials: "include",
+                                          },
+                                        );
+
+                                        if (!response.ok) {
+                                          throw new Error(
+                                            "Failed to generate signed URL",
+                                          );
+                                        }
+
+                                        const data = await response.json();
+
+                                        // Use a simple anchor tag with download attribute
+                                        const a = document.createElement("a");
+                                        a.href = data.signedUrl;
+                                        a.download = `Lab_Result_${result.testId || result.id}.pdf`;
+                                        a.target = "_blank";
+                                        a.rel = "noopener noreferrer";
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        document.body.removeChild(a);
+
+                                        toast({
+                                          title: "Success",
+                                          description:
+                                            "Lab result PDF download started",
+                                        });
+                                      } catch (error) {
+                                        console.error(
+                                          "Error downloading PDF:",
+                                          error,
+                                        );
+                                        toast({
+                                          title: "Error",
+                                          description:
+                                            "Failed to download lab report. Please try again.",
+                                          variant: "destructive",
+                                        });
+                                      }
+                                    }}
+                                    className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                                    data-testid="button-download-lab-report"
+                                  >
+                                    <Download className="h-4 w-4 mr-2" />
+                                  </Button>
+                                </>
+                              )}
+                            </>
                           )}
-                          {user?.role !== 'patient' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleManageInvoice(result)}
-                              className="text-xs sm:text-sm px-2 sm:px-3"
-                              data-testid={`button-manage-invoice-card-${result.id}`}
-                            >
-                              <PoundSterling className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                              <span className="hidden lg:inline">Invoice</span>
-                              <span className="lg:hidden">£</span>
-                            </Button>
-                          )}
-                          {user?.role !== 'patient' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedResult(result);
-                                setShowESignDialog(true);
-                              }}
-                              className="text-xs sm:text-sm px-2 sm:px-3"
-                              data-testid="button-esign-card"
-                            >
-                              <PenTool className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                              <span className="hidden lg:inline">E-Sign</span>
-                              <span className="lg:hidden">Sign</span>
-                            </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleGeneratePrescription(result)}
-                            className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
-                          >
-                            <FileText className="h-4 w-4 mr-2" />
-                            {user?.role === 'patient' ? 'View Prescription' : 'Generate Prescription'}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={async () => {
-                              setSelectedResult(result);
-                              setShowPrescriptionDialog(true);
-                              await new Promise((resolve) =>
-                                setTimeout(resolve, 100),
-                              );
-                              await handleGeneratePDF();
-                              setShowPrescriptionDialog(false);
-                            }}
-                            className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-              
-                          </Button>
-                          {user?.role !== 'patient' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteResult(result.id)}
-                              className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
-                              data-testid="button-delete-lab-result"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </Button>
-                          )}
-                        </>
-                      ) : activeTab === "generate" ? (
-                        <>
-                          {user?.role !== 'patient' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedLabOrder(result);
-                                setShowFillResultDialog(true);
-                              }}
-                              className="bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
-                              data-testid="button-generate-lab-result"
-                            >
-                              <FileText className="h-4 w-4 mr-2" />
-                              Generate Test Result
-                            </Button>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          {fileExistenceMap[result.id] && (
-                          <>
-                            <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={async () => {
-                              try {
-                                const token = localStorage.getItem("auth_token");
-                                const headers: Record<string, string> = {
-                                  "X-Tenant-Subdomain": getActiveSubdomain(),
-                                };
-                                if (token) {
-                                  headers["Authorization"] = `Bearer ${token}`;
-                                }
-
-                                const response = await fetch(`/api/files/${result.id}/signed-url`, {
-                                  headers,
-                                  credentials: "include",
-                                });
-
-                                if (!response.ok) {
-                                  throw new Error("Failed to generate signed URL");
-                                }
-
-                                const data = await response.json();
-                                window.open(data.signedUrl, "_blank");
-                              } catch (error) {
-                                console.error("Error viewing PDF:", error);
-                                toast({
-                                  title: "Error",
-                                  description: "Failed to view lab report. Please try again.",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
-                            className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800"
-                            data-testid="button-view-lab-report"
-                          >
-                            <FileText className="h-4 w-4 mr-2" />
-                         
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={async () => {
-                              try {
-                                const token = localStorage.getItem("auth_token");
-                                const headers: Record<string, string> = {
-                                  "X-Tenant-Subdomain": getActiveSubdomain(),
-                                };
-                                if (token) {
-                                  headers["Authorization"] = `Bearer ${token}`;
-                                }
-
-                                const response = await fetch(`/api/files/${result.id}/signed-url`, {
-                                  headers,
-                                  credentials: "include",
-                                });
-
-                                if (!response.ok) {
-                                  throw new Error("Failed to generate signed URL");
-                                }
-
-                                const data = await response.json();
-                                
-                                // Open PDF in new window for printing
-                                const printWindow = window.open(data.signedUrl, "_blank");
-                                if (printWindow) {
-                                  printWindow.onload = () => {
-                                    printWindow.print();
-                                  };
-                                }
-                              } catch (error) {
-                                console.error("Error printing PDF:", error);
-                                toast({
-                                  title: "Error",
-                                  description: "Failed to print lab report. Please try again.",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
-                            className="bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200"
-                            data-testid="button-print-lab-report"
-                          >
-                            <Printer className="h-4 w-4 mr-2" />
-                         
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={async () => {
-                              try {
-                                const token = localStorage.getItem("auth_token");
-                                const headers: Record<string, string> = {
-                                  "X-Tenant-Subdomain": getActiveSubdomain(),
-                                };
-                                if (token) {
-                                  headers["Authorization"] = `Bearer ${token}`;
-                                }
-
-                                const response = await fetch(`/api/files/${result.id}/signed-url`, {
-                                  headers,
-                                  credentials: "include",
-                                });
-
-                                if (!response.ok) {
-                                  throw new Error("Failed to generate signed URL");
-                                }
-
-                                const data = await response.json();
-                                
-                                // Use a simple anchor tag with download attribute
-                                const a = document.createElement('a');
-                                a.href = data.signedUrl;
-                                a.download = `Lab_Result_${result.testId || result.id}.pdf`;
-                                a.target = '_blank';
-                                a.rel = 'noopener noreferrer';
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                                
-                                toast({
-                                  title: "Success",
-                                  description: "Lab result PDF download started",
-                                });
-                              } catch (error) {
-                                console.error("Error downloading PDF:", error);
-                                toast({
-                                  title: "Error",
-                                  description: "Failed to download lab report. Please try again.",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
-                            className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-                            data-testid="button-download-lab-report"
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                          
-                            </Button>
-                          </>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </div>
@@ -3764,7 +4270,9 @@ Report generated from EMRSoft System`;
                       <CommandEmpty>No patient found.</CommandEmpty>
                       <CommandGroup>
                         {patientsLoading ? (
-                          <CommandItem disabled>Loading patients...</CommandItem>
+                          <CommandItem disabled>
+                            Loading patients...
+                          </CommandItem>
                         ) : patients &&
                           Array.isArray(patients) &&
                           patients.length > 0 ? (
@@ -3824,7 +4332,9 @@ Report generated from EMRSoft System`;
                       <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
                         <User className="h-4 w-4 mr-2 text-muted-foreground" />
                         <span data-testid="provider-name-display">
-                          {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : ''}
+                          {user?.firstName && user?.lastName
+                            ? `${user.firstName} ${user.lastName}`
+                            : ""}
                         </span>
                       </div>
                     </div>
@@ -3846,7 +4356,10 @@ Report generated from EMRSoft System`;
                             className="w-full justify-between"
                           >
                             {orderFormData.selectedRole
-                              ? rolesData.find((role: any) => role.name === orderFormData.selectedRole)?.displayName || orderFormData.selectedRole
+                              ? rolesData.find(
+                                  (role: any) =>
+                                    role.name === orderFormData.selectedRole,
+                                )?.displayName || orderFormData.selectedRole
                               : "Select a role"}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -3858,8 +4371,14 @@ Report generated from EMRSoft System`;
                             <CommandGroup className="max-h-64 overflow-auto">
                               {rolesData
                                 .filter((role: any) => {
-                                  const roleName = (role.name || '').toLowerCase();
-                                  return !['patient', 'admin', 'administrator'].includes(roleName);
+                                  const roleName = (
+                                    role.name || ""
+                                  ).toLowerCase();
+                                  return ![
+                                    "patient",
+                                    "admin",
+                                    "administrator",
+                                  ].includes(roleName);
                                 })
                                 .map((role: any) => (
                                   <CommandItem
@@ -3906,24 +4425,42 @@ Report generated from EMRSoft System`;
                               className="w-full justify-between"
                             >
                               {orderFormData.selectedUserId
-                                ? users.find((u: any) => u.id.toString() === orderFormData.selectedUserId)
+                                ? users.find(
+                                    (u: any) =>
+                                      u.id.toString() ===
+                                      orderFormData.selectedUserId,
+                                  )
                                   ? `${
-                                      users.find((u: any) => u.id.toString() === orderFormData.selectedUserId)?.firstName
+                                      users.find(
+                                        (u: any) =>
+                                          u.id.toString() ===
+                                          orderFormData.selectedUserId,
+                                      )?.firstName
                                     } ${
-                                      users.find((u: any) => u.id.toString() === orderFormData.selectedUserId)?.lastName
+                                      users.find(
+                                        (u: any) =>
+                                          u.id.toString() ===
+                                          orderFormData.selectedUserId,
+                                      )?.lastName
                                     }`
                                   : "Select a user"
                                 : "Select a user"}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[400px] p-0" align="start">
+                          <PopoverContent
+                            className="w-[400px] p-0"
+                            align="start"
+                          >
                             <Command>
                               <CommandInput placeholder="Search users..." />
                               <CommandEmpty>No user found.</CommandEmpty>
                               <CommandGroup className="max-h-64 overflow-auto">
                                 {users
-                                  .filter((u: any) => u.role === orderFormData.selectedRole)
+                                  .filter(
+                                    (u: any) =>
+                                      u.role === orderFormData.selectedRole,
+                                  )
                                   .map((u: any) => (
                                     <CommandItem
                                       key={u.id}
@@ -3939,7 +4476,8 @@ Report generated from EMRSoft System`;
                                     >
                                       <Check
                                         className={`mr-2 h-4 w-4 ${
-                                          orderFormData.selectedUserId === u.id.toString()
+                                          orderFormData.selectedUserId ===
+                                          u.id.toString()
                                             ? "opacity-100"
                                             : "opacity-0"
                                         }`}
@@ -4130,9 +4668,11 @@ Report generated from EMRSoft System`;
       <Dialog open={showInvoiceDialog} onOpenChange={setShowInvoiceDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Create New Invoice</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">
+              Create New Invoice
+            </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             {/* Row 1: Patient & Service Date */}
             <div className="grid grid-cols-2 gap-4">
@@ -4141,12 +4681,15 @@ Report generated from EMRSoft System`;
                 <Select
                   value={pendingOrderData?.patientId?.toString() || ""}
                   onValueChange={(value) => {
-                    const patient = patients.find((p: any) => p.id.toString() === value);
+                    const patient = patients.find(
+                      (p: any) => p.id.toString() === value,
+                    );
                     if (patient) {
                       setPendingOrderData({
                         ...pendingOrderData,
                         patientId: patient.id,
-                        patientName: `${patient.firstName || ''} ${patient.lastName || ''}`.trim()
+                        patientName:
+                          `${patient.firstName || ""} ${patient.lastName || ""}`.trim(),
                       });
                     }
                   }}
@@ -4156,7 +4699,10 @@ Report generated from EMRSoft System`;
                   </SelectTrigger>
                   <SelectContent>
                     {patients.map((patient: any) => (
-                      <SelectItem key={patient.id} value={patient.id.toString()}>
+                      <SelectItem
+                        key={patient.id}
+                        value={patient.id.toString()}
+                      >
                         {patient.firstName} {patient.lastName}
                       </SelectItem>
                     ))}
@@ -4168,7 +4714,12 @@ Report generated from EMRSoft System`;
                 <Input
                   type="date"
                   value={invoiceData.serviceDate}
-                  onChange={(e) => setInvoiceData({ ...invoiceData, serviceDate: e.target.value })}
+                  onChange={(e) =>
+                    setInvoiceData({
+                      ...invoiceData,
+                      serviceDate: e.target.value,
+                    })
+                  }
                   className="mt-1"
                 />
               </div>
@@ -4179,7 +4730,7 @@ Report generated from EMRSoft System`;
               <div>
                 <Label className="text-sm font-medium">Doctor</Label>
                 <Input
-                  value={`${user?.firstName || ''} ${user?.lastName || 'Admin User'}`}
+                  value={`${user?.firstName || ""} ${user?.lastName || "Admin User"}`}
                   readOnly
                   className="mt-1 bg-gray-50 dark:bg-gray-800"
                 />
@@ -4201,7 +4752,12 @@ Report generated from EMRSoft System`;
                 <Input
                   type="date"
                   value={invoiceData.invoiceDate}
-                  onChange={(e) => setInvoiceData({ ...invoiceData, invoiceDate: e.target.value })}
+                  onChange={(e) =>
+                    setInvoiceData({
+                      ...invoiceData,
+                      invoiceDate: e.target.value,
+                    })
+                  }
                   className="mt-1"
                 />
               </div>
@@ -4210,7 +4766,9 @@ Report generated from EMRSoft System`;
                 <Input
                   type="date"
                   value={invoiceData.dueDate}
-                  onChange={(e) => setInvoiceData({ ...invoiceData, dueDate: e.target.value })}
+                  onChange={(e) =>
+                    setInvoiceData({ ...invoiceData, dueDate: e.target.value })
+                  }
                   className="mt-1"
                 />
               </div>
@@ -4218,7 +4776,9 @@ Report generated from EMRSoft System`;
 
             {/* Services & Procedures - Editable Table */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Services & Procedures</Label>
+              <Label className="text-sm font-medium mb-2 block">
+                Services & Procedures
+              </Label>
               <div className="border rounded-lg">
                 <div className="grid grid-cols-10 gap-2 bg-gray-100 dark:bg-gray-800 p-2 font-medium text-sm">
                   <div className="col-span-2">Code</div>
@@ -4227,7 +4787,10 @@ Report generated from EMRSoft System`;
                   <div className="col-span-1"></div>
                 </div>
                 {invoiceData.items.map((item: any, index: number) => (
-                  <div key={index} className="grid grid-cols-10 gap-2 p-2 border-t items-center">
+                  <div
+                    key={index}
+                    className="grid grid-cols-10 gap-2 p-2 border-t items-center"
+                  >
                     <Input
                       value={item.code}
                       onChange={(e) => {
@@ -4254,10 +4817,18 @@ Report generated from EMRSoft System`;
                       value={item.unitPrice}
                       onChange={(e) => {
                         const newItems = [...invoiceData.items];
-                        newItems[index].unitPrice = parseFloat(e.target.value) || 0;
+                        newItems[index].unitPrice =
+                          parseFloat(e.target.value) || 0;
                         newItems[index].total = newItems[index].unitPrice;
-                        const total = newItems.reduce((sum, it) => sum + it.total, 0);
-                        setInvoiceData({ ...invoiceData, items: newItems, totalAmount: total });
+                        const total = newItems.reduce(
+                          (sum, it) => sum + it.total,
+                          0,
+                        );
+                        setInvoiceData({
+                          ...invoiceData,
+                          items: newItems,
+                          totalAmount: total,
+                        });
                       }}
                       placeholder="0.00"
                       className="col-span-2 h-9 text-sm"
@@ -4266,9 +4837,18 @@ Report generated from EMRSoft System`;
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        const newItems = invoiceData.items.filter((_: any, i: number) => i !== index);
-                        const total = newItems.reduce((sum: number, it: any) => sum + it.total, 0);
-                        setInvoiceData({ ...invoiceData, items: newItems, totalAmount: total });
+                        const newItems = invoiceData.items.filter(
+                          (_: any, i: number) => i !== index,
+                        );
+                        const total = newItems.reduce(
+                          (sum: number, it: any) => sum + it.total,
+                          0,
+                        );
+                        setInvoiceData({
+                          ...invoiceData,
+                          items: newItems,
+                          totalAmount: total,
+                        });
                       }}
                       className="col-span-1 h-9 p-0"
                     >
@@ -4286,8 +4866,14 @@ Report generated from EMRSoft System`;
                         ...invoiceData,
                         items: [
                           ...invoiceData.items,
-                          { code: '', description: '', quantity: 1, unitPrice: 0, total: 0 }
-                        ]
+                          {
+                            code: "",
+                            description: "",
+                            quantity: 1,
+                            unitPrice: 0,
+                            total: 0,
+                          },
+                        ],
                       });
                     }}
                     className="w-full text-sm"
@@ -4302,31 +4888,57 @@ Report generated from EMRSoft System`;
             {/* Row 4: Insurance Provider & Total Amount */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium">Insurance Provider</Label>
+                <Label className="text-sm font-medium">
+                  Insurance Provider
+                </Label>
                 <Select
                   value={invoiceData.insuranceProvider || "none"}
-                  onValueChange={(value) => setInvoiceData({ 
-                    ...invoiceData, 
-                    insuranceProvider: value === 'none' ? '' : value,
-                    invoiceType: (value === 'none' || value === '' || value === 'Self-Pay') ? 'payment' : 'insurance_claim'
-                  })}
+                  onValueChange={(value) =>
+                    setInvoiceData({
+                      ...invoiceData,
+                      insuranceProvider: value === "none" ? "" : value,
+                      invoiceType:
+                        value === "none" || value === "" || value === "Self-Pay"
+                          ? "payment"
+                          : "insurance_claim",
+                    })
+                  }
                 >
-                  <SelectTrigger className="mt-1" data-testid="select-insurance-provider">
+                  <SelectTrigger
+                    className="mt-1"
+                    data-testid="select-insurance-provider"
+                  >
                     <SelectValue placeholder="Select insurance provider..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">None (Patient Self-Pay)</SelectItem>
-                    <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
+                    <SelectItem value="none">
+                      None (Patient Self-Pay)
+                    </SelectItem>
+                    <SelectItem value="NHS (National Health Service)">
+                      NHS (National Health Service)
+                    </SelectItem>
                     <SelectItem value="Bupa">Bupa</SelectItem>
-                    <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
-                    <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                    <SelectItem value="AXA PPP Healthcare">
+                      AXA PPP Healthcare
+                    </SelectItem>
+                    <SelectItem value="Vitality Health">
+                      Vitality Health
+                    </SelectItem>
                     <SelectItem value="Aviva Health">Aviva Health</SelectItem>
                     <SelectItem value="Simply Health">Simply Health</SelectItem>
                     <SelectItem value="WPA">WPA</SelectItem>
-                    <SelectItem value="Benenden Health">Benenden Health</SelectItem>
-                    <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
-                    <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
-                    <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                    <SelectItem value="Benenden Health">
+                      Benenden Health
+                    </SelectItem>
+                    <SelectItem value="Healix Health Services">
+                      Healix Health Services
+                    </SelectItem>
+                    <SelectItem value="Sovereign Health Care">
+                      Sovereign Health Care
+                    </SelectItem>
+                    <SelectItem value="Exeter Friendly Society">
+                      Exeter Friendly Society
+                    </SelectItem>
                     <SelectItem value="Self-Pay">Self-Pay</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
@@ -4347,20 +4959,25 @@ Report generated from EMRSoft System`;
               <div className="flex items-start gap-2">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Invoice Type:</span>
-                    <Badge className={
-                      invoiceData.invoiceType === 'insurance_claim' 
-                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 border-blue-300 dark:border-blue-700"
-                        : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-300 dark:border-green-700"
-                    }>
-                      {invoiceData.invoiceType === 'insurance_claim' ? 'Insurance Claim' : 'Payment (Self-Pay)'}
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Invoice Type:
+                    </span>
+                    <Badge
+                      className={
+                        invoiceData.invoiceType === "insurance_claim"
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 border-blue-300 dark:border-blue-700"
+                          : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-300 dark:border-green-700"
+                      }
+                    >
+                      {invoiceData.invoiceType === "insurance_claim"
+                        ? "Insurance Claim"
+                        : "Payment (Self-Pay)"}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {invoiceData.invoiceType === 'insurance_claim' 
-                      ? 'This invoice will be submitted to the insurance provider for payment'
-                      : 'This invoice will be paid directly by the patient'
-                    }
+                    {invoiceData.invoiceType === "insurance_claim"
+                      ? "This invoice will be submitted to the insurance provider for payment"
+                      : "This invoice will be paid directly by the patient"}
                   </p>
                 </div>
               </div>
@@ -4370,8 +4987,10 @@ Report generated from EMRSoft System`;
             <div>
               <Label className="text-sm font-medium">Notes</Label>
               <Textarea
-                value={invoiceData.notes || pendingOrderData?.notes || ''}
-                onChange={(e) => setInvoiceData({ ...invoiceData, notes: e.target.value })}
+                value={invoiceData.notes || pendingOrderData?.notes || ""}
+                onChange={(e) =>
+                  setInvoiceData({ ...invoiceData, notes: e.target.value })
+                }
                 placeholder="Add any additional notes about this invoice..."
                 className="mt-1"
                 rows={3}
@@ -4383,9 +5002,14 @@ Report generated from EMRSoft System`;
               <Label className="text-sm font-medium">Payment Method</Label>
               <Select
                 value={invoiceData.paymentMethod}
-                onValueChange={(value) => setInvoiceData({ ...invoiceData, paymentMethod: value })}
+                onValueChange={(value) =>
+                  setInvoiceData({ ...invoiceData, paymentMethod: value })
+                }
               >
-                <SelectTrigger className="mt-1" data-testid="select-payment-method">
+                <SelectTrigger
+                  className="mt-1"
+                  data-testid="select-payment-method"
+                >
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
@@ -4408,9 +5032,9 @@ Report generated from EMRSoft System`;
                   setShowInvoiceDialog(false);
                   setInvoiceData({
                     ...invoiceData,
-                    paymentMethod: '',
-                    insuranceProvider: '',
-                    notes: ''
+                    paymentMethod: "",
+                    insuranceProvider: "",
+                    notes: "",
                   });
                 }}
                 className="flex-1"
@@ -4423,7 +5047,9 @@ Report generated from EMRSoft System`;
                   setShowInvoiceDialog(false);
                   setShowSummaryDialog(true);
                 }}
-                disabled={!invoiceData.paymentMethod || invoiceData.items.length === 0}
+                disabled={
+                  !invoiceData.paymentMethod || invoiceData.items.length === 0
+                }
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
                 data-testid="button-create-invoice"
               >
@@ -4438,29 +5064,45 @@ Report generated from EMRSoft System`;
       <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-medical-blue">Order Summary</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-medical-blue">
+              Order Summary
+            </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-6">
             {/* Order Details */}
             <div className="border rounded-lg p-4 space-y-3">
-              <h3 className="font-semibold text-lg border-b pb-2">Order Information</h3>
+              <h3 className="font-semibold text-lg border-b pb-2">
+                Order Information
+              </h3>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-sm text-gray-600 dark:text-gray-400">Patient Name</Label>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">
+                    Patient Name
+                  </Label>
                   <p className="font-medium">{pendingOrderData?.patientName}</p>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-600 dark:text-gray-400">Priority</Label>
-                  <p className="font-medium capitalize">{pendingOrderData?.priority}</p>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">
+                    Priority
+                  </Label>
+                  <p className="font-medium capitalize">
+                    {pendingOrderData?.priority}
+                  </p>
                 </div>
                 <div className="col-span-2">
-                  <Label className="text-sm text-gray-600 dark:text-gray-400">Test Types</Label>
-                  <p className="font-medium">{pendingOrderData?.testTypes?.join(' | ')}</p>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">
+                    Test Types
+                  </Label>
+                  <p className="font-medium">
+                    {pendingOrderData?.testTypes?.join(" | ")}
+                  </p>
                 </div>
                 {pendingOrderData?.notes && (
                   <div className="col-span-2">
-                    <Label className="text-sm text-gray-600 dark:text-gray-400">Notes</Label>
+                    <Label className="text-sm text-gray-600 dark:text-gray-400">
+                      Notes
+                    </Label>
                     <p className="font-medium">{pendingOrderData.notes}</p>
                   </div>
                 )}
@@ -4469,13 +5111,20 @@ Report generated from EMRSoft System`;
 
             {/* Invoice Summary */}
             <div className="border rounded-lg p-4 space-y-3">
-              <h3 className="font-semibold text-lg border-b pb-2">Invoice Summary</h3>
+              <h3 className="font-semibold text-lg border-b pb-2">
+                Invoice Summary
+              </h3>
               <div className="space-y-2">
                 {invoiceData.items.map((item: any, index: number) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b last:border-0">
+                  <div
+                    key={index}
+                    className="flex justify-between items-center py-2 border-b last:border-0"
+                  >
                     <div>
                       <p className="font-medium">{item.description}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Code: {item.code}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Code: {item.code}
+                      </p>
                     </div>
                     <p className="font-semibold">£{item.total.toFixed(2)}</p>
                   </div>
@@ -4483,7 +5132,9 @@ Report generated from EMRSoft System`;
               </div>
               <div className="flex justify-between items-center pt-3 border-t-2">
                 <p className="text-lg font-bold">Total Amount:</p>
-                <p className="text-2xl font-bold text-medical-blue">£{invoiceData.totalAmount.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-medical-blue">
+                  £{invoiceData.totalAmount.toFixed(2)}
+                </p>
               </div>
             </div>
 
@@ -4492,13 +5143,21 @@ Report generated from EMRSoft System`;
               <h3 className="font-semibold text-lg">Payment Information</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-sm text-gray-600 dark:text-gray-400">Payment Method</Label>
-                  <p className="font-medium capitalize">{invoiceData.paymentMethod.replace('_', ' ')}</p>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">
+                    Payment Method
+                  </Label>
+                  <p className="font-medium capitalize">
+                    {invoiceData.paymentMethod.replace("_", " ")}
+                  </p>
                 </div>
                 {invoiceData.insuranceProvider && (
                   <div>
-                    <Label className="text-sm text-gray-600 dark:text-gray-400">Insurance Provider</Label>
-                    <p className="font-medium">{invoiceData.insuranceProvider}</p>
+                    <Label className="text-sm text-gray-600 dark:text-gray-400">
+                      Insurance Provider
+                    </Label>
+                    <p className="font-medium">
+                      {invoiceData.insuranceProvider}
+                    </p>
                   </div>
                 )}
               </div>
@@ -4519,13 +5178,18 @@ Report generated from EMRSoft System`;
               <Button
                 onClick={async () => {
                   // Get patient name from pendingOrderData or find from patients list
-                  const patientName = pendingOrderData?.patientName || 
+                  const patientName =
+                    pendingOrderData?.patientName ||
                     (() => {
-                      const patient = patients.find((p: any) => p.id === pendingOrderData?.patientId);
-                      return patient ? `${patient.firstName} ${patient.lastName}` : '';
+                      const patient = patients.find(
+                        (p: any) => p.id === pendingOrderData?.patientId,
+                      );
+                      return patient
+                        ? `${patient.firstName} ${patient.lastName}`
+                        : "";
                     })();
 
-                  if (invoiceData.paymentMethod === 'cash') {
+                  if (invoiceData.paymentMethod === "cash") {
                     // Handle cash payment
                     createCashPaymentMutation.mutate({
                       patient_id: pendingOrderData?.patientId,
@@ -4537,10 +5201,10 @@ Report generated from EMRSoft System`;
                       serviceDate: invoiceData.serviceDate,
                       invoiceDate: invoiceData.invoiceDate,
                       dueDate: invoiceData.dueDate,
-                      serviceType: 'lab_result',
+                      serviceType: "lab_result",
                       serviceId: pendingOrderData?.testId,
                     });
-                  } else if (invoiceData.paymentMethod === 'debit_card') {
+                  } else if (invoiceData.paymentMethod === "debit_card") {
                     // Handle Stripe payment - setup payment intent
                     createStripePaymentMutation.mutate({
                       patient_id: pendingOrderData?.patientId,
@@ -4552,28 +5216,30 @@ Report generated from EMRSoft System`;
                       serviceDate: invoiceData.serviceDate,
                       invoiceDate: invoiceData.invoiceDate,
                       dueDate: invoiceData.dueDate,
-                      serviceType: 'lab_result',
+                      serviceType: "lab_result",
                       serviceId: pendingOrderData?.testId,
                     });
-                  } else if (invoiceData.paymentMethod === 'Insurance') {
+                  } else if (invoiceData.paymentMethod === "Insurance") {
                     // Handle Insurance payment with automatic claim submission
                     try {
                       // First create the invoice
-                      const patient = patients.find((p: any) => p.id === pendingOrderData?.patientId);
+                      const patient = patients.find(
+                        (p: any) => p.id === pendingOrderData?.patientId,
+                      );
                       const invoicePayload = {
-                        patientId: patient?.patientId || '',
+                        patientId: patient?.patientId || "",
                         patientName: patientName,
-                        nhsNumber: patient?.nhsNumber || '',
+                        nhsNumber: patient?.nhsNumber || "",
                         dateOfService: invoiceData.serviceDate,
                         invoiceDate: invoiceData.invoiceDate,
                         dueDate: invoiceData.dueDate,
-                        status: 'draft',
-                        invoiceType: 'payment',
+                        status: "draft",
+                        invoiceType: "payment",
                         subtotal: invoiceData.totalAmount.toString(),
-                        tax: '0',
-                        discount: '0',
+                        tax: "0",
+                        discount: "0",
                         totalAmount: invoiceData.totalAmount.toString(),
-                        paidAmount: '0',
+                        paidAmount: "0",
                         items: invoiceData.items.map((item: any) => {
                           const unitPrice = parseFloat(item.unitPrice) || 0;
                           const quantity = item.quantity || 1;
@@ -4582,72 +5248,125 @@ Report generated from EMRSoft System`;
                             description: item.description,
                             quantity: quantity,
                             unitPrice: unitPrice,
-                            total: unitPrice * quantity
+                            total: unitPrice * quantity,
                           };
                         }),
                         insuranceProvider: invoiceData.insuranceProvider,
                         notes: invoiceData.notes,
                         paymentMethod: invoiceData.paymentMethod,
-                        serviceType: 'lab_result',
-                        serviceId: pendingOrderData?.testId
+                        serviceType: "lab_result",
+                        serviceId: pendingOrderData?.testId,
                       };
 
-                      console.log("Creating invoice with payload:", invoicePayload);
-                      const response = await apiRequest("POST", "/api/invoices", invoicePayload);
-                      console.log("Invoice creation response status:", response.status);
-                      
+                      console.log(
+                        "Creating invoice with payload:",
+                        invoicePayload,
+                      );
+                      const response = await apiRequest(
+                        "POST",
+                        "/api/invoices",
+                        invoicePayload,
+                      );
+                      console.log(
+                        "Invoice creation response status:",
+                        response.status,
+                      );
+
                       if (!response.ok) {
                         const errorData = await response.json();
                         console.error("Invoice creation error:", errorData);
-                        throw new Error(errorData.error || "Failed to create invoice");
+                        throw new Error(
+                          errorData.error || "Failed to create invoice",
+                        );
                       }
                       const createdInvoice = await response.json();
-                      console.log("Invoice created successfully:", createdInvoice);
+                      console.log(
+                        "Invoice created successfully:",
+                        createdInvoice,
+                      );
 
                       // Automatically submit insurance claim
                       let claimSubmitted = false;
                       let claimError = null;
-                      console.log("Checking insurance provider:", invoiceData.insuranceProvider);
-                      if (invoiceData.insuranceProvider && invoiceData.insuranceProvider !== 'none' && invoiceData.insuranceProvider !== 'None') {
+                      console.log(
+                        "Checking insurance provider:",
+                        invoiceData.insuranceProvider,
+                      );
+                      if (
+                        invoiceData.insuranceProvider &&
+                        invoiceData.insuranceProvider !== "none" &&
+                        invoiceData.insuranceProvider !== "None"
+                      ) {
                         try {
                           const claimNumber = `AUTO-${Date.now()}`;
                           const claimPayload = {
                             invoiceId: createdInvoice.id,
                             provider: invoiceData.insuranceProvider,
-                            claimNumber: claimNumber
+                            claimNumber: claimNumber,
                           };
-                          console.log("Submitting insurance claim with payload:", claimPayload);
-                          
-                          const claimResponse = await apiRequest('POST', '/api/insurance/submit-claim', claimPayload);
-                          console.log("Claim submission response status:", claimResponse.status);
-                          
+                          console.log(
+                            "Submitting insurance claim with payload:",
+                            claimPayload,
+                          );
+
+                          const claimResponse = await apiRequest(
+                            "POST",
+                            "/api/insurance/submit-claim",
+                            claimPayload,
+                          );
+                          console.log(
+                            "Claim submission response status:",
+                            claimResponse.status,
+                          );
+
                           if (!claimResponse.ok) {
                             const claimErrorData = await claimResponse.json();
-                            console.error("Claim submission error:", claimErrorData);
-                            throw new Error(claimErrorData.error || "Failed to submit insurance claim");
+                            console.error(
+                              "Claim submission error:",
+                              claimErrorData,
+                            );
+                            throw new Error(
+                              claimErrorData.error ||
+                                "Failed to submit insurance claim",
+                            );
                           }
                           claimSubmitted = true;
-                          console.log("✅ Insurance claim submitted automatically:", { 
-                            invoiceId: createdInvoice.id, 
-                            provider: invoiceData.insuranceProvider, 
-                            claimNumber 
-                          });
+                          console.log(
+                            "✅ Insurance claim submitted automatically:",
+                            {
+                              invoiceId: createdInvoice.id,
+                              provider: invoiceData.insuranceProvider,
+                              claimNumber,
+                            },
+                          );
                         } catch (err) {
                           claimError = err;
-                          console.error("❌ Failed to auto-submit insurance claim:", err);
+                          console.error(
+                            "❌ Failed to auto-submit insurance claim:",
+                            err,
+                          );
                         }
                       } else {
-                        console.log("⚠️ Skipping claim submission - no valid insurance provider selected");
+                        console.log(
+                          "⚠️ Skipping claim submission - no valid insurance provider selected",
+                        );
                       }
 
                       // Update Lab_Request_Generated to true
                       if (pendingOrderData?.testId) {
                         try {
-                          await apiRequest("PATCH", `/api/lab-results/${pendingOrderData.testId}`, {
-                            labRequestGenerated: true
-                          });
+                          await apiRequest(
+                            "PATCH",
+                            `/api/lab-results/${pendingOrderData.testId}`,
+                            {
+                              labRequestGenerated: true,
+                            },
+                          );
                         } catch (error) {
-                          console.error("Failed to update Lab_Request_Generated:", error);
+                          console.error(
+                            "Failed to update Lab_Request_Generated:",
+                            error,
+                          );
                         }
                       }
 
@@ -4658,7 +5377,8 @@ Report generated from EMRSoft System`;
                       } else if (claimError) {
                         toast({
                           title: "Invoice Created - Claim Failed",
-                          description: "Invoice created successfully, but insurance claim submission failed. Please submit the claim manually.",
+                          description:
+                            "Invoice created successfully, but insurance claim submission failed. Please submit the claim manually.",
                           variant: "destructive",
                         });
                       } else {
@@ -4669,22 +5389,35 @@ Report generated from EMRSoft System`;
                       }
 
                       setShowSummaryDialog(false);
-                      queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
-                      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+                      queryClient.invalidateQueries({
+                        queryKey: ["/api/lab-results"],
+                      });
+                      queryClient.invalidateQueries({
+                        queryKey: ["/api/invoices"],
+                      });
                     } catch (error) {
                       console.error("Error creating invoice:", error);
                       toast({
                         title: "Creation Failed",
-                        description: error instanceof Error ? error.message : "Failed to create invoice. Please try again.",
+                        description:
+                          error instanceof Error
+                            ? error.message
+                            : "Failed to create invoice. Please try again.",
                         variant: "destructive",
                       });
                     }
                   }
                 }}
-                disabled={createCashPaymentMutation.isPending || createStripePaymentMutation.isPending}
+                disabled={
+                  createCashPaymentMutation.isPending ||
+                  createStripePaymentMutation.isPending
+                }
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
               >
-                {createCashPaymentMutation.isPending || createStripePaymentMutation.isPending ? "Processing..." : "Confirm & Pay"}
+                {createCashPaymentMutation.isPending ||
+                createStripePaymentMutation.isPending
+                  ? "Processing..."
+                  : "Confirm & Pay"}
               </Button>
             </div>
           </div>
@@ -4693,41 +5426,58 @@ Report generated from EMRSoft System`;
 
       {/* Stripe Payment Dialog */}
       {stripeClientSecret && (
-        <Dialog open={!!stripeClientSecret} onOpenChange={(open) => !open && setStripeClientSecret("")}>
+        <Dialog
+          open={!!stripeClientSecret}
+          onOpenChange={(open) => !open && setStripeClientSecret("")}
+        >
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Complete Payment</DialogTitle>
             </DialogHeader>
-            <Elements stripe={stripePromise} options={{ clientSecret: stripeClientSecret }}>
-              <StripePaymentForm 
+            <Elements
+              stripe={stripePromise}
+              options={{ clientSecret: stripeClientSecret }}
+            >
+              <StripePaymentForm
                 onSuccess={async (paymentIntentId: string) => {
                   // Call confirmation endpoint
-                  apiRequest("POST", "/api/payments/stripe/confirm", { paymentIntentId })
-                    .then(res => res.json())
-                    .then(async data => {
+                  apiRequest("POST", "/api/payments/stripe/confirm", {
+                    paymentIntentId,
+                  })
+                    .then((res) => res.json())
+                    .then(async (data) => {
                       // Update Lab_Request_Generated to true
                       if (pendingOrderData?.testId) {
                         try {
-                          await apiRequest("PATCH", `/api/lab-results/${pendingOrderData.testId}`, {
-                            labRequestGenerated: true
-                          });
+                          await apiRequest(
+                            "PATCH",
+                            `/api/lab-results/${pendingOrderData.testId}`,
+                            {
+                              labRequestGenerated: true,
+                            },
+                          );
                         } catch (error) {
-                          console.error("Failed to update Lab_Request_Generated:", error);
+                          console.error(
+                            "Failed to update Lab_Request_Generated:",
+                            error,
+                          );
                         }
                       }
-                      
+
                       setPaymentResult({
                         invoiceId: data.invoice.invoiceNumber,
                         patientName: pendingOrderData?.patientName,
                         amount: invoiceData.totalAmount,
-                        paymentMethod: 'debit_card'
+                        paymentMethod: "debit_card",
                       });
                       setStripeClientSecret("");
                       setShowSummaryDialog(false);
                       setShowPaymentConfirmation(true);
-                      queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+                      queryClient.invalidateQueries({
+                        queryKey: ["/api/lab-results"],
+                      });
                     })
-                    .catch(err => {
+                    .catch((err) => {
                       toast({
                         title: "Payment Confirmation Failed",
                         description: err.message || "Failed to confirm payment",
@@ -4743,34 +5493,57 @@ Report generated from EMRSoft System`;
       )}
 
       {/* Payment Confirmation Modal */}
-      <Dialog open={showPaymentConfirmation} onOpenChange={setShowPaymentConfirmation}>
+      <Dialog
+        open={showPaymentConfirmation}
+        onOpenChange={setShowPaymentConfirmation}
+      >
         <DialogContent className="max-w-md">
           <div className="flex flex-col items-center text-center space-y-4 py-6">
             <div className="rounded-full bg-green-100 dark:bg-green-900 p-4">
               <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />
             </div>
-            
+
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">Payment Successful!</h3>
-              <p className="text-gray-600 dark:text-gray-400">Your payment has been processed successfully</p>
+              <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">
+                Payment Successful!
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Your payment has been processed successfully
+              </p>
             </div>
 
             <div className="w-full space-y-3 border-t pt-4">
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Invoice ID:</span>
-                <span className="font-semibold">{paymentResult?.invoiceId}</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Invoice ID:
+                </span>
+                <span className="font-semibold">
+                  {paymentResult?.invoiceId}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Patient Name:</span>
-                <span className="font-semibold">{paymentResult?.patientName}</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Patient Name:
+                </span>
+                <span className="font-semibold">
+                  {paymentResult?.patientName}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Amount Paid:</span>
-                <span className="font-semibold text-medical-blue">£{paymentResult?.amount?.toFixed(2)}</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Amount Paid:
+                </span>
+                <span className="font-semibold text-medical-blue">
+                  £{paymentResult?.amount?.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
-                <span className="font-semibold capitalize">{paymentResult?.paymentMethod?.replace('_', ' ')}</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Payment Method:
+                </span>
+                <span className="font-semibold capitalize">
+                  {paymentResult?.paymentMethod?.replace("_", " ")}
+                </span>
               </div>
             </div>
 
@@ -4880,7 +5653,10 @@ Report generated from EMRSoft System`;
                     <div>
                       <p className="text-sm text-black font-bold">Test:</p>
                       {isEditMode ? (
-                        <Popover open={testTypePopoverOpen} onOpenChange={setTestTypePopoverOpen}>
+                        <Popover
+                          open={testTypePopoverOpen}
+                          onOpenChange={setTestTypePopoverOpen}
+                        >
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
@@ -4902,9 +5678,12 @@ Report generated from EMRSoft System`;
                                   <CommandItem
                                     key={testType}
                                     onSelect={() => {
-                                      const newSelection = selectedTestTypes.includes(testType)
-                                        ? selectedTestTypes.filter((t) => t !== testType)
-                                        : [...selectedTestTypes, testType];
+                                      const newSelection =
+                                        selectedTestTypes.includes(testType)
+                                          ? selectedTestTypes.filter(
+                                              (t) => t !== testType,
+                                            )
+                                          : [...selectedTestTypes, testType];
                                       setSelectedTestTypes(newSelection);
                                       setEditFormData((prev: any) => ({
                                         ...prev,
@@ -4913,7 +5692,9 @@ Report generated from EMRSoft System`;
                                     }}
                                   >
                                     <Checkbox
-                                      checked={selectedTestTypes.includes(testType)}
+                                      checked={selectedTestTypes.includes(
+                                        testType,
+                                      )}
                                       className="mr-2"
                                     />
                                     {testType}
@@ -4925,22 +5706,33 @@ Report generated from EMRSoft System`;
                         </Popover>
                       ) : (
                         (() => {
-                          const tests = selectedResult.testType.split(' | ');
+                          const tests = selectedResult.testType.split(" | ");
                           if (tests.length <= 2) {
-                            return <p className="font-medium">{selectedResult.testType}</p>;
+                            return (
+                              <p className="font-medium">
+                                {selectedResult.testType}
+                              </p>
+                            );
                           }
-                          const visibleTests = tests.slice(0, 2).join(' | ');
+                          const visibleTests = tests.slice(0, 2).join(" | ");
                           const hiddenCount = tests.length - 2;
                           return (
                             <div className="group relative">
                               <p className="font-medium">
-                                {visibleTests} <span className="text-blue-600 dark:text-blue-400 cursor-help">+{hiddenCount} more</span>
+                                {visibleTests}{" "}
+                                <span className="text-blue-600 dark:text-blue-400 cursor-help">
+                                  +{hiddenCount} more
+                                </span>
                               </p>
                               <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-3 min-w-[300px]">
-                                <div className="text-sm font-medium mb-2">All Tests:</div>
+                                <div className="text-sm font-medium mb-2">
+                                  All Tests:
+                                </div>
                                 <div className="space-y-1">
                                   {tests.map((test, idx) => (
-                                    <div key={idx} className="text-sm">{test}</div>
+                                    <div key={idx} className="text-sm">
+                                      {test}
+                                    </div>
                                   ))}
                                 </div>
                               </div>
@@ -5000,7 +5792,9 @@ Report generated from EMRSoft System`;
                         <Checkbox
                           id="show-test-results"
                           checked={showTestResults}
-                          onCheckedChange={(checked) => setShowTestResults(checked as boolean)}
+                          onCheckedChange={(checked) =>
+                            setShowTestResults(checked as boolean)
+                          }
                         />
                         <Label
                           htmlFor="show-test-results"
@@ -5009,12 +5803,15 @@ Report generated from EMRSoft System`;
                           Show Test Results
                         </Label>
                       </div>
-                      
+
                       {showTestResults && (
                         <div className="space-y-3">
                           {selectedResult.results.map(
                             (result: any, index: number) => (
-                              <div key={index} className="border rounded-lg p-4">
+                              <div
+                                key={index}
+                                className="border rounded-lg p-4"
+                              >
                                 <div className="flex justify-between items-center">
                                   <div className="flex-1">
                                     <p className="font-medium">{result.name}</p>
@@ -5103,10 +5900,12 @@ Report generated from EMRSoft System`;
                             </SelectTrigger>
                             <SelectContent>
                               {users
-                                .filter((u: User) => u.role === selectedEditRole)
+                                .filter(
+                                  (u: User) => u.role === selectedEditRole,
+                                )
                                 .map((u: User) => (
-                                  <SelectItem 
-                                    key={u.id} 
+                                  <SelectItem
+                                    key={u.id}
                                     value={`${u.firstName} ${u.lastName}`}
                                   >
                                     {u.firstName} {u.lastName}
@@ -5126,7 +5925,8 @@ Report generated from EMRSoft System`;
                           Main Specialization:
                         </p>
                         <p className="text-gray-600 font-medium">
-                          {selectedResult.mainSpecialty || "Surgical Specialties"}
+                          {selectedResult.mainSpecialty ||
+                            "Surgical Specialties"}
                         </p>
                       </div>
 
@@ -5212,7 +6012,7 @@ Report generated from EMRSoft System`;
                 >
                   Close
                 </Button>
-                {user?.role !== 'patient' && (
+                {user?.role !== "patient" && (
                   <Button variant="outline" onClick={handleStartEdit}>
                     Edit
                   </Button>
@@ -5600,59 +6400,69 @@ Report generated from EMRSoft System`;
             >
               {/* Header */}
               <div className="border-b pb-4 pt-6">
-                <div 
+                <div
                   className="flex items-start gap-4"
                   style={{
-                    justifyContent: clinicHeader?.logoPosition === 'center' ? 'center' : 'flex-start'
+                    justifyContent:
+                      clinicHeader?.logoPosition === "center"
+                        ? "center"
+                        : "flex-start",
                   }}
                 >
                   {/* Logo on Left */}
-                  {clinicHeader?.logoBase64 && (clinicHeader?.logoPosition === 'left' || clinicHeader?.logoPosition === 'center') && (
-                    <img
-                      src={clinicHeader.logoBase64}
-                      alt="Clinic Logo"
-                      style={{
-                        height: "100px",
-                        width: "100px",
-                        flexShrink: 0,
-                      }}
-                    />
-                  )}
+                  {clinicHeader?.logoBase64 &&
+                    (clinicHeader?.logoPosition === "left" ||
+                      clinicHeader?.logoPosition === "center") && (
+                      <img
+                        src={clinicHeader.logoBase64}
+                        alt="Clinic Logo"
+                        style={{
+                          height: "100px",
+                          width: "100px",
+                          flexShrink: 0,
+                        }}
+                      />
+                    )}
 
                   {/* Header Content */}
-                  <div 
+                  <div
                     className="flex-1"
                     style={{
-                      textAlign: clinicHeader?.logoPosition === 'center' ? 'center' : clinicHeader?.logoPosition === 'right' ? 'right' : 'left'
+                      textAlign:
+                        clinicHeader?.logoPosition === "center"
+                          ? "center"
+                          : clinicHeader?.logoPosition === "right"
+                            ? "right"
+                            : "left",
                     }}
                   >
-                    <h1 
+                    <h1
                       className="font-bold text-medical-blue mb-2"
                       style={{
-                        fontSize: clinicHeader?.clinicNameFontSize || '24pt',
-                        fontFamily: clinicHeader?.fontFamily || 'verdana',
-                        fontWeight: clinicHeader?.fontWeight || 'bold',
-                        fontStyle: clinicHeader?.fontStyle || 'normal',
-                        textDecoration: clinicHeader?.textDecoration || 'none'
+                        fontSize: clinicHeader?.clinicNameFontSize || "24pt",
+                        fontFamily: clinicHeader?.fontFamily || "verdana",
+                        fontWeight: clinicHeader?.fontWeight || "bold",
+                        fontStyle: clinicHeader?.fontStyle || "normal",
+                        textDecoration: clinicHeader?.textDecoration || "none",
                       }}
                     >
-                      {clinicHeader?.clinicName || 'CURA EMR SYSTEM'}
+                      {clinicHeader?.clinicName || "EMRSoft Health System"}
                     </h1>
-                    <p 
+                    <p
                       className="text-gray-600 font-medium"
                       style={{
-                        fontSize: clinicHeader?.fontSize || '12pt',
-                        fontFamily: clinicHeader?.fontFamily || 'verdana'
+                        fontSize: clinicHeader?.fontSize || "12pt",
+                        fontFamily: clinicHeader?.fontFamily || "verdana",
                       }}
                     >
                       Laboratory Test Prescription
                     </p>
 
-                    <div 
+                    <div
                       className="text-gray-700 mt-2 leading-5"
                       style={{
-                        fontSize: clinicHeader?.fontSize || '12pt',
-                        fontFamily: clinicHeader?.fontFamily || 'verdana'
+                        fontSize: clinicHeader?.fontSize || "12pt",
+                        fontFamily: clinicHeader?.fontFamily || "verdana",
                       }}
                     >
                       {clinicHeader?.address && <p>{clinicHeader.address}</p>}
@@ -5663,17 +6473,18 @@ Report generated from EMRSoft System`;
                   </div>
 
                   {/* Logo on Right */}
-                  {clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'right' && (
-                    <img
-                      src={clinicHeader.logoBase64}
-                      alt="Clinic Logo"
-                      style={{
-                        height: "100px",
-                        width: "100px",
-                        flexShrink: 0,
-                      }}
-                    />
-                  )}
+                  {clinicHeader?.logoBase64 &&
+                    clinicHeader?.logoPosition === "right" && (
+                      <img
+                        src={clinicHeader.logoBase64}
+                        alt="Clinic Logo"
+                        style={{
+                          height: "100px",
+                          width: "100px",
+                          flexShrink: 0,
+                        }}
+                      />
+                    )}
                 </div>
               </div>
 
@@ -5749,14 +6560,16 @@ Report generated from EMRSoft System`;
                       <p className="text-sm font-medium text-gray-700">
                         Test Type:
                       </p>
-                      <p 
-                        className="font-semibold text-blue-800 cursor-default" 
+                      <p
+                        className="font-semibold text-blue-800 cursor-default"
                         title={selectedResult.testType}
                       >
                         {(() => {
-                          const tests = selectedResult.testType.split(' | ').map((t: string) => t.trim());
+                          const tests = selectedResult.testType
+                            .split(" | ")
+                            .map((t: string) => t.trim());
                           if (tests.length > 2) {
-                            return tests.slice(0, 2).join(', ') + '...';
+                            return tests.slice(0, 2).join(", ") + "...";
                           }
                           return selectedResult.testType;
                         })()}
@@ -5930,12 +6743,15 @@ Report generated from EMRSoft System`;
               Generate Lab Test Result
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-6 py-4">
             {/* Patient Selection */}
             <div className="space-y-2">
               <Label htmlFor="generate-patient">Select Patient *</Label>
-              <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+              <Popover
+                open={patientSearchOpen}
+                onOpenChange={setPatientSearchOpen}
+              >
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -5944,9 +6760,13 @@ Report generated from EMRSoft System`;
                     data-testid="button-select-patient-generate"
                   >
                     {generateFormData.patientId
-                      ? patients.find((p: any) => p.id.toString() === generateFormData.patientId.toString())
-                          ? `${patients.find((p: any) => p.id.toString() === generateFormData.patientId.toString()).firstName} ${patients.find((p: any) => p.id.toString() === generateFormData.patientId.toString()).lastName}`
-                          : "Select patient..."
+                      ? patients.find(
+                          (p: any) =>
+                            p.id.toString() ===
+                            generateFormData.patientId.toString(),
+                        )
+                        ? `${patients.find((p: any) => p.id.toString() === generateFormData.patientId.toString()).firstName} ${patients.find((p: any) => p.id.toString() === generateFormData.patientId.toString()).lastName}`
+                        : "Select patient..."
                       : "Select patient..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -5976,7 +6796,8 @@ Report generated from EMRSoft System`;
                                 : "opacity-0"
                             }`}
                           />
-                          {patient.firstName} {patient.lastName} ({patient.patientId})
+                          {patient.firstName} {patient.lastName} (
+                          {patient.patientId})
                         </CommandItem>
                       ))}
                     </CommandGroup>
@@ -6021,7 +6842,8 @@ Report generated from EMRSoft System`;
                     className="w-full justify-between"
                     data-testid="button-select-test-types"
                   >
-                    {generateFormData.selectedTests && generateFormData.selectedTests.length > 0
+                    {generateFormData.selectedTests &&
+                    generateFormData.selectedTests.length > 0
                       ? `${generateFormData.selectedTests.length} test(s) selected`
                       : "Select test types..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -6039,9 +6861,12 @@ Report generated from EMRSoft System`;
                           onSelect={() => {
                             setGenerateFormData((prev: any) => {
                               const currentTests = prev.selectedTests || [];
-                              const isSelected = currentTests.includes(testType);
+                              const isSelected =
+                                currentTests.includes(testType);
                               const newTests = isSelected
-                                ? currentTests.filter((t: string) => t !== testType)
+                                ? currentTests.filter(
+                                    (t: string) => t !== testType,
+                                  )
                                 : [...currentTests, testType];
                               return {
                                 ...prev,
@@ -6051,7 +6876,11 @@ Report generated from EMRSoft System`;
                           }}
                         >
                           <Checkbox
-                            checked={generateFormData.selectedTests?.includes(testType) || false}
+                            checked={
+                              generateFormData.selectedTests?.includes(
+                                testType,
+                              ) || false
+                            }
                             className="mr-2"
                           />
                           {testType}
@@ -6061,117 +6890,149 @@ Report generated from EMRSoft System`;
                   </Command>
                 </PopoverContent>
               </Popover>
-              
+
               {/* Display selected tests */}
-              {generateFormData.selectedTests && generateFormData.selectedTests.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {generateFormData.selectedTests.map((test: string) => (
-                    <Badge
-                      key={test}
-                      variant="secondary"
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setGenerateFormData((prev: any) => ({
-                          ...prev,
-                          selectedTests: prev.selectedTests.filter((t: string) => t !== test),
-                        }));
-                      }}
-                    >
-                      {test}
-                      <X className="ml-2 h-3 w-3" />
-                    </Badge>
-                  ))}
-                </div>
-              )}
+              {generateFormData.selectedTests &&
+                generateFormData.selectedTests.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {generateFormData.selectedTests.map((test: string) => (
+                      <Badge
+                        key={test}
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setGenerateFormData((prev: any) => ({
+                            ...prev,
+                            selectedTests: prev.selectedTests.filter(
+                              (t: string) => t !== test,
+                            ),
+                          }));
+                        }}
+                      >
+                        {test}
+                        <X className="ml-2 h-3 w-3" />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
             </div>
 
             {/* Dynamic Test Fields - Show fields for each selected test */}
-            {generateFormData.selectedTests && generateFormData.selectedTests.length > 0 && (
-              <div className="space-y-6">
-                <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-4">Test Result Values</h3>
-                  
-                  {generateFormData.selectedTests.map((testType: string) => {
-                    const testFields = TEST_FIELD_DEFINITIONS[testType];
-                    if (!testFields) return null;
+            {generateFormData.selectedTests &&
+              generateFormData.selectedTests.length > 0 && (
+                <div className="space-y-6">
+                  <div className="border-t pt-4">
+                    <h3 className="text-lg font-semibold mb-4">
+                      Test Result Values
+                    </h3>
 
-                    return (
-                      <div key={testType} className="mb-6 p-4 bg-gray-50 rounded-lg border">
-                        <h4 className="font-semibold text-blue-700 mb-4">{testType}</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {testFields.map((field) => {
-                            const currentValue = generateFormData.testValues?.[testType]?.[field.name] || "";
-                            
-                            // Parse reference range and check if critical
-                            let isCritical = false;
-                            let isNormal = false;
-                            if (currentValue && currentValue.trim() !== "") {
-                              const numValue = parseFloat(currentValue);
-                              if (!isNaN(numValue)) {
-                                // Parse reference range (e.g., "6 - 23", "13.0–17.0", "13.0-17.0")
-                                const rangeMatch = field.referenceRange.match(/([\d.]+)\s*[-–]\s*([\d.]+)/);
-                                if (rangeMatch) {
-                                  const minValue = parseFloat(rangeMatch[1]);
-                                  const maxValue = parseFloat(rangeMatch[2]);
-                                  if (!isNaN(minValue) && !isNaN(maxValue)) {
-                                    isNormal = numValue >= minValue && numValue <= maxValue;
-                                    isCritical = !isNormal;
+                    {generateFormData.selectedTests.map((testType: string) => {
+                      const testFields = TEST_FIELD_DEFINITIONS[testType];
+                      if (!testFields) return null;
+
+                      return (
+                        <div
+                          key={testType}
+                          className="mb-6 p-4 bg-gray-50 rounded-lg border"
+                        >
+                          <h4 className="font-semibold text-blue-700 mb-4">
+                            {testType}
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {testFields.map((field) => {
+                              const currentValue =
+                                generateFormData.testValues?.[testType]?.[
+                                  field.name
+                                ] || "";
+
+                              // Parse reference range and check if critical
+                              let isCritical = false;
+                              let isNormal = false;
+                              if (currentValue && currentValue.trim() !== "") {
+                                const numValue = parseFloat(currentValue);
+                                if (!isNaN(numValue)) {
+                                  // Parse reference range (e.g., "6 - 23", "13.0–17.0", "13.0-17.0")
+                                  const rangeMatch = field.referenceRange.match(
+                                    /([\d.]+)\s*[-–]\s*([\d.]+)/,
+                                  );
+                                  if (rangeMatch) {
+                                    const minValue = parseFloat(rangeMatch[1]);
+                                    const maxValue = parseFloat(rangeMatch[2]);
+                                    if (!isNaN(minValue) && !isNaN(maxValue)) {
+                                      isNormal =
+                                        numValue >= minValue &&
+                                        numValue <= maxValue;
+                                      isCritical = !isNormal;
+                                    }
                                   }
                                 }
                               }
-                            }
 
-                            return (
-                              <div key={field.name} className="space-y-1">
-                                <Label htmlFor={`${testType}-${field.name}`} className="text-sm">
-                                  {field.name}
-                                  <span className="text-gray-500 text-xs ml-2">
-                                    ({field.unit}) - Ref: {field.referenceRange}
-                                  </span>
-                                </Label>
-                                <Input
-                                  id={`${testType}-${field.name}`}
-                                  type="text"
-                                  placeholder={`Enter ${field.name} value`}
-                                  value={currentValue}
-                                  onChange={(e) => {
-                                    setGenerateFormData((prev: any) => ({
-                                      ...prev,
-                                      testValues: {
-                                        ...prev.testValues,
-                                        [testType]: {
-                                          ...prev.testValues?.[testType],
-                                          [field.name]: e.target.value,
+                              return (
+                                <div key={field.name} className="space-y-1">
+                                  <Label
+                                    htmlFor={`${testType}-${field.name}`}
+                                    className="text-sm"
+                                  >
+                                    {field.name}
+                                    <span className="text-gray-500 text-xs ml-2">
+                                      ({field.unit}) - Ref:{" "}
+                                      {field.referenceRange}
+                                    </span>
+                                  </Label>
+                                  <Input
+                                    id={`${testType}-${field.name}`}
+                                    type="text"
+                                    placeholder={`Enter ${field.name} value`}
+                                    value={currentValue}
+                                    onChange={(e) => {
+                                      setGenerateFormData((prev: any) => ({
+                                        ...prev,
+                                        testValues: {
+                                          ...prev.testValues,
+                                          [testType]: {
+                                            ...prev.testValues?.[testType],
+                                            [field.name]: e.target.value,
+                                          },
                                         },
-                                      },
-                                    }));
-                                  }}
-                                  data-testid={`input-${testType.toLowerCase().replace(/\s+/g, '-')}-${field.name.toLowerCase().replace(/\s+/g, '-')}`}
-                                  className={isCritical ? "border-red-300" : isNormal ? "border-green-300" : ""}
-                                />
-                                {/* Status Indicator */}
-                                {isNormal && (
-                                  <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
-                                    <span>✅</span>
-                                    <span className="font-medium">Normal</span>
-                                  </div>
-                                )}
-                                {isCritical && (
-                                  <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
-                                    <span>⚠️</span>
-                                    <span className="font-medium">Critical - Outside normal range</span>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                                      }));
+                                    }}
+                                    data-testid={`input-${testType.toLowerCase().replace(/\s+/g, "-")}-${field.name.toLowerCase().replace(/\s+/g, "-")}`}
+                                    className={
+                                      isCritical
+                                        ? "border-red-300"
+                                        : isNormal
+                                          ? "border-green-300"
+                                          : ""
+                                    }
+                                  />
+                                  {/* Status Indicator */}
+                                  {isNormal && (
+                                    <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
+                                      <span>✅</span>
+                                      <span className="font-medium">
+                                        Normal
+                                      </span>
+                                    </div>
+                                  )}
+                                  {isCritical && (
+                                    <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
+                                      <span>⚠️</span>
+                                      <span className="font-medium">
+                                        Critical - Outside normal range
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Lab Test Status */}
             <div className="space-y-2">
@@ -6224,7 +7085,9 @@ Report generated from EMRSoft System`;
 
             {/* Sample Collection Status */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Sample Collection Status</Label>
+              <Label className="text-sm font-medium">
+                Sample Collection Status
+              </Label>
               <div className="flex gap-6">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -6313,7 +7176,10 @@ Report generated from EMRSoft System`;
                     return;
                   }
 
-                  if (!generateFormData.selectedTests || generateFormData.selectedTests.length === 0) {
+                  if (
+                    !generateFormData.selectedTests ||
+                    generateFormData.selectedTests.length === 0
+                  ) {
                     toast({
                       title: "Validation Error",
                       description: "Please select at least one test type",
@@ -6327,7 +7193,7 @@ Report generated from EMRSoft System`;
                   generateFormData.selectedTests.forEach((testType: string) => {
                     const testFields = TEST_FIELD_DEFINITIONS[testType];
                     const testValues = generateFormData.testValues?.[testType];
-                    
+
                     if (testFields && testValues) {
                       testFields.forEach((field) => {
                         const value = testValues[field.name];
@@ -6335,7 +7201,7 @@ Report generated from EMRSoft System`;
                           // Determine status based on reference range (simplified)
                           const numValue = parseFloat(value);
                           let status = "normal";
-                          
+
                           results.push({
                             name: field.name,
                             value: value,
@@ -6351,18 +7217,24 @@ Report generated from EMRSoft System`;
                   if (results.length === 0) {
                     toast({
                       title: "Validation Error",
-                      description: "Please enter at least one test result value",
+                      description:
+                        "Please enter at least one test result value",
                       variant: "destructive",
                     });
                     return;
                   }
 
                   // Generate or use provided test ID
-                  const baseTestId = generateFormData.testId || 
+                  const baseTestId =
+                    generateFormData.testId ||
                     `LAB${Date.now()}${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
                   // Create lab result for each selected test
-                  for (let index = 0; index < generateFormData.selectedTests.length; index++) {
+                  for (
+                    let index = 0;
+                    index < generateFormData.selectedTests.length;
+                    index++
+                  ) {
                     const testType = generateFormData.selectedTests[index];
                     const testResults = results.filter((r) => {
                       const fields = TEST_FIELD_DEFINITIONS[testType];
@@ -6371,9 +7243,10 @@ Report generated from EMRSoft System`;
 
                     if (testResults.length > 0) {
                       // For multiple tests, append index to test ID
-                      const testId = generateFormData.selectedTests.length > 1 
-                        ? `${baseTestId}-${index + 1}`
-                        : baseTestId;
+                      const testId =
+                        generateFormData.selectedTests.length > 1
+                          ? `${baseTestId}-${index + 1}`
+                          : baseTestId;
 
                       const labResultData = {
                         patientId: generateFormData.patientId,
@@ -6384,28 +7257,41 @@ Report generated from EMRSoft System`;
                         status: "completed",
                         results: testResults,
                         notes: generateFormData.notes || "",
-                        criticalValues: generateFormData.criticalValues || false,
-                        sampleCollected: generateFormData.sampleCollected !== undefined ? generateFormData.sampleCollected : false,
+                        criticalValues:
+                          generateFormData.criticalValues || false,
+                        sampleCollected:
+                          generateFormData.sampleCollected !== undefined
+                            ? generateFormData.sampleCollected
+                            : false,
                       };
 
                       // Create lab result
-                      const createdResult = await apiRequest("POST", "/api/lab-results", labResultData);
+                      const createdResult = await apiRequest(
+                        "POST",
+                        "/api/lab-results",
+                        labResultData,
+                      );
 
                       // Generate PDF for the created lab result
                       if (createdResult?.id) {
-                        await apiRequest("POST", `/api/lab-results/${createdResult.id}/generate-pdf`);
+                        await apiRequest(
+                          "POST",
+                          `/api/lab-results/${createdResult.id}/generate-pdf`,
+                        );
                       }
                     }
                   }
 
                   // Invalidate cache to refetch lab results
-                  queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+                  queryClient.invalidateQueries({
+                    queryKey: ["/api/lab-results"],
+                  });
 
                   toast({
                     title: "Success",
-                    description: `Lab result${generateFormData.selectedTests.length > 1 ? 's' : ''} generated successfully and PDF saved`,
+                    description: `Lab result${generateFormData.selectedTests.length > 1 ? "s" : ""} generated successfully and PDF saved`,
                   });
-                  
+
                   setShowGenerateDialog(false);
                   setGenerateFormData({});
                 }}
@@ -6426,47 +7312,64 @@ Report generated from EMRSoft System`;
       </Dialog>
 
       {/* Fill Lab Test Result Dialog (for existing lab orders) */}
-      <Dialog open={showFillResultDialog} onOpenChange={setShowFillResultDialog}>
+      <Dialog
+        open={showFillResultDialog}
+        onOpenChange={setShowFillResultDialog}
+      >
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
               Generate Lab Test Result
             </DialogTitle>
           </DialogHeader>
-          
+
           {selectedLabOrder && (
             <div className="space-y-6 py-4">
               {/* Lab Order Details - Read Only */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
-                <h4 className="font-semibold text-blue-900 mb-2">Lab Order Details</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">
+                  Lab Order Details
+                </h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Patient Name:</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Patient Name:
+                    </span>
                     <p className="font-medium text-gray-900 dark:text-white">
                       {getPatientName(selectedLabOrder.patientId)}
                     </p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Test Name:</span>
-                    <p 
-                      className="font-medium text-gray-900 dark:text-white cursor-default" 
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Test Name:
+                    </span>
+                    <p
+                      className="font-medium text-gray-900 dark:text-white cursor-default"
                       title={selectedLabOrder.testType}
                     >
                       {(() => {
-                        const tests = selectedLabOrder.testType.split(' | ').map((t: string) => t.trim());
+                        const tests = selectedLabOrder.testType
+                          .split(" | ")
+                          .map((t: string) => t.trim());
                         if (tests.length > 2) {
-                          return tests.slice(0, 2).join(', ') + '...';
+                          return tests.slice(0, 2).join(", ") + "...";
                         }
                         return selectedLabOrder.testType;
                       })()}
                     </p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Test ID:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">{selectedLabOrder.testId || 'N/A'}</p>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Test ID:
+                    </span>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {selectedLabOrder.testId || "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Ordered Date:</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Ordered Date:
+                    </span>
                     <p className="font-medium text-gray-900 dark:text-white">
                       {selectedLabOrder.orderedDate
                         ? format(new Date(selectedLabOrder.orderedDate), "PPp")
@@ -6474,20 +7377,30 @@ Report generated from EMRSoft System`;
                     </p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Ordered By:</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Ordered By:
+                    </span>
                     <p className="font-medium text-gray-900 dark:text-white">
                       {getUserName(selectedLabOrder.orderedBy)}
                     </p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Priority:</span>
-                    <p className="font-medium text-gray-900 dark:text-white capitalize">{selectedLabOrder.priority}</p>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Priority:
+                    </span>
+                    <p className="font-medium text-gray-900 dark:text-white capitalize">
+                      {selectedLabOrder.priority}
+                    </p>
                   </div>
                 </div>
                 {selectedLabOrder.notes && (
                   <div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Notes:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">{selectedLabOrder.notes}</p>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Notes:
+                    </span>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {selectedLabOrder.notes}
+                    </p>
                   </div>
                 )}
               </div>
@@ -6496,21 +7409,28 @@ Report generated from EMRSoft System`;
               {(() => {
                 // Parse test types - may be pipe-separated for multiple tests
                 const allTestTypes = selectedLabOrder.testType
-                  .split(' | ')
+                  .split(" | ")
                   .map((t: string) => t.trim());
-                
-                const testTypes = allTestTypes.filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
+
+                const testTypes = allTestTypes.filter(
+                  (t: string) => TEST_FIELD_DEFINITIONS[t],
+                );
 
                 // Debug: Log test types for troubleshooting
-                console.log('📋 All test types from order:', allTestTypes);
-                console.log('✅ Test types with definitions:', testTypes);
-                console.log('❌ Test types WITHOUT definitions:', allTestTypes.filter(t => !TEST_FIELD_DEFINITIONS[t]));
+                console.log("📋 All test types from order:", allTestTypes);
+                console.log("✅ Test types with definitions:", testTypes);
+                console.log(
+                  "❌ Test types WITHOUT definitions:",
+                  allTestTypes.filter((t) => !TEST_FIELD_DEFINITIONS[t]),
+                );
 
                 if (testTypes.length === 0) {
                   return (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                       <p className="text-sm text-yellow-800">
-                        <strong>No parameter fields available for these tests:</strong>
+                        <strong>
+                          No parameter fields available for these tests:
+                        </strong>
                       </p>
                       <ul className="list-disc list-inside mt-2 text-sm text-yellow-700">
                         {allTestTypes.map((test, idx) => (
@@ -6518,22 +7438,26 @@ Report generated from EMRSoft System`;
                         ))}
                       </ul>
                       <p className="text-xs text-yellow-600 mt-2">
-                        Please contact support if these test types should have parameter fields.
+                        Please contact support if these test types should have
+                        parameter fields.
                       </p>
                     </div>
                   );
                 }
 
                 // Validation function for field values
-                const validateField = (fieldKey: string, value: string): string => {
+                const validateField = (
+                  fieldKey: string,
+                  value: string,
+                ): string => {
                   if (!value || value.trim() === "") return "";
-                  
+
                   // Check if value is numeric (allows decimals and negative values)
                   const numericPattern = /^-?\d*\.?\d+$/;
                   if (!numericPattern.test(value.trim())) {
                     return "Must be a numeric value";
                   }
-                  
+
                   return "";
                 };
 
@@ -6573,10 +7497,15 @@ Report generated from EMRSoft System`;
                           {TEST_FIELD_DEFINITIONS[testType].map((field) => {
                             const fieldKey = `${testType}::${field.name}`;
                             const hasError = validationErrors[fieldKey];
-                            
+
                             return (
-                              <div key={`${testType}-${field.name}`} className="space-y-1">
-                                <Label htmlFor={`fill-${testType}-${field.name}`}>
+                              <div
+                                key={`${testType}-${field.name}`}
+                                className="space-y-1"
+                              >
+                                <Label
+                                  htmlFor={`fill-${testType}-${field.name}`}
+                                >
                                   {field.name}
                                   <span className="text-xs text-gray-500 ml-2">
                                     (Ref: {field.referenceRange} {field.unit})
@@ -6587,8 +7516,14 @@ Report generated from EMRSoft System`;
                                   type="text"
                                   placeholder={`Enter ${field.name}`}
                                   value={fillResultFormData[fieldKey] || ""}
-                                  onChange={(e) => handleFieldChange(fieldKey, e.target.value)}
-                                  className={hasError ? "border-red-500 focus:ring-red-500" : ""}
+                                  onChange={(e) =>
+                                    handleFieldChange(fieldKey, e.target.value)
+                                  }
+                                  className={
+                                    hasError
+                                      ? "border-red-500 focus:ring-red-500"
+                                      : ""
+                                  }
                                   data-testid={`input-fill-${testType}-${field.name}`}
                                 />
                                 {hasError && (
@@ -6659,7 +7594,9 @@ Report generated from EMRSoft System`;
               {/* Sample Collection Status - Only show if sample not collected */}
               {selectedLabOrder.sampleCollected === false && (
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Sample Collection Status</Label>
+                  <Label className="text-sm font-medium">
+                    Sample Collection Status
+                  </Label>
                   <div className="flex gap-6">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -6709,7 +7646,9 @@ Report generated from EMRSoft System`;
 
               {/* Clinical Notes */}
               <div className="space-y-2">
-                <Label htmlFor="fill-clinical-notes">Clinical Notes (Optional)</Label>
+                <Label htmlFor="fill-clinical-notes">
+                  Clinical Notes (Optional)
+                </Label>
                 <textarea
                   id="fill-clinical-notes"
                   className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -6744,7 +7683,8 @@ Report generated from EMRSoft System`;
                     if (Object.keys(validationErrors).length > 0) {
                       toast({
                         title: "Validation Error",
-                        description: "Please fix all validation errors before downloading",
+                        description:
+                          "Please fix all validation errors before downloading",
                         variant: "destructive",
                       });
                       return;
@@ -6752,10 +7692,10 @@ Report generated from EMRSoft System`;
 
                     // Build results grouped by test type
                     const testTypes = selectedLabOrder.testType
-                      .split(' | ')
+                      .split(" | ")
                       .map((t: string) => t.trim())
                       .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
-                    
+
                     // Group results by test type
                     const resultsByTestType: Record<string, any[]> = {};
                     testTypes.forEach((testType: string) => {
@@ -6784,7 +7724,8 @@ Report generated from EMRSoft System`;
                     if (Object.keys(resultsByTestType).length === 0) {
                       toast({
                         title: "Validation Error",
-                        description: "Please enter at least one test result value to download",
+                        description:
+                          "Please enter at least one test result value to download",
                         variant: "destructive",
                       });
                       return;
@@ -6794,15 +7735,25 @@ Report generated from EMRSoft System`;
                     let clinicHeader = null;
                     let clinicFooter = null;
                     try {
-                      const headerResponse = await fetch("/api/clinic-headers", {
-                        headers: { Authorization: `Bearer ${localStorage.getItem("auth_token")}` }
-                      });
+                      const headerResponse = await fetch(
+                        "/api/clinic-headers",
+                        {
+                          headers: {
+                            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                          },
+                        },
+                      );
                       if (headerResponse.ok) {
                         clinicHeader = await headerResponse.json();
                       }
-                      const footerResponse = await fetch("/api/clinic-footers", {
-                        headers: { Authorization: `Bearer ${localStorage.getItem("auth_token")}` }
-                      });
+                      const footerResponse = await fetch(
+                        "/api/clinic-footers",
+                        {
+                          headers: {
+                            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                          },
+                        },
+                      );
                       if (footerResponse.ok) {
                         clinicFooter = await footerResponse.json();
                       }
@@ -6818,69 +7769,109 @@ Report generated from EMRSoft System`;
                     // Add logo if available - logo always beside header
                     const headerStartY = yPos;
                     let textStartX = 105; // Default center position
-                    let textAlign: 'left' | 'center' | 'right' = 'center';
-                    
+                    let textAlign: "left" | "center" | "right" = "center";
+
                     if (clinicHeader?.logoBase64) {
                       try {
                         // Logo always beside header for all positions
-                        if (clinicHeader.logoPosition === 'left') {
+                        if (clinicHeader.logoPosition === "left") {
                           // Logo on left, text starts after logo
-                          pdf.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 30);
+                          pdf.addImage(
+                            clinicHeader.logoBase64,
+                            "PNG",
+                            20,
+                            yPos,
+                            30,
+                            30,
+                          );
                           textStartX = 55;
-                          textAlign = 'left';
-                        } else if (clinicHeader.logoPosition === 'center') {
+                          textAlign = "left";
+                        } else if (clinicHeader.logoPosition === "center") {
                           // Logo on left, text beside it (left-aligned)
-                          pdf.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 30);
+                          pdf.addImage(
+                            clinicHeader.logoBase64,
+                            "PNG",
+                            20,
+                            yPos,
+                            30,
+                            30,
+                          );
                           textStartX = 55;
-                          textAlign = 'left';
-                        } else if (clinicHeader.logoPosition === 'right') {
+                          textAlign = "left";
+                        } else if (clinicHeader.logoPosition === "right") {
                           // Logo on right, text ends before logo
-                          pdf.addImage(clinicHeader.logoBase64, 'PNG', 160, yPos, 30, 30);
+                          pdf.addImage(
+                            clinicHeader.logoBase64,
+                            "PNG",
+                            160,
+                            yPos,
+                            30,
+                            30,
+                          );
                           textStartX = 155;
-                          textAlign = 'right';
+                          textAlign = "right";
                         }
                       } catch (error) {
-                        console.error('Error adding logo:', error);
+                        console.error("Error adding logo:", error);
                       }
                     } else if (clinicHeader?.logoPosition) {
                       // No logo but position is set - align text accordingly
-                      if (clinicHeader.logoPosition === 'left') {
+                      if (clinicHeader.logoPosition === "left") {
                         textStartX = 20;
-                        textAlign = 'left';
-                      } else if (clinicHeader.logoPosition === 'right') {
+                        textAlign = "left";
+                      } else if (clinicHeader.logoPosition === "right") {
                         textStartX = pageWidth - 20;
-                        textAlign = 'right';
+                        textAlign = "right";
                       }
                     }
 
                     // Clinic Name Header
                     if (clinicHeader?.clinicName) {
-                      pdf.setFontSize(parseInt(clinicHeader.clinicNameFontSize || '24'));
-                      pdf.setFont(clinicHeader.fontFamily || 'helvetica', clinicHeader.fontWeight || 'bold');
-                      pdf.text(clinicHeader.clinicName, textStartX, yPos, { align: textAlign });
+                      pdf.setFontSize(
+                        parseInt(clinicHeader.clinicNameFontSize || "24"),
+                      );
+                      pdf.setFont(
+                        clinicHeader.fontFamily || "helvetica",
+                        clinicHeader.fontWeight || "bold",
+                      );
+                      pdf.text(clinicHeader.clinicName, textStartX, yPos, {
+                        align: textAlign,
+                      });
                       yPos += 10;
                     }
 
                     // Clinic Details
                     if (clinicHeader) {
-                      pdf.setFontSize(parseInt(clinicHeader.fontSize || '12'));
-                      pdf.setFont(clinicHeader.fontFamily || 'helvetica', 'normal');
+                      pdf.setFontSize(parseInt(clinicHeader.fontSize || "12"));
+                      pdf.setFont(
+                        clinicHeader.fontFamily || "helvetica",
+                        "normal",
+                      );
                       if (clinicHeader.address) {
-                        pdf.text(clinicHeader.address, textStartX, yPos, { align: textAlign });
+                        pdf.text(clinicHeader.address, textStartX, yPos, {
+                          align: textAlign,
+                        });
                         yPos += 6;
                       }
                       if (clinicHeader.phone) {
-                        pdf.text(clinicHeader.phone, textStartX, yPos, { align: textAlign });
+                        pdf.text(clinicHeader.phone, textStartX, yPos, {
+                          align: textAlign,
+                        });
                         yPos += 6;
                       }
                       if (clinicHeader.email) {
-                        pdf.text(clinicHeader.email, textStartX, yPos, { align: textAlign });
+                        pdf.text(clinicHeader.email, textStartX, yPos, {
+                          align: textAlign,
+                        });
                         yPos += 6;
                       }
                     }
-                    
+
                     // Ensure proper spacing after header section if logo was beside it
-                    if (clinicHeader?.logoBase64 && clinicHeader.logoPosition === 'center') {
+                    if (
+                      clinicHeader?.logoBase64 &&
+                      clinicHeader.logoPosition === "center"
+                    ) {
                       const headerEndY = yPos;
                       const logoEndY = headerStartY + 30;
                       if (logoEndY > headerEndY) {
@@ -6891,145 +7882,250 @@ Report generated from EMRSoft System`;
                     yPos += 10;
 
                     // Lab Order Information Section
-                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFont("helvetica", "bold");
                     pdf.setFontSize(14);
-                    pdf.text('Lab Order Information', 20, yPos);
+                    pdf.text("Lab Order Information", 20, yPos);
                     yPos += 10;
 
                     // Two-column layout
-                    pdf.setFont('helvetica', 'normal');
+                    pdf.setFont("helvetica", "normal");
                     pdf.setFontSize(10);
-                    
+
                     const leftX = 20;
                     const rightX = 120;
                     let leftY = yPos;
                     let rightY = yPos;
 
                     // Left column
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Patient Name:', leftX, leftY);
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.text(getPatientName(selectedLabOrder.patientId), leftX + 35, leftY);
-                    leftY += 7;
-
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Test ID:', leftX, leftY);
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.text(selectedLabOrder.testId || 'N/A', leftX + 35, leftY);
-                    leftY += 7;
-
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Ordered Date:', leftX, leftY);
-                    pdf.setFont('helvetica', 'normal');
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Patient Name:", leftX, leftY);
+                    pdf.setFont("helvetica", "normal");
                     pdf.text(
-                      selectedLabOrder.orderedDate ? new Date(selectedLabOrder.orderedDate).toLocaleDateString() : 'N/A',
+                      getPatientName(selectedLabOrder.patientId),
                       leftX + 35,
-                      leftY
+                      leftY,
+                    );
+                    leftY += 7;
+
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Test ID:", leftX, leftY);
+                    pdf.setFont("helvetica", "normal");
+                    pdf.text(
+                      selectedLabOrder.testId || "N/A",
+                      leftX + 35,
+                      leftY,
+                    );
+                    leftY += 7;
+
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Ordered Date:", leftX, leftY);
+                    pdf.setFont("helvetica", "normal");
+                    pdf.text(
+                      selectedLabOrder.orderedDate
+                        ? new Date(
+                            selectedLabOrder.orderedDate,
+                          ).toLocaleDateString()
+                        : "N/A",
+                      leftX + 35,
+                      leftY,
                     );
                     leftY += 7;
 
                     // Right column
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Ordered By:', rightX, rightY);
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.text(getUserName(selectedLabOrder.orderedBy), rightX + 30, rightY);
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Ordered By:", rightX, rightY);
+                    pdf.setFont("helvetica", "normal");
+                    pdf.text(
+                      getUserName(selectedLabOrder.orderedBy),
+                      rightX + 30,
+                      rightY,
+                    );
                     rightY += 7;
 
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Priority:', rightX, rightY);
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.text(selectedLabOrder.priority || 'routine', rightX + 30, rightY);
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Priority:", rightX, rightY);
+                    pdf.setFont("helvetica", "normal");
+                    pdf.text(
+                      selectedLabOrder.priority || "routine",
+                      rightX + 30,
+                      rightY,
+                    );
 
                     yPos = Math.max(leftY, rightY) + 10;
 
                     // Test Results Section - Separate section for each test type
-                    Object.entries(resultsByTestType).forEach(([testType, results], groupIndex) => {
-                      // Add extra spacing between test groups (but not before first group)
-                      if (groupIndex > 0) {
-                        yPos += 8;
-                      }
-                      
-                      if (yPos > 240) {
-                        pdf.addPage();
-                        yPos = 20;
-                      }
+                    Object.entries(resultsByTestType).forEach(
+                      ([testType, results], groupIndex) => {
+                        // Add extra spacing between test groups (but not before first group)
+                        if (groupIndex > 0) {
+                          yPos += 8;
+                        }
 
-                      // Test Type Header with background box
-                      pdf.setFillColor(66, 133, 244);
-                      pdf.rect(20, yPos - 2, 170, 10, 'F');
-                      
-                      pdf.setFont('helvetica', 'bold');
-                      pdf.setFontSize(12);
-                      pdf.setTextColor(255, 255, 255);
-                      pdf.text(testType, 22, yPos + 5);
-                      pdf.setTextColor(0, 0, 0);
-                      yPos += 12;
-
-                      // Table with proper borders
-                      const tableStartY = yPos;
-                      const rowHeight = 8;
-                      const colWidths = [60, 30, 30, 50];
-                      const tableX = 20;
-                      
-                      // Header background
-                      pdf.setFillColor(240, 240, 240);
-                      pdf.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
-                      
-                      // Header borders
-                      pdf.setDrawColor(200, 200, 200);
-                      pdf.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
-                      
-                      // Header text
-                      pdf.setFont('helvetica', 'bold');
-                      pdf.setFontSize(10);
-                      pdf.text('Parameter', tableX + 2, tableStartY + 5);
-                      pdf.text('Value', tableX + colWidths[0] + 2, tableStartY + 5);
-                      pdf.text('Unit', tableX + colWidths[0] + colWidths[1] + 2, tableStartY + 5);
-                      pdf.text('Reference Range', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableStartY + 5);
-                      
-                      yPos = tableStartY + rowHeight;
-
-                      // Table rows
-                      pdf.setFont('helvetica', 'normal');
-                      results.forEach((result: any, index: number) => {
-                        if (yPos > 270) {
+                        if (yPos > 240) {
                           pdf.addPage();
                           yPos = 20;
                         }
 
-                        // Alternate row background
-                        if (index % 2 === 0) {
-                          pdf.setFillColor(250, 250, 250);
-                          pdf.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
-                        }
-                        
-                        // Row borders
-                        pdf.setDrawColor(200, 200, 200);
-                        pdf.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
-                        
-                        // Vertical lines
-                        pdf.line(tableX + colWidths[0], yPos, tableX + colWidths[0], yPos + rowHeight);
-                        pdf.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
-                        pdf.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
-                        
-                        // Row data
-                        // Strip test type prefix - extract short parameter name after " - "
-                        let paramName = result.name || '';
-                        const dashIndex = paramName.indexOf(' - ');
-                        if (dashIndex !== -1) {
-                          paramName = paramName.substring(dashIndex + 3).trim();
-                        }
-                        
-                        pdf.text(paramName, tableX + 2, yPos + 5);
-                        pdf.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
-                        pdf.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
-                        pdf.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
-                        
-                        yPos += rowHeight;
-                      });
+                        // Test Type Header with background box
+                        pdf.setFillColor(66, 133, 244);
+                        pdf.rect(20, yPos - 2, 170, 10, "F");
 
-                      yPos += 5;
-                    });
+                        pdf.setFont("helvetica", "bold");
+                        pdf.setFontSize(12);
+                        pdf.setTextColor(255, 255, 255);
+                        pdf.text(testType, 22, yPos + 5);
+                        pdf.setTextColor(0, 0, 0);
+                        yPos += 12;
+
+                        // Table with proper borders
+                        const tableStartY = yPos;
+                        const rowHeight = 8;
+                        const colWidths = [60, 30, 30, 50];
+                        const tableX = 20;
+
+                        // Header background
+                        pdf.setFillColor(240, 240, 240);
+                        pdf.rect(
+                          tableX,
+                          tableStartY,
+                          colWidths[0] +
+                            colWidths[1] +
+                            colWidths[2] +
+                            colWidths[3],
+                          rowHeight,
+                          "F",
+                        );
+
+                        // Header borders
+                        pdf.setDrawColor(200, 200, 200);
+                        pdf.rect(
+                          tableX,
+                          tableStartY,
+                          colWidths[0] +
+                            colWidths[1] +
+                            colWidths[2] +
+                            colWidths[3],
+                          rowHeight,
+                        );
+
+                        // Header text
+                        pdf.setFont("helvetica", "bold");
+                        pdf.setFontSize(10);
+                        pdf.text("Parameter", tableX + 2, tableStartY + 5);
+                        pdf.text(
+                          "Value",
+                          tableX + colWidths[0] + 2,
+                          tableStartY + 5,
+                        );
+                        pdf.text(
+                          "Unit",
+                          tableX + colWidths[0] + colWidths[1] + 2,
+                          tableStartY + 5,
+                        );
+                        pdf.text(
+                          "Reference Range",
+                          tableX +
+                            colWidths[0] +
+                            colWidths[1] +
+                            colWidths[2] +
+                            2,
+                          tableStartY + 5,
+                        );
+
+                        yPos = tableStartY + rowHeight;
+
+                        // Table rows
+                        pdf.setFont("helvetica", "normal");
+                        results.forEach((result: any, index: number) => {
+                          if (yPos > 270) {
+                            pdf.addPage();
+                            yPos = 20;
+                          }
+
+                          // Alternate row background
+                          if (index % 2 === 0) {
+                            pdf.setFillColor(250, 250, 250);
+                            pdf.rect(
+                              tableX,
+                              yPos,
+                              colWidths[0] +
+                                colWidths[1] +
+                                colWidths[2] +
+                                colWidths[3],
+                              rowHeight,
+                              "F",
+                            );
+                          }
+
+                          // Row borders
+                          pdf.setDrawColor(200, 200, 200);
+                          pdf.rect(
+                            tableX,
+                            yPos,
+                            colWidths[0] +
+                              colWidths[1] +
+                              colWidths[2] +
+                              colWidths[3],
+                            rowHeight,
+                          );
+
+                          // Vertical lines
+                          pdf.line(
+                            tableX + colWidths[0],
+                            yPos,
+                            tableX + colWidths[0],
+                            yPos + rowHeight,
+                          );
+                          pdf.line(
+                            tableX + colWidths[0] + colWidths[1],
+                            yPos,
+                            tableX + colWidths[0] + colWidths[1],
+                            yPos + rowHeight,
+                          );
+                          pdf.line(
+                            tableX + colWidths[0] + colWidths[1] + colWidths[2],
+                            yPos,
+                            tableX + colWidths[0] + colWidths[1] + colWidths[2],
+                            yPos + rowHeight,
+                          );
+
+                          // Row data
+                          // Strip test type prefix - extract short parameter name after " - "
+                          let paramName = result.name || "";
+                          const dashIndex = paramName.indexOf(" - ");
+                          if (dashIndex !== -1) {
+                            paramName = paramName
+                              .substring(dashIndex + 3)
+                              .trim();
+                          }
+
+                          pdf.text(paramName, tableX + 2, yPos + 5);
+                          pdf.text(
+                            String(result.value || ""),
+                            tableX + colWidths[0] + 2,
+                            yPos + 5,
+                          );
+                          pdf.text(
+                            result.unit || "",
+                            tableX + colWidths[0] + colWidths[1] + 2,
+                            yPos + 5,
+                          );
+                          pdf.text(
+                            result.referenceRange || "",
+                            tableX +
+                              colWidths[0] +
+                              colWidths[1] +
+                              colWidths[2] +
+                              2,
+                            yPos + 5,
+                          );
+
+                          yPos += rowHeight;
+                        });
+
+                        yPos += 5;
+                      },
+                    );
 
                     // Clinical Notes Section
                     if (fillResultFormData.notes || selectedLabOrder.notes) {
@@ -7038,13 +8134,16 @@ Report generated from EMRSoft System`;
                         pdf.addPage();
                         yPos = 20;
                       }
-                      pdf.setFont('helvetica', 'bold');
+                      pdf.setFont("helvetica", "bold");
                       pdf.setFontSize(12);
-                      pdf.text('Notes:', 20, yPos);
+                      pdf.text("Notes:", 20, yPos);
                       yPos += 8;
-                      pdf.setFont('helvetica', 'normal');
+                      pdf.setFont("helvetica", "normal");
                       pdf.setFontSize(10);
-                      const notes = fillResultFormData.notes || selectedLabOrder.notes || "";
+                      const notes =
+                        fillResultFormData.notes ||
+                        selectedLabOrder.notes ||
+                        "";
                       const splitNotes = pdf.splitTextToSize(notes, 170);
                       pdf.text(splitNotes, 20, yPos);
                     }
@@ -7055,15 +8154,17 @@ Report generated from EMRSoft System`;
                       for (let i = 1; i <= pageCount; i++) {
                         pdf.setPage(i);
                         pdf.setFontSize(10);
-                        pdf.setFont('helvetica', 'normal');
-                        pdf.text(clinicFooter.footerText, 105, 285, { align: 'center' });
+                        pdf.setFont("helvetica", "normal");
+                        pdf.text(clinicFooter.footerText, 105, 285, {
+                          align: "center",
+                        });
                       }
                     }
 
                     // Preview PDF in new window
-                    const pdfBlob = pdf.output('blob');
+                    const pdfBlob = pdf.output("blob");
                     const pdfUrl = URL.createObjectURL(pdfBlob);
-                    const previewWindow = window.open(pdfUrl, '_blank');
+                    const previewWindow = window.open(pdfUrl, "_blank");
                     if (previewWindow) {
                       previewWindow.onload = () => {
                         URL.revokeObjectURL(pdfUrl);
@@ -7091,10 +8192,10 @@ Report generated from EMRSoft System`;
                     // Build results array from filled values - supports multiple tests
                     const results: any[] = [];
                     const testTypes = selectedLabOrder.testType
-                      .split(' | ')
+                      .split(" | ")
                       .map((t: string) => t.trim())
                       .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
-                    
+
                     // Process all test types
                     testTypes.forEach((testType: string) => {
                       const testFields = TEST_FIELD_DEFINITIONS[testType];
@@ -7119,12 +8220,14 @@ Report generated from EMRSoft System`;
                       // Set a general validation error for at least one field
                       const firstTestType = testTypes[0];
                       if (firstTestType) {
-                        const firstField = TEST_FIELD_DEFINITIONS[firstTestType]?.[0];
+                        const firstField =
+                          TEST_FIELD_DEFINITIONS[firstTestType]?.[0];
                         if (firstField) {
                           const fieldKey = `${firstTestType}::${firstField.name}`;
                           setValidationErrors({
                             ...validationErrors,
-                            [fieldKey]: "Please enter at least one test result value"
+                            [fieldKey]:
+                              "Please enter at least one test result value",
                           });
                         }
                       }
@@ -7132,13 +8235,24 @@ Report generated from EMRSoft System`;
                     }
 
                     // Update the existing lab order with results
-                    await apiRequest("PUT", `/api/lab-results/${selectedLabOrder.id}`, {
-                      status: "completed",
-                      results: results,
-                      notes: fillResultFormData.notes || selectedLabOrder.notes || "",
-                      criticalValues: fillResultFormData.criticalValues || false,
-                      sampleCollected: fillResultFormData.sampleCollected !== undefined ? fillResultFormData.sampleCollected : selectedLabOrder.sampleCollected,
-                    });
+                    await apiRequest(
+                      "PUT",
+                      `/api/lab-results/${selectedLabOrder.id}`,
+                      {
+                        status: "completed",
+                        results: results,
+                        notes:
+                          fillResultFormData.notes ||
+                          selectedLabOrder.notes ||
+                          "",
+                        criticalValues:
+                          fillResultFormData.criticalValues || false,
+                        sampleCollected:
+                          fillResultFormData.sampleCollected !== undefined
+                            ? fillResultFormData.sampleCollected
+                            : selectedLabOrder.sampleCollected,
+                      },
+                    );
 
                     // Generate PDF matching the image format
                     const pdf = new jsPDF();
@@ -7147,57 +8261,67 @@ Report generated from EMRSoft System`;
 
                     // Title - "Lab Test Result Report"
                     pdf.setFontSize(20);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Lab Test Result Report', pageWidth / 2, yPos, { align: 'center' });
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Lab Test Result Report", pageWidth / 2, yPos, {
+                      align: "center",
+                    });
                     yPos += 20;
 
                     // Lab Order Information Section
                     pdf.setFontSize(14);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Lab Order Information', 20, yPos);
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Lab Order Information", 20, yPos);
                     yPos += 10;
 
                     // Simple list format (no table)
                     pdf.setFontSize(11);
-                    pdf.setFont('helvetica', 'normal');
-                    
+                    pdf.setFont("helvetica", "normal");
+
                     // Patient Name
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Patient Name:', 20, yPos);
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.text(getPatientName(selectedLabOrder.patientId), 80, yPos);
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Patient Name:", 20, yPos);
+                    pdf.setFont("helvetica", "normal");
+                    pdf.text(
+                      getPatientName(selectedLabOrder.patientId),
+                      80,
+                      yPos,
+                    );
                     yPos += 7;
 
                     // Test ID
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Test ID:', 20, yPos);
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.text(selectedLabOrder.testId || 'N/A', 80, yPos);
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Test ID:", 20, yPos);
+                    pdf.setFont("helvetica", "normal");
+                    pdf.text(selectedLabOrder.testId || "N/A", 80, yPos);
                     yPos += 7;
 
                     // Ordered Date
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Ordered Date:', 20, yPos);
-                    pdf.setFont('helvetica', 'normal');
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Ordered Date:", 20, yPos);
+                    pdf.setFont("helvetica", "normal");
                     pdf.text(
-                      selectedLabOrder.orderedDate ? new Date(selectedLabOrder.orderedDate).toLocaleDateString() : 'N/A',
+                      selectedLabOrder.orderedDate
+                        ? new Date(
+                            selectedLabOrder.orderedDate,
+                          ).toLocaleDateString()
+                        : "N/A",
                       80,
-                      yPos
+                      yPos,
                     );
                     yPos += 7;
 
                     // Ordered By
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Ordered By:', 20, yPos);
-                    pdf.setFont('helvetica', 'normal');
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Ordered By:", 20, yPos);
+                    pdf.setFont("helvetica", "normal");
                     pdf.text(getUserName(selectedLabOrder.orderedBy), 80, yPos);
                     yPos += 7;
 
                     // Priority
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Priority:', 20, yPos);
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.text(selectedLabOrder.priority || 'routine', 80, yPos);
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Priority:", 20, yPos);
+                    pdf.setFont("helvetica", "normal");
+                    pdf.text(selectedLabOrder.priority || "routine", 80, yPos);
                     yPos += 15;
 
                     // Group results by test type
@@ -7225,108 +8349,174 @@ Report generated from EMRSoft System`;
                     });
 
                     // Test Results - Each test type gets its own section
-                    Object.entries(resultsByTestType).forEach(([testType, testResults]) => {
-                      if (yPos > 240) {
-                        pdf.addPage();
-                        yPos = 20;
-                      }
-
-                      // Test Type Header (Blue)
-                      pdf.setFontSize(14);
-                      pdf.setFont('helvetica', 'bold');
-                      pdf.setTextColor(66, 133, 244);
-                      pdf.text(testType, 20, yPos);
-                      pdf.setTextColor(0, 0, 0);
-                      yPos += 10;
-
-                      // Table Header
-                      const tableStartY = yPos;
-                      const rowHeight = 8;
-                      const colWidths = [60, 30, 30, 50]; // Parameter, Value, Unit, Reference Range
-                      const tableX = 20;
-                      const tableWidth = colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3];
-                      
-                      // Header background (light gray)
-                      pdf.setFillColor(240, 240, 240);
-                      pdf.rect(tableX, tableStartY, tableWidth, rowHeight, 'F');
-                      
-                      // Header border
-                      pdf.setDrawColor(200, 200, 200);
-                      pdf.rect(tableX, tableStartY, tableWidth, rowHeight);
-                      
-                      // Header text
-                      pdf.setFont('helvetica', 'bold');
-                      pdf.setFontSize(10);
-                      pdf.text('Parameter', tableX + 2, tableStartY + 5);
-                      pdf.text('Value', tableX + colWidths[0] + 2, tableStartY + 5);
-                      pdf.text('Unit', tableX + colWidths[0] + colWidths[1] + 2, tableStartY + 5);
-                      pdf.text('Reference Range', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableStartY + 5);
-                      
-                      yPos = tableStartY + rowHeight;
-
-                      // Sort parameters by name
-                      const sortedResults = [...testResults].sort((a: any, b: any) => {
-                        const nameA = (a.name || '').toLowerCase();
-                        const nameB = (b.name || '').toLowerCase();
-                        return nameA.localeCompare(nameB);
-                      });
-
-                      // Table rows
-                      pdf.setFont('helvetica', 'normal');
-                      sortedResults.forEach((result: any, index: number) => {
-                        if (yPos > 270) {
+                    Object.entries(resultsByTestType).forEach(
+                      ([testType, testResults]) => {
+                        if (yPos > 240) {
                           pdf.addPage();
                           yPos = 20;
                         }
 
-                        // Alternate row background
-                        if (index % 2 === 0) {
-                          pdf.setFillColor(250, 250, 250);
-                          pdf.rect(tableX, yPos, tableWidth, rowHeight, 'F');
-                        }
-                        
-                        // Row border
-                        pdf.setDrawColor(200, 200, 200);
-                        pdf.rect(tableX, yPos, tableWidth, rowHeight);
-                        
-                        // Vertical lines
-                        pdf.line(tableX + colWidths[0], yPos, tableX + colWidths[0], yPos + rowHeight);
-                        pdf.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
-                        pdf.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
-                        
-                        // Row data
-                        // Strip test type prefix - extract short parameter name after " - "
-                        let paramName = result.name || '';
-                        const dashIndex = paramName.indexOf(' - ');
-                        if (dashIndex !== -1) {
-                          paramName = paramName.substring(dashIndex + 3).trim();
-                        }
-                        
-                        pdf.text(paramName, tableX + 2, yPos + 5);
-                        pdf.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
-                        pdf.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
-                        pdf.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
-                        
-                        yPos += rowHeight;
-                      });
+                        // Test Type Header (Blue)
+                        pdf.setFontSize(14);
+                        pdf.setFont("helvetica", "bold");
+                        pdf.setTextColor(66, 133, 244);
+                        pdf.text(testType, 20, yPos);
+                        pdf.setTextColor(0, 0, 0);
+                        yPos += 10;
 
-                      yPos += 10;
-                    });
+                        // Table Header
+                        const tableStartY = yPos;
+                        const rowHeight = 8;
+                        const colWidths = [60, 30, 30, 50]; // Parameter, Value, Unit, Reference Range
+                        const tableX = 20;
+                        const tableWidth =
+                          colWidths[0] +
+                          colWidths[1] +
+                          colWidths[2] +
+                          colWidths[3];
+
+                        // Header background (light gray)
+                        pdf.setFillColor(240, 240, 240);
+                        pdf.rect(
+                          tableX,
+                          tableStartY,
+                          tableWidth,
+                          rowHeight,
+                          "F",
+                        );
+
+                        // Header border
+                        pdf.setDrawColor(200, 200, 200);
+                        pdf.rect(tableX, tableStartY, tableWidth, rowHeight);
+
+                        // Header text
+                        pdf.setFont("helvetica", "bold");
+                        pdf.setFontSize(10);
+                        pdf.text("Parameter", tableX + 2, tableStartY + 5);
+                        pdf.text(
+                          "Value",
+                          tableX + colWidths[0] + 2,
+                          tableStartY + 5,
+                        );
+                        pdf.text(
+                          "Unit",
+                          tableX + colWidths[0] + colWidths[1] + 2,
+                          tableStartY + 5,
+                        );
+                        pdf.text(
+                          "Reference Range",
+                          tableX +
+                            colWidths[0] +
+                            colWidths[1] +
+                            colWidths[2] +
+                            2,
+                          tableStartY + 5,
+                        );
+
+                        yPos = tableStartY + rowHeight;
+
+                        // Sort parameters by name
+                        const sortedResults = [...testResults].sort(
+                          (a: any, b: any) => {
+                            const nameA = (a.name || "").toLowerCase();
+                            const nameB = (b.name || "").toLowerCase();
+                            return nameA.localeCompare(nameB);
+                          },
+                        );
+
+                        // Table rows
+                        pdf.setFont("helvetica", "normal");
+                        sortedResults.forEach((result: any, index: number) => {
+                          if (yPos > 270) {
+                            pdf.addPage();
+                            yPos = 20;
+                          }
+
+                          // Alternate row background
+                          if (index % 2 === 0) {
+                            pdf.setFillColor(250, 250, 250);
+                            pdf.rect(tableX, yPos, tableWidth, rowHeight, "F");
+                          }
+
+                          // Row border
+                          pdf.setDrawColor(200, 200, 200);
+                          pdf.rect(tableX, yPos, tableWidth, rowHeight);
+
+                          // Vertical lines
+                          pdf.line(
+                            tableX + colWidths[0],
+                            yPos,
+                            tableX + colWidths[0],
+                            yPos + rowHeight,
+                          );
+                          pdf.line(
+                            tableX + colWidths[0] + colWidths[1],
+                            yPos,
+                            tableX + colWidths[0] + colWidths[1],
+                            yPos + rowHeight,
+                          );
+                          pdf.line(
+                            tableX + colWidths[0] + colWidths[1] + colWidths[2],
+                            yPos,
+                            tableX + colWidths[0] + colWidths[1] + colWidths[2],
+                            yPos + rowHeight,
+                          );
+
+                          // Row data
+                          // Strip test type prefix - extract short parameter name after " - "
+                          let paramName = result.name || "";
+                          const dashIndex = paramName.indexOf(" - ");
+                          if (dashIndex !== -1) {
+                            paramName = paramName
+                              .substring(dashIndex + 3)
+                              .trim();
+                          }
+
+                          pdf.text(paramName, tableX + 2, yPos + 5);
+                          pdf.text(
+                            String(result.value || ""),
+                            tableX + colWidths[0] + 2,
+                            yPos + 5,
+                          );
+                          pdf.text(
+                            result.unit || "",
+                            tableX + colWidths[0] + colWidths[1] + 2,
+                            yPos + 5,
+                          );
+                          pdf.text(
+                            result.referenceRange || "",
+                            tableX +
+                              colWidths[0] +
+                              colWidths[1] +
+                              colWidths[2] +
+                              2,
+                            yPos + 5,
+                          );
+
+                          yPos += rowHeight;
+                        });
+
+                        yPos += 10;
+                      },
+                    );
 
                     // Clinical Notes Section
                     if (yPos > 250) {
                       pdf.addPage();
                       yPos = 20;
                     }
-                    
+
                     pdf.setFontSize(14);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Clinical Notes', 20, yPos);
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text("Clinical Notes", 20, yPos);
                     yPos += 10;
 
                     pdf.setFontSize(11);
-                    pdf.setFont('helvetica', 'normal');
-                    const notes = fillResultFormData.notes || selectedLabOrder.notes || "none";
+                    pdf.setFont("helvetica", "normal");
+                    const notes =
+                      fillResultFormData.notes ||
+                      selectedLabOrder.notes ||
+                      "none";
                     const splitNotes = pdf.splitTextToSize(notes, 170);
                     pdf.text(splitNotes, 20, yPos);
 
@@ -7336,13 +8526,18 @@ Report generated from EMRSoft System`;
 
                     // Also save PDF to server
                     try {
-                      await apiRequest("POST", `/api/lab-results/${selectedLabOrder.id}/generate-pdf`);
+                      await apiRequest(
+                        "POST",
+                        `/api/lab-results/${selectedLabOrder.id}/generate-pdf`,
+                      );
                     } catch (error) {
                       console.error("Error saving PDF to server:", error);
                     }
 
                     // Invalidate cache
-                    queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+                    queryClient.invalidateQueries({
+                      queryKey: ["/api/lab-results"],
+                    });
 
                     // Show success modal
                     setShowFillResultDialog(false);
@@ -7364,7 +8559,10 @@ Report generated from EMRSoft System`;
 
       {/* PDF Viewer Dialog */}
       <Dialog open={showPdfViewerDialog} onOpenChange={setShowPdfViewerDialog}>
-        <DialogContent className="max-w-6xl h-[90vh] p-0" aria-describedby="pdf-viewer-description">
+        <DialogContent
+          className="max-w-6xl h-[90vh] p-0"
+          aria-describedby="pdf-viewer-description"
+        >
           <DialogHeader className="p-6 pb-2">
             <DialogTitle>Lab Test Result</DialogTitle>
             <DialogDescription id="pdf-viewer-description" className="sr-only">
@@ -7377,7 +8575,7 @@ Report generated from EMRSoft System`;
                 src={pdfViewerUrl}
                 className="w-full h-full border-0 rounded"
                 title="Lab Test Result PDF"
-                style={{ minHeight: '75vh' }}
+                style={{ minHeight: "75vh" }}
               />
             )}
           </div>
@@ -7385,7 +8583,10 @@ Report generated from EMRSoft System`;
       </Dialog>
 
       {/* Permission Error Dialog */}
-      <Dialog open={showPermissionErrorDialog} onOpenChange={setShowPermissionErrorDialog}>
+      <Dialog
+        open={showPermissionErrorDialog}
+        onOpenChange={setShowPermissionErrorDialog}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-red-600 flex items-center gap-2">
@@ -7394,7 +8595,9 @@ Report generated from EMRSoft System`;
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p className="text-gray-700 dark:text-gray-300">{permissionErrorMessage}</p>
+            <p className="text-gray-700 dark:text-gray-300">
+              {permissionErrorMessage}
+            </p>
           </div>
           <div className="flex justify-end">
             <Button
@@ -7467,8 +8670,7 @@ Report generated from EMRSoft System`;
                         {getPatientName(selectedResult.patientId)}
                       </p>
                       <p>
-                        <strong>Patient ID:</strong>{" "}
-                        {selectedResult.patientId}
+                        <strong>Patient ID:</strong> {selectedResult.patientId}
                       </p>
                       <p>
                         <strong>Date Ordered:</strong>{" "}
@@ -7485,15 +8687,15 @@ Report generated from EMRSoft System`;
                       </p>
                       <p>
                         <strong>Created By:</strong>{" "}
-                        {user ? `${formatRoleLabel(user.role)} - ${user.firstName} ${user.lastName}` : 'N/A'}
+                        {user
+                          ? `${formatRoleLabel(user.role)} - ${user.firstName} ${user.lastName}`
+                          : "N/A"}
                       </p>
                       <p>
-                        <strong>Test Type:</strong>{" "}
-                        {selectedResult.testType}
+                        <strong>Test Type:</strong> {selectedResult.testType}
                       </p>
                       <p>
-                        <strong>Status:</strong>{" "}
-                        {selectedResult.status}
+                        <strong>Status:</strong> {selectedResult.status}
                       </p>
                     </div>
                   </div>
@@ -7502,7 +8704,8 @@ Report generated from EMRSoft System`;
                       Test to be signed:
                     </p>
                     <div className="text-xs text-gray-600 mb-1">
-                      • Test ID: {selectedResult.testId} - {selectedResult.testType}
+                      • Test ID: {selectedResult.testId} -{" "}
+                      {selectedResult.testType}
                     </div>
                   </div>
                 </div>
@@ -7866,8 +9069,8 @@ Report generated from EMRSoft System`;
                           complete medical history
                         </li>
                         <li>
-                          The lab result information is accurate, complete,
-                          and clinically appropriate
+                          The lab result information is accurate, complete, and
+                          clinically appropriate
                         </li>
                         <li>
                           You understand this electronic signature carries the
@@ -7898,7 +9101,8 @@ Report generated from EMRSoft System`;
                     <div className="grid grid-cols-2 gap-4 text-xs">
                       <div>
                         <p>
-                          <strong>Certificate Authority:</strong> EMRSoft Health CA
+                          <strong>Certificate Authority:</strong> EMRSoft Health
+                          CA
                         </p>
                         <p>
                           <strong>Certificate Type:</strong> Medical
@@ -7907,9 +9111,7 @@ Report generated from EMRSoft System`;
                         <p>
                           <strong>Valid Until:</strong>{" "}
                           {format(
-                            new Date(
-                              Date.now() + 365 * 24 * 60 * 60 * 1000,
-                            ),
+                            new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
                             "MMM dd, yyyy",
                           )}
                         </p>
@@ -7971,23 +9173,27 @@ Report generated from EMRSoft System`;
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
           </button>
-          
+
           <div className="flex flex-col items-center justify-center py-6">
             {/* Large Green Checkmark Circle */}
             <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-              <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" strokeWidth={2} />
+              <CheckCircle
+                className="h-12 w-12 text-green-600 dark:text-green-400"
+                strokeWidth={2}
+              />
             </div>
-            
+
             {/* Title */}
             <h2 className="mb-2 text-2xl font-bold text-green-600 dark:text-green-400">
               Invoice Created Successfully!
             </h2>
-            
+
             {/* Subtitle Message */}
             <p className="mb-6 text-center text-gray-600 dark:text-gray-400">
-              Invoice created successfully and insurance claim submitted automatically.
+              Invoice created successfully and insurance claim submitted
+              automatically.
             </p>
-            
+
             {/* Done Button */}
             <Button
               onClick={() => setShowSuccessModal(false)}
