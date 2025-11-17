@@ -734,9 +734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to pence
         currency: "gbp",
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        payment_method_types: ['card'],
       });
 
       res.json({ clientSecret: paymentIntent.client_secret });
