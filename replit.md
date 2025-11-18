@@ -68,6 +68,22 @@ Subdomain routing provides clear **multi-tenant isolation** by giving each organ
 - **Status**: PRODUCTION READY - Console logs confirm detection of 32+ positions working correctly
 - **Implementation Date**: September 17, 2025
 
+## Global Multi-Currency Support System (November 2025)
+**MULTI-CURRENCY INFRASTRUCTURE - IMPLEMENTED**
+- **Currency Support**: 30+ currencies including GBP, USD, EUR, JPY, CNY, INR, AUD, CAD, SAR, AED, PKR, etc.
+- **Currency Metadata**: Complete currency map with symbols, locales, and decimal rules
+- **Storage**: Currency stored in organization.settings.billing.currency field
+- **Frontend**: CurrencyProvider context provides useCurrency hook for global currency access
+- **Formatting**: formatCurrency() utility uses Intl.NumberFormat for locale-aware formatting
+- **Currency Selector**: Component in header allows admin users to change organization currency
+- **Persistence**: Currency changes persist to backend via PATCH /api/organization/settings
+- **Error Handling**: Optimistic updates with automatic rollback on failure
+- **Zero-Decimal Support**: Proper handling of currencies like JPY, KRW, VND (no decimal places)
+- **Subscription Page**: Fully integrated with dynamic currency formatting in UI and PDF generation
+- **Billing Page**: Hook added, ready for systematic currency symbol replacement
+- **Status**: CORE INFRASTRUCTURE COMPLETE - Subscription page production-ready
+- **Implementation Date**: November 18, 2025
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 

@@ -67,7 +67,12 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
         description: "Currency has been changed successfully.",
       });
     },
-    onError: (error) => {
+    onError: (error, _variables, context: any) => {
+      // Rollback to previous currency on error
+      if (context?.previousCurrency) {
+        setCurrencyState(context.previousCurrency);
+        localStorage.setItem("user_currency", context.previousCurrency);
+      }
       console.error("Failed to update currency:", error);
       toast({
         title: "Error",
@@ -78,12 +83,20 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
   });
 
   const setCurrency = async (newCurrency: CurrencyCode) => {
+    const previousCurrency = currency;
+    
     // Update local state immediately for responsive UI
     setCurrencyState(newCurrency);
     localStorage.setItem("user_currency", newCurrency);
 
-    // Update backend
-    await updateCurrencyMutation.mutateAsync(newCurrency);
+    // Update backend with rollback on error
+    try {
+      await updateCurrencyMutation.mutateAsync(newCurrency, {
+        context: { previousCurrency },
+      } as any);
+    } catch (error) {
+      // Rollback already handled in onError
+    }
   };
 
   const value: CurrencyContextValue = {

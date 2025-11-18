@@ -738,7 +738,7 @@ export default function Subscription() {
                           </td>
                           <td className="px-4 py-3">
                             <span className="text-sm font-semibold">
-                              {payment.currency} {parseFloat(payment.amount).toFixed(2)}
+                              {formatCurrency(parseFloat(payment.amount), currency)}
                             </span>
                           </td>
                           <td className="px-4 py-3">
@@ -981,7 +981,7 @@ export default function Subscription() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Amount Due</span>
                   <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {selectedBillingPayment.currency} {parseFloat(selectedBillingPayment.amount).toFixed(2)}
+                    {formatCurrency(parseFloat(selectedBillingPayment.amount), currency)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -1114,7 +1114,7 @@ export default function Subscription() {
                     className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold"
                     data-testid="button-process-payment"
                   >
-                    {isProcessingPayment ? 'Processing...' : `Pay ${selectedBillingPayment.currency} ${parseFloat(selectedBillingPayment.amount).toFixed(2)}`}
+                    {isProcessingPayment ? 'Processing...' : `Pay ${formatCurrency(parseFloat(selectedBillingPayment.amount), currency)}`}
                   </Button>
 
                   <p className="text-xs text-center text-gray-500 dark:text-gray-400">
