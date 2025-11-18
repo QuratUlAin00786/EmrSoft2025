@@ -311,7 +311,7 @@ export function Sidebar() {
         <div className="p-6 border-b border-neutral-100 dark:border-border">
           <div className="flex flex-col items-center text-center">
             <img
-              src={organizationData?.settings?.theme?.logoUrl || tenant?.settings?.theme?.logoUrl || (theme === "dark" ? "/Emrsoft-night.png" : "/emr-logo.png")}
+              src={organizationData?.settings?.theme?.logoUrl || tenant?.settings?.theme?.logoUrl || (theme === "dark" ? "/emrsoft-night.png" : "/emr-logo.png")}
               alt={organizationData?.name || tenant?.name || "EMR Soft"}
               className="h-30 w-auto mb-2"
             />

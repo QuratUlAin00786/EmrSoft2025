@@ -953,17 +953,7 @@ function PricingManagementDashboard() {
               data-testid="input-filter-test-name"
             />
           </div>
-          <div className="flex-1">
-            <Label htmlFor="filter-doctor-name">Filter by Doctor Name</Label>
-            <Input
-              id="filter-doctor-name"
-              placeholder="Search doctor name..."
-              value={labDoctorFilter}
-              onChange={(e) => setLabDoctorFilter(e.target.value)}
-              data-testid="input-filter-doctor-name"
-            />
-          </div>
-          {(labTestFilter || labDoctorFilter) && (
+          {labTestFilter && (
             <div className="flex items-end">
               <Button 
                 variant="outline" 
