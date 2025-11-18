@@ -314,7 +314,7 @@ export default function Subscription() {
     
     yPosition += 7;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Payment for Cura EMR Services', marginLeft, yPosition);
+    pdf.text('Payment for EMRSoft Services', marginLeft, yPosition);
     pdf.text('1', pageWidth - 110, yPosition, { align: 'right' });
     const subtotal = parseFloat(payment.amount);
     pdf.text(`£${subtotal.toFixed(2)}`, pageWidth - 70, yPosition, { align: 'right' });

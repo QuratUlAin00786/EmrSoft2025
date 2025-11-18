@@ -85,7 +85,7 @@ class EmailService {
         apiKey: this.sendGridConnectionSettings.settings.api_key,
         fromEmail:
           this.sendGridConnectionSettings.settings.from_email ||
-          "noreply@curaemr.ai",
+          "noreply@emrsoft.ai",
       };
     } catch (error) {
       console.error("[EMAIL] Error getting SendGrid credentials:", error);
@@ -95,17 +95,17 @@ class EmailService {
 
   private async initializeProductionEmailService() {
     try {
-      console.log("[EMAIL] Initializing Gmail SMTP for all environments...");
+      console.log("[EMAIL] Initializing EMRSoft SMTP for all environments...");
 
-      // Force use Gmail SMTP for both development and production
-      console.log("[EMAIL] Using Gmail SMTP for email delivery...");
+      // Force use EMRSoft SMTP for both development and production
+      console.log("[EMAIL] Using EMRSoft SMTP for email delivery...");
       // Production-ready email configuration that works in hosting environments
       const smtpConfig = {
-        host: "smtp.gmail.com",
+        host: "smtp.emrsoft.ai",
         port: 465,
         secure: true,
         auth: {
-          user: "noreply@curaemr.ai",
+          user: "noreply@emrsoft.ai",
           pass: "wxndhigmfhgjjklr",
         },
         debug: false,
@@ -119,11 +119,11 @@ class EmailService {
       };
 
       this.transporter = nodemailer.createTransport(smtpConfig);
-      // Gmail SMTP configured
+      // EMRSoft SMTP configured
       this.initialized = true;
 
       // Skip verification in production to avoid blocking initialization
-      console.log("[EMAIL] ✅ Gmail SMTP configured for production");
+      console.log("[EMAIL] ✅ EMRSoft SMTP configured for production");
     } catch (error) {
       console.error("[EMAIL] Failed to initialize email service:", error);
       this.initialized = true;
@@ -187,8 +187,8 @@ class EmailService {
         return true;
       }
 
-      // Fallback to Gmail SMTP
-      console.log("[EMAIL] SendGrid unavailable, trying Gmail SMTP...");
+      // Fallback to EMRSoft SMTP
+      console.log("[EMAIL] SendGrid unavailable, trying EMRSoft SMTP...");
       const result = await this.sendWithSMTP(options);
       if (result) {
         return true;
@@ -214,8 +214,8 @@ class EmailService {
       // Use only the attachments provided in options, don't add logos automatically
       const attachments = [...(options.attachments || [])];
 
-      // Use authenticated Gmail address to match SMTP credentials (production-safe)
-      let fromAddress = options.from || "noreply@curaemr.ai";
+      // Use authenticated EMRSoft address to match SMTP credentials (production-safe)
+      let fromAddress = options.from || "noreply@emrsoft.ai";
 
       const mailOptions = {
         from: fromAddress,

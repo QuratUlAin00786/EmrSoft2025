@@ -7741,7 +7741,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       // Send email to pharmacy
       const emailSent = await sendEmail({
         to: pharmacyData.email || 'pharmacy@halohealth.com',
-        from: process.env.SENDGRID_FROM_EMAIL || 'noreply@curaemr.ai',
+        from: process.env.SENDGRID_FROM_EMAIL || 'noreply@emrsoft.ai',
         subject: `Prescription for ${patientName}`,
         html: emailHTML,
         text: `Please find attached the electronic prescription for ${patientName}.`
