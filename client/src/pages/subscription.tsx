@@ -55,6 +55,9 @@ export default function Subscription() {
   const [showCurrentPlanDialog, setShowCurrentPlanDialog] = useState(false);
   const [currentPlanData, setCurrentPlanData] = useState<any>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'ryft' | 'paypal' | 'stripe'>('ryft');
+  const [showBillingPaymentDialog, setShowBillingPaymentDialog] = useState(false);
+  const [selectedBillingPayment, setSelectedBillingPayment] = useState<any>(null);
+  const [paymentCardType, setPaymentCardType] = useState<'debit' | 'credit' | null>(null);
   
   const { data: subscription, isLoading, error } = useQuery<Subscription>({
     queryKey: ["/api/subscription"],
@@ -440,13 +443,30 @@ export default function Subscription() {
                             {new Date(payment.periodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(payment.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </td>
                           <td className="px-4 py-3">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                            >
-                              <Download className="h-4 w-4 mr-1" />
-                              Invoice
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                Invoice
+                              </Button>
+                              {payment.paymentStatus === 'pending' && (
+                                <Button 
+                                  variant="default" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedBillingPayment(payment);
+                                    setShowBillingPaymentDialog(true);
+                                    setPaymentCardType(null);
+                                  }}
+                                  data-testid="button-pay-now"
+                                >
+                                  <CreditCard className="h-4 w-4 mr-1" />
+                                  Pay Now
+                                </Button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -611,6 +631,163 @@ export default function Subscription() {
           plan={selectedPlan}
         />
       )}
+
+      {/* Billing Payment Dialog */}
+      <Dialog open={showBillingPaymentDialog} onOpenChange={setShowBillingPaymentDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <CreditCard className="h-5 w-5" />
+              Pay Invoice
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedBillingPayment && (
+            <div className="space-y-6">
+              {/* Invoice Details */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Invoice Number</span>
+                  <span className="font-medium">{selectedBillingPayment.invoiceNumber}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Amount Due</span>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {selectedBillingPayment.currency} {parseFloat(selectedBillingPayment.amount).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Period</span>
+                  <span className="text-sm">
+                    {new Date(selectedBillingPayment.periodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(selectedBillingPayment.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+
+              {!paymentCardType ? (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Select Payment Method</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 hover:border-primary"
+                      onClick={() => setPaymentCardType('debit')}
+                      data-testid="button-select-debit"
+                    >
+                      <CreditCard className="h-8 w-8 text-primary" />
+                      <span className="font-medium">Debit Card</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 hover:border-primary"
+                      onClick={() => setPaymentCardType('credit')}
+                      data-testid="button-select-credit"
+                    >
+                      <CreditCard className="h-8 w-8 text-primary" />
+                      <span className="font-medium">Credit Card</span>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {paymentCardType === 'debit' ? 'Debit Card' : 'Credit Card'} Payment
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPaymentCardType(null)}
+                      data-testid="button-back-to-selection"
+                    >
+                      Change
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400 py-2">
+                    <Shield className="h-4 w-4" />
+                    <span>Secured by Stripe</span>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 space-y-3">
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-100">Secure Payment with Stripe</h4>
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      PCI-certified payment platform with advanced security features and real-time fraud detection.
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-blue-700 dark:text-blue-300">
+                      <div className="flex items-center gap-1">
+                        <Shield className="h-3 w-3" />
+                        <span>PCI DSS compliant</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Check className="h-3 w-3" />
+                        <span>3D Secure</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Card Number</label>
+                      <input
+                        type="text"
+                        placeholder="1234 5678 9012 3456"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+                        maxLength={19}
+                        data-testid="input-card-number"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expiry Date</label>
+                        <input
+                          type="text"
+                          placeholder="MM/YY"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+                          maxLength={5}
+                          data-testid="input-expiry"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CVV</label>
+                        <input
+                          type="text"
+                          placeholder="123"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+                          maxLength={4}
+                          data-testid="input-cvv"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cardholder Name</label>
+                      <input
+                        type="text"
+                        placeholder="John Doe"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+                        data-testid="input-cardholder-name"
+                      />
+                    </div>
+                  </div>
+
+                  <Button 
+                    className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold"
+                    data-testid="button-process-payment"
+                  >
+                    Pay {selectedBillingPayment.currency} {parseFloat(selectedBillingPayment.amount).toFixed(2)}
+                  </Button>
+
+                  <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                    Your payment information is encrypted and secure. We never store your card details.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
