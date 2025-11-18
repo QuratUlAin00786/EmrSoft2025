@@ -41,6 +41,8 @@ import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useRolePermissions } from "@/hooks/use-role-permissions";
 import { useTheme } from "@/hooks/use-theme";
+import { useCurrency } from "@/context/currency-context";
+import { getCurrencyIcon } from "@/utils/currency";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -174,6 +176,7 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const { canAccess, getUserRole, isLoading } = useRolePermissions();
   const { theme } = useTheme();
+  const { currency } = useCurrency();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -333,6 +336,9 @@ export function Sidebar() {
               const isActive =
                 location === prefixedHref || location === item.href;
               
+              // Use dynamic currency icon for Billing menu item
+              const Icon = item.name === "Billing" ? getCurrencyIcon(currency) : item.icon;
+              
               return (
                 <Link
                   key={item.name}
@@ -340,7 +346,7 @@ export function Sidebar() {
                   className={cn("sidebar-nav-item", isActive && "active")}
                   onClick={isMobile ? closeMobileMenu : undefined}
                 >
-                  <item.icon className="h-5 w-5" />
+                  <Icon className="h-5 w-5" />
                   <span>{item.name}</span>
                 </Link>
               );
