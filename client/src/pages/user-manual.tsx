@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 // Import screenshots
-import roleScreenshot from "@assets/image_1762015428276.png";
+import roleScreenshot from "@assets/image_1762015503569.png";
 import shiftsScreenshot from "@assets/image_1762015503569.png";
 import billingScreenshot from "@assets/image_1762015541888.png";
 import documentScreenshot1 from "@assets/image_1763461618075.png";
