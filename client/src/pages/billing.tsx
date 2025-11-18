@@ -160,9 +160,52 @@ const IMAGING_TYPE_OPTIONS = [
   "Interventional Radiology (IR)"
 ];
 
+// Helper function to get the appropriate currency icon
+function getCurrencyIcon(currencyCode: string) {
+  const iconClass = "h-5 w-5";
+  const largeIconClass = "h-8 w-8 text-green-600";
+  
+  // Map currency codes to icons
+  const currencyIcons: { [key: string]: any } = {
+    'GBP': PoundSterling,
+    'USD': DollarSign,
+    'EUR': DollarSign, // Use DollarSign for Euro as placeholder
+    'JPY': DollarSign,
+    'CNY': DollarSign,
+    'INR': DollarSign,
+    'AUD': DollarSign,
+    'CAD': DollarSign,
+    'CHF': DollarSign,
+    'HKD': DollarSign,
+    'SGD': DollarSign,
+    'SEK': DollarSign,
+    'NZD': DollarSign,
+    'KRW': DollarSign,
+    'MXN': DollarSign,
+    'BRL': DollarSign,
+    'ZAR': DollarSign,
+    'TRY': DollarSign,
+    'RUB': DollarSign,
+    'AED': DollarSign,
+    'SAR': DollarSign,
+    'PLN': DollarSign,
+    'THB': DollarSign,
+    'IDR': DollarSign,
+    'MYR': DollarSign,
+    'PHP': DollarSign,
+    'PKR': DollarSign,
+    'BDT': DollarSign,
+    'VND': DollarSign,
+    'NGN': DollarSign,
+  };
+  
+  return currencyIcons[currencyCode] || DollarSign;
+}
+
 function PricingManagementDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currency, symbol } = useCurrency();
   const [pricingTab, setPricingTab] = useState("doctors");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -616,7 +659,7 @@ function PricingManagementDashboard() {
               doctorRole: formData.doctorRole,
               basePrice: parseFloat(service.basePrice) || 0,
               isActive: true,
-              currency: "GBP",
+              currency: currency,
               version: 1
             };
           } else if (pricingTab === "lab-tests") {
@@ -626,7 +669,7 @@ function PricingManagementDashboard() {
               category: service.category,
               basePrice: parseFloat(service.basePrice) || 0,
               isActive: true,
-              currency: "GBP",
+              currency: currency,
               version: 1
             };
           } else if (pricingTab === "imaging") {
@@ -636,7 +679,7 @@ function PricingManagementDashboard() {
               modality: service.category,
               basePrice: parseFloat(service.basePrice) || 0,
               isActive: true,
-              currency: "GBP",
+              currency: currency,
               version: 1
             };
           }
@@ -679,7 +722,7 @@ function PricingManagementDashboard() {
             doctorName: formData.doctorName,
             doctorRole: formData.doctorRole,
             basePrice: parseFloat(formData.basePrice) || 0,
-            currency: formData.currency || "GBP",
+            currency: formData.currency || currency,
             isActive: formData.isActive !== undefined ? formData.isActive : true
           };
         } else if (pricingTab === "lab-tests") {
@@ -688,7 +731,7 @@ function PricingManagementDashboard() {
             testCode: formData.testCode,
             category: formData.category,
             basePrice: parseFloat(formData.basePrice) || 0,
-            currency: formData.currency || "USD",
+            currency: formData.currency || currency,
             isActive: formData.isActive !== undefined ? formData.isActive : true
           };
         } else if (pricingTab === "imaging") {
@@ -698,7 +741,7 @@ function PricingManagementDashboard() {
             modality: formData.modality,
             bodyPart: formData.bodyPart,
             basePrice: parseFloat(formData.basePrice) || 0,
-            currency: formData.currency || "USD",
+            currency: formData.currency || currency,
             isActive: formData.isActive !== undefined ? formData.isActive : true
           };
         } else {
@@ -749,7 +792,7 @@ function PricingManagementDashboard() {
   const openAddDialog = () => {
     setFormData({
       isActive: true,
-      currency: "GBP",
+      currency: currency,
       version: 1
     });
     
@@ -1245,7 +1288,7 @@ function PricingManagementDashboard() {
                           <th className="text-left p-2 text-sm font-medium">Service Name *</th>
                           <th className="text-left p-2 text-sm font-medium">Service Code</th>
                           <th className="text-left p-2 text-sm font-medium">Category</th>
-                          <th className="text-left p-2 text-sm font-medium">Base Price (£) *</th>
+                          <th className="text-left p-2 text-sm font-medium">Base Price ({symbol}) *</th>
                           <th className="w-10"></th>
                         </tr>
                       </thead>
@@ -1526,9 +1569,9 @@ function PricingManagementDashboard() {
                     <Label htmlFor="currency">Currency</Label>
                     <Input
                       id="currency"
-                      value={formData.currency || "GBP"}
+                      value={formData.currency || currency}
                       onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                      placeholder="GBP"
+                      placeholder={currency}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -1559,7 +1602,7 @@ function PricingManagementDashboard() {
                             <th className="text-left p-2 text-sm font-medium">Test Type</th>
                             <th className="text-left p-2 text-sm font-medium">Code</th>
                             <th className="text-left p-2 text-sm font-medium">Category</th>
-                            <th className="text-left p-2 text-sm font-medium">Price (£)</th>
+                            <th className="text-left p-2 text-sm font-medium">Price ({symbol})</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1587,7 +1630,7 @@ function PricingManagementDashboard() {
                           <th className="text-left p-2 text-sm font-medium">Test Type *</th>
                           <th className="text-left p-2 text-sm font-medium">Code</th>
                           <th className="text-left p-2 text-sm font-medium">Category</th>
-                          <th className="text-left p-2 text-sm font-medium">Price (£) *</th>
+                          <th className="text-left p-2 text-sm font-medium">Price ({symbol}) *</th>
                           <th className="w-10"></th>
                         </tr>
                       </thead>
@@ -1764,9 +1807,9 @@ function PricingManagementDashboard() {
                     <Label htmlFor="currency">Currency</Label>
                     <Input
                       id="currency"
-                      value={formData.currency || "USD"}
+                      value={formData.currency || currency}
                       onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                      placeholder="USD"
+                      placeholder={currency}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -1796,7 +1839,7 @@ function PricingManagementDashboard() {
                           <tr>
                             <th className="text-left p-2 text-sm font-medium">Imaging Type</th>
                             <th className="text-left p-2 text-sm font-medium">Code</th>
-                            <th className="text-left p-2 text-sm font-medium">Price (£)</th>
+                            <th className="text-left p-2 text-sm font-medium">Price ({symbol})</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1822,7 +1865,7 @@ function PricingManagementDashboard() {
                         <tr>
                           <th className="text-left p-2 text-sm font-medium">Imaging Type *</th>
                           <th className="text-left p-2 text-sm font-medium">Code</th>
-                          <th className="text-left p-2 text-sm font-medium">Price (£) *</th>
+                          <th className="text-left p-2 text-sm font-medium">Price ({symbol}) *</th>
                           <th className="w-10"></th>
                         </tr>
                       </thead>
@@ -2006,9 +2049,9 @@ function PricingManagementDashboard() {
                     <Label htmlFor="currency">Currency</Label>
                     <Input
                       id="currency"
-                      value={formData.currency || "USD"}
+                      value={formData.currency || currency}
                       onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                      placeholder="USD"
+                      placeholder={currency}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -2092,7 +2135,7 @@ function PricingManagementDashboard() {
 
 export default function BillingPage() {
   const { user } = useAuth();
-  const { currency } = useCurrency();
+  const { currency, symbol } = useCurrency();
   const isDoctor = isDoctorLike(user?.role);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -2222,7 +2265,7 @@ export default function BillingPage() {
           invoiceId: selectedInvoice.id,
           patientId: selectedInvoice.patientId,
           amount: typeof selectedInvoice.totalAmount === 'string' ? parseFloat(selectedInvoice.totalAmount) : selectedInvoice.totalAmount,
-          currency: 'GBP',
+          currency: currency,
           paymentMethod: 'manual',
           paymentProvider: 'manual',
           paymentStatus: 'completed',
@@ -2499,8 +2542,8 @@ export default function BillingPage() {
         doc.setFontSize(9);
         yPosition -= 2;
         doc.text(item.quantity.toString(), pageWidth - margin - 80, yPosition, { align: 'right' });
-        doc.text(`£${toNum(item.unitPrice || item.amount / (item.quantity || 1)).toFixed(2)}`, pageWidth - margin - 50, yPosition, { align: 'right' });
-        doc.text(`£${toNum(item.total || item.amount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+        doc.text(`${symbol}${toNum(item.unitPrice || item.amount / (item.quantity || 1)).toFixed(2)}`, pageWidth - margin - 50, yPosition, { align: 'right' });
+        doc.text(`${symbol}${toNum(item.total || item.amount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
         
         yPosition += 8;
         rowCount++;
@@ -2512,11 +2555,11 @@ export default function BillingPage() {
       const totalsX = pageWidth - margin - 60;
       doc.setFont('helvetica', 'normal');
       doc.text('Subtotal:', totalsX, yPosition);
-      doc.text(`£${toNum(invoice.totalAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+      doc.text(`${symbol}${toNum(invoice.totalAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
       
       yPosition += 6;
       doc.text('VAT (0%):', totalsX, yPosition);
-      doc.text('£0.00', pageWidth - margin - 2, yPosition, { align: 'right' });
+      doc.text(`${symbol}0.00`, pageWidth - margin - 2, yPosition, { align: 'right' });
       
       yPosition += 6;
       doc.setDrawColor(79, 70, 229);
@@ -2527,14 +2570,14 @@ export default function BillingPage() {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.text('Total Amount:', totalsX, yPosition);
-      doc.text(`£${toNum(invoice.totalAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+      doc.text(`${symbol}${toNum(invoice.totalAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
 
       if (toNum(invoice.paidAmount) > 0) {
         yPosition += 8;
         doc.setFontSize(9);
         doc.setTextColor(5, 150, 105);
         doc.text('Amount Paid:', totalsX, yPosition);
-        doc.text(`-£${toNum(invoice.paidAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+        doc.text(`-${symbol}${toNum(invoice.paidAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
         
         yPosition += 8;
         const balanceDue = toNum(invoice.totalAmount) - toNum(invoice.paidAmount);
@@ -2542,7 +2585,7 @@ export default function BillingPage() {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(11);
         doc.text('Balance Due:', totalsX, yPosition);
-        doc.text(`£${balanceDue.toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+        doc.text(`${symbol}${balanceDue.toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
       }
 
       addFooter(1);
@@ -2743,8 +2786,8 @@ export default function BillingPage() {
       doc.setFontSize(9);
       yPosition -= 2;
       doc.text(item.quantity.toString(), pageWidth - margin - 80, yPosition, { align: 'right' });
-      doc.text(`£${toNum(item.unitPrice || item.amount / (item.quantity || 1)).toFixed(2)}`, pageWidth - margin - 50, yPosition, { align: 'right' });
-      doc.text(`£${toNum(item.total || item.amount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+      doc.text(`${symbol}${toNum(item.unitPrice || item.amount / (item.quantity || 1)).toFixed(2)}`, pageWidth - margin - 50, yPosition, { align: 'right' });
+      doc.text(`${symbol}${toNum(item.total || item.amount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
       
       yPosition += 8;
       rowCount++;
@@ -2756,11 +2799,11 @@ export default function BillingPage() {
     const totalsX = pageWidth - margin - 60;
     doc.setFont('helvetica', 'normal');
     doc.text('Subtotal:', totalsX, yPosition);
-    doc.text(`£${toNum(invoice.totalAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+    doc.text(`${symbol}${toNum(invoice.totalAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
     
     yPosition += 6;
     doc.text('VAT (0%):', totalsX, yPosition);
-    doc.text('£0.00', pageWidth - margin - 2, yPosition, { align: 'right' });
+    doc.text(`${symbol}0.00`, pageWidth - margin - 2, yPosition, { align: 'right' });
     
     yPosition += 6;
     doc.setDrawColor(79, 70, 229);
@@ -2771,14 +2814,14 @@ export default function BillingPage() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.text('Total Amount:', totalsX, yPosition);
-    doc.text(`£${toNum(invoice.totalAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+    doc.text(`${symbol}${toNum(invoice.totalAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
 
     if (toNum(invoice.paidAmount) > 0) {
       yPosition += 8;
       doc.setFontSize(9);
       doc.setTextColor(5, 150, 105);
       doc.text('Amount Paid:', totalsX, yPosition);
-      doc.text(`-£${toNum(invoice.paidAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+      doc.text(`-${symbol}${toNum(invoice.paidAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
       
       yPosition += 8;
       const balanceDue = toNum(invoice.totalAmount) - toNum(invoice.paidAmount);
@@ -2786,7 +2829,7 @@ export default function BillingPage() {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.text('Balance Due:', totalsX, yPosition);
-      doc.text(`£${balanceDue.toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+      doc.text(`${symbol}${balanceDue.toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
     }
 
       // Add footer to first (and possibly only) page
@@ -2904,7 +2947,7 @@ export default function BillingPage() {
       setRecipientName(invoice.patientName);
       setRecipientAddress(`${Math.floor(Math.random() * 999) + 1} High Street\nLondon\nSW1A 1AA`);
       const totalAmt = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
-      setCustomMessage(`Dear ${invoice.patientName},\n\nPlease find your invoice for services rendered on ${format(new Date(invoice.dateOfService), 'MMM d, yyyy')}.\n\nTotal Amount: £${totalAmt.toFixed(2)}\nDue Date: ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}\n\nThank you for choosing our healthcare services.`);
+      setCustomMessage(`Dear ${invoice.patientName},\n\nPlease find your invoice for services rendered on ${format(new Date(invoice.dateOfService), 'MMM d, yyyy')}.\n\nTotal Amount: ${symbol}${totalAmt.toFixed(2)}\nDue Date: ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}\n\nThank you for choosing our healthcare services.`);
       setSendInvoiceDialog(true);
     }
   };
@@ -3202,10 +3245,10 @@ export default function BillingPage() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrencyLocal = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
-      currency: 'GBP'
+      currency: currency
     }).format(amount);
   };
 
@@ -3675,7 +3718,7 @@ export default function BillingPage() {
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(74, 125, 255);
-    pdf.text(`£${totalRevenue.toFixed(2)}`, 14 + boxWidth/2, boxY + 15, { align: 'center' });
+    pdf.text(`${symbol}${totalRevenue.toFixed(2)}`, 14 + boxWidth/2, boxY + 15, { align: 'center' });
     
     // Box 2: Procedures
     pdf.setFillColor(243, 244, 246);
@@ -3697,7 +3740,7 @@ export default function BillingPage() {
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(108, 255, 235);
-    pdf.text(`£${totalInsurance.toFixed(2)}`, 14 + boxWidth*2.5 + 6, boxY + 15, { align: 'center' });
+    pdf.text(`${symbol}${totalInsurance.toFixed(2)}`, 14 + boxWidth*2.5 + 6, boxY + 15, { align: 'center' });
     
     // Box 4: Collection Rate
     pdf.setFillColor(243, 244, 246);
@@ -3798,9 +3841,9 @@ export default function BillingPage() {
     const tableData = data.map(row => [
       row.serviceName,
       String(row.procedures),
-      `£${row.revenue.toFixed(2)}`,
-      `£${row.insurance.toFixed(2)}`,
-      `£${row.selfPay.toFixed(2)}`,
+      `${symbol}${row.revenue.toFixed(2)}`,
+      `${symbol}${row.insurance.toFixed(2)}`,
+      `${symbol}${row.selfPay.toFixed(2)}`,
       `${row.collectionRate}%`
     ]);
     
@@ -3901,7 +3944,10 @@ export default function BillingPage() {
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Revenue</p>
                         <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(getTotalRevenue())}</p>
                       </div>
-                      <PoundSterling className="h-8 w-8 text-green-600" />
+                      {(() => {
+                        const CurrencyIcon = getCurrencyIcon(currency);
+                        return <CurrencyIcon className="h-8 w-8 text-green-600" />;
+                      })()}
                     </div>
                   </CardContent>
                 </Card>
@@ -5056,7 +5102,7 @@ export default function BillingPage() {
                                       {payment.paymentMethod === 'cash' ? 'Cash' : payment.paymentMethod === 'debit_card' ? 'Debit Card' : payment.paymentMethod.replace('_', ' ')}
                                     </td>
                                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
-                                      £{(typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount).toFixed(2)}
+                                      {symbol}{(typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount).toFixed(2)}
                                     </td>
                                     <td className="px-4 py-3 text-sm">
                                       <span className={`inline-flex items-center gap-1 ${
@@ -5184,7 +5230,7 @@ export default function BillingPage() {
                                         {format(new Date(invoice.dueDate), 'MMM d, yyyy')}
                                       </td>
                                       <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
-                                        £{totalAmount.toFixed(2)}
+                                        {symbol}{totalAmount.toFixed(2)}
                                       </td>
                                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 capitalize">
                                         {invoice.paymentMethod || 'N/A'}
@@ -5259,7 +5305,7 @@ export default function BillingPage() {
                                 <div className="flex items-center justify-between">
                                   <div>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">Total Billed</p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">£{totalBilled.toFixed(2)}</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{symbol}{totalBilled.toFixed(2)}</p>
                                   </div>
                                   <Calendar className="h-8 w-8 text-blue-500" />
                                 </div>
@@ -5270,7 +5316,7 @@ export default function BillingPage() {
                                 <div className="flex items-center justify-between">
                                   <div>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">Total Paid</p>
-                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">£{totalPaid.toFixed(2)}</p>
+                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{symbol}{totalPaid.toFixed(2)}</p>
                                   </div>
                                   <CheckCircle className="h-8 w-8 text-green-500" />
                                 </div>
@@ -5281,7 +5327,7 @@ export default function BillingPage() {
                                 <div className="flex items-center justify-between">
                                   <div>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">Total Pending</p>
-                                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">£{totalPending.toFixed(2)}</p>
+                                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{symbol}{totalPending.toFixed(2)}</p>
                                   </div>
                                   <Clock className="h-8 w-8 text-orange-500" />
                                 </div>
@@ -5326,13 +5372,13 @@ export default function BillingPage() {
                                         {invoice.insurance?.claimNumber || '—'}
                                       </td>
                                       <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
-                                        £{totalAmount.toFixed(2)}
+                                        {symbol}{totalAmount.toFixed(2)}
                                       </td>
                                       <td className="px-4 py-3 text-sm text-green-600 dark:text-green-400 text-right font-medium">
-                                        £{paidAmount.toFixed(2)}
+                                        {symbol}{paidAmount.toFixed(2)}
                                       </td>
                                       <td className="px-4 py-3 text-sm text-orange-600 dark:text-orange-400 text-right font-medium">
-                                        £{balance.toFixed(2)}
+                                        {symbol}{balance.toFixed(2)}
                                       </td>
                                       <td className="px-4 py-3 text-sm">
                                         {invoice.insurance?.status === 'approved' ? (
@@ -5780,7 +5826,10 @@ export default function BillingPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <PoundSterling className="h-5 w-5" />
+                        {(() => {
+                          const CurrencyIcon = getCurrencyIcon(currency);
+                          return <CurrencyIcon className="h-5 w-5" />;
+                        })()}
                         Pricing Management
                       </CardTitle>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -5855,7 +5904,7 @@ export default function BillingPage() {
                     <Clock className="h-8 w-8 text-orange-600" />
                   </div>
                   <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-                    30+ days: £1,250
+                    30+ days: {symbol}1,250
                   </div>
                 </CardContent>
               </Card>
@@ -6382,9 +6431,9 @@ export default function BillingPage() {
                         </Badge>
                       )}
                     </div>
-                    <div><strong>Total Amount:</strong> £{parseFloat(selectedInvoice.totalAmount.toString()).toFixed(2)}</div>
-                    <div><strong>Paid Amount:</strong> £{parseFloat(selectedInvoice.paidAmount.toString()).toFixed(2)}</div>
-                    <div><strong>Outstanding:</strong> £{(parseFloat(selectedInvoice.totalAmount.toString()) - parseFloat(selectedInvoice.paidAmount.toString())).toFixed(2)}</div>
+                    <div><strong>Total Amount:</strong> {symbol}{parseFloat(selectedInvoice.totalAmount.toString()).toFixed(2)}</div>
+                    <div><strong>Paid Amount:</strong> {symbol}{parseFloat(selectedInvoice.paidAmount.toString()).toFixed(2)}</div>
+                    <div><strong>Outstanding:</strong> {symbol}{(parseFloat(selectedInvoice.totalAmount.toString()) - parseFloat(selectedInvoice.paidAmount.toString())).toFixed(2)}</div>
                   </div>
                 </div>
               </div>
@@ -6407,8 +6456,8 @@ export default function BillingPage() {
                         <tr key={index} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                           <td className="p-3 font-mono text-gray-900 dark:text-gray-100">{item.code}</td>
                           <td className="p-3 text-gray-900 dark:text-gray-100">{item.description}</td>
-                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">£{Number(item.unitPrice || item.total || item.amount || 0).toFixed(2)}</td>
-                          <td className="p-3 text-right font-semibold text-gray-900 dark:text-gray-100">£{Number(item.total || item.amount || 0).toFixed(2)}</td>
+                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">{symbol}{Number(item.unitPrice || item.total || item.amount || 0).toFixed(2)}</td>
+                          <td className="p-3 text-right font-semibold text-gray-900 dark:text-gray-100">{symbol}{Number(item.total || item.amount || 0).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -6434,7 +6483,7 @@ export default function BillingPage() {
                             {selectedInvoice.insurance.status}
                           </Badge>
                         </div>
-                        <div><strong>Insurance Paid:</strong> £{(typeof selectedInvoice.insurance.paidAmount === 'string' ? parseFloat(selectedInvoice.insurance.paidAmount) : selectedInvoice.insurance.paidAmount).toFixed(2)}</div>
+                        <div><strong>Insurance Paid:</strong> {symbol}{(typeof selectedInvoice.insurance.paidAmount === 'string' ? parseFloat(selectedInvoice.insurance.paidAmount) : selectedInvoice.insurance.paidAmount).toFixed(2)}</div>
                       </div>
                     </div>
                   </div>
@@ -6447,7 +6496,7 @@ export default function BillingPage() {
                 <div className="text-sm text-gray-600 dark:text-gray-300">
                   {(typeof selectedInvoice.paidAmount === 'string' ? parseFloat(selectedInvoice.paidAmount) : selectedInvoice.paidAmount) > 0 ? (
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-gray-900 dark:text-gray-100">
-                      Payment of £{(typeof selectedInvoice.paidAmount === 'string' ? parseFloat(selectedInvoice.paidAmount) : selectedInvoice.paidAmount).toFixed(2)} received on {format(new Date(selectedInvoice.invoiceDate), 'MMM d, yyyy')}
+                      Payment of {symbol}{(typeof selectedInvoice.paidAmount === 'string' ? parseFloat(selectedInvoice.paidAmount) : selectedInvoice.paidAmount).toFixed(2)} received on {format(new Date(selectedInvoice.invoiceDate), 'MMM d, yyyy')}
                     </div>
                   ) : (
                     <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-900 dark:text-gray-100">
@@ -6508,7 +6557,7 @@ export default function BillingPage() {
                 <div className="text-sm">
                   <div><strong>Invoice:</strong> {invoiceToSend.id}</div>
                   <div><strong>Patient:</strong> {invoiceToSend.patientName}</div>
-                  <div><strong>Amount:</strong> £{(typeof invoiceToSend.totalAmount === 'string' ? parseFloat(invoiceToSend.totalAmount) : invoiceToSend.totalAmount).toFixed(2)}</div>
+                  <div><strong>Amount:</strong> {symbol}{(typeof invoiceToSend.totalAmount === 'string' ? parseFloat(invoiceToSend.totalAmount) : invoiceToSend.totalAmount).toFixed(2)}</div>
                 </div>
               </div>
 
@@ -6803,7 +6852,7 @@ export default function BillingPage() {
                 <div className="text-sm space-y-1">
                   <p><strong>Invoice:</strong> {selectedClaimInvoice.invoiceNumber}</p>
                   <p><strong>Patient:</strong> {selectedClaimInvoice.patientName}</p>
-                  <p><strong>Amount:</strong> £{(typeof selectedClaimInvoice.totalAmount === 'string' ? parseFloat(selectedClaimInvoice.totalAmount) : selectedClaimInvoice.totalAmount).toFixed(2)}</p>
+                  <p><strong>Amount:</strong> {symbol}{(typeof selectedClaimInvoice.totalAmount === 'string' ? parseFloat(selectedClaimInvoice.totalAmount) : selectedClaimInvoice.totalAmount).toFixed(2)}</p>
                 </div>
               </div>
             )}
@@ -6835,9 +6884,9 @@ export default function BillingPage() {
                     <p><strong>Patient:</strong> {selectedClaimInvoice.patientName}</p>
                     <p><strong>Insurance:</strong> {selectedClaimInvoice.insurance?.provider}</p>
                     <p><strong>Claim #:</strong> {selectedClaimInvoice.insurance?.claimNumber}</p>
-                    <p><strong>Total Billed:</strong> £{(typeof selectedClaimInvoice.totalAmount === 'string' ? parseFloat(selectedClaimInvoice.totalAmount) : selectedClaimInvoice.totalAmount).toFixed(2)}</p>
-                    <p><strong>Previously Paid:</strong> £{(selectedClaimInvoice.insurance?.paidAmount || 0).toFixed(2)}</p>
-                    <p className="text-orange-600 dark:text-orange-400"><strong>Outstanding:</strong> £{((typeof selectedClaimInvoice.totalAmount === 'string' ? parseFloat(selectedClaimInvoice.totalAmount) : selectedClaimInvoice.totalAmount) - (selectedClaimInvoice.insurance?.paidAmount || 0)).toFixed(2)}</p>
+                    <p><strong>Total Billed:</strong> {symbol}{(typeof selectedClaimInvoice.totalAmount === 'string' ? parseFloat(selectedClaimInvoice.totalAmount) : selectedClaimInvoice.totalAmount).toFixed(2)}</p>
+                    <p><strong>Previously Paid:</strong> {symbol}{(selectedClaimInvoice.insurance?.paidAmount || 0).toFixed(2)}</p>
+                    <p className="text-orange-600 dark:text-orange-400"><strong>Outstanding:</strong> {symbol}{((typeof selectedClaimInvoice.totalAmount === 'string' ? parseFloat(selectedClaimInvoice.totalAmount) : selectedClaimInvoice.totalAmount) - (selectedClaimInvoice.insurance?.paidAmount || 0)).toFixed(2)}</p>
                   </div>
                 </div>
                 <div>
