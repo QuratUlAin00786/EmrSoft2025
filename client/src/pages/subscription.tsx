@@ -7,12 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck, TrendingUp, Download, CreditCard, CheckCircle2 } from "lucide-react";
+import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck, TrendingUp, Download, CreditCard, CheckCircle2, Eye } from "lucide-react";
 import { PaymentMethodDialog } from "@/components/payment-method-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Subscription } from "@/types";
 import type { SaaSPackage } from "@shared/schema";
+import jsPDF from "jspdf";
 
 // Plans are now fetched from database - see dbPackages query below
 
@@ -180,6 +181,106 @@ export default function Subscription() {
       });
     } finally {
       setIsProcessingPayment(false);
+    }
+  };
+
+  // Generate invoice PDF
+  const generateInvoicePDF = (payment: any, viewOnly: boolean = false) => {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const marginLeft = 15;
+    let yPosition = 20;
+
+    // Header
+    pdf.setFontSize(22);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('INVOICE', pageWidth / 2, yPosition, { align: 'center' });
+    
+    yPosition += 15;
+    
+    // Invoice details
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Invoice Number: ${payment.invoiceNumber}`, marginLeft, yPosition);
+    yPosition += 7;
+    pdf.text(`Date: ${payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Pending'}`, marginLeft, yPosition);
+    yPosition += 7;
+    pdf.text(`Status: ${payment.paymentStatus.toUpperCase()}`, marginLeft, yPosition);
+    
+    yPosition += 15;
+    
+    // Light grey background for billing period
+    pdf.setFillColor(240, 240, 240);
+    pdf.rect(marginLeft - 5, yPosition - 5, pageWidth - 2 * marginLeft + 10, 25, 'F');
+    
+    // Billing period
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Billing Period', marginLeft, yPosition);
+    yPosition += 7;
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`${new Date(payment.periodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${new Date(payment.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`, marginLeft, yPosition);
+    
+    yPosition += 20;
+    
+    // Amount details
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Amount Details', marginLeft, yPosition);
+    yPosition += 10;
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Description', marginLeft, yPosition);
+    pdf.text('Amount', pageWidth - marginLeft - 30, yPosition);
+    yPosition += 7;
+    
+    pdf.text('Subscription Fee', marginLeft, yPosition);
+    pdf.text(`${payment.currency} ${parseFloat(payment.amount).toFixed(2)}`, pageWidth - marginLeft - 30, yPosition);
+    
+    yPosition += 15;
+    
+    // Total
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Total:', marginLeft, yPosition);
+    pdf.text(`${payment.currency} ${parseFloat(payment.amount).toFixed(2)}`, pageWidth - marginLeft - 30, yPosition);
+    
+    yPosition += 15;
+    
+    // Payment method
+    if (payment.paymentMethod) {
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Payment Method: ${payment.paymentMethod.replace('_', ' ').toUpperCase()}`, marginLeft, yPosition);
+    }
+    
+    yPosition += 7;
+    
+    // Transaction ID
+    if (payment.providerTransactionId) {
+      pdf.text(`Transaction ID: ${payment.providerTransactionId}`, marginLeft, yPosition);
+    }
+    
+    // Footer
+    yPosition = pdf.internal.pageSize.getHeight() - 30;
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'italic');
+    pdf.text('Thank you for your business!', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 5;
+    pdf.text('Cura Software Limited', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 5;
+    pdf.text('Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG', pageWidth / 2, yPosition, { align: 'center' });
+
+    if (viewOnly) {
+      // Open PDF in new window for viewing
+      const pdfBlob = pdf.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, '_blank');
+    } else {
+      // Download PDF
+      pdf.save(`invoice-${payment.invoiceNumber}.pdf`);
     }
   };
 
@@ -526,6 +627,17 @@ export default function Subscription() {
                               <Button 
                                 variant="ghost" 
                                 size="sm"
+                                onClick={() => generateInvoicePDF(payment, true)}
+                                data-testid={`button-view-invoice-${payment.id}`}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => generateInvoicePDF(payment, false)}
+                                data-testid={`button-download-invoice-${payment.id}`}
                               >
                                 <Download className="h-4 w-4 mr-1" />
                                 Invoice
