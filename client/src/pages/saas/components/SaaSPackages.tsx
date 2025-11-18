@@ -16,6 +16,8 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { saasApiRequest } from '@/lib/saasQueryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrency } from '@/context/currency-context';
+import { getCurrencySymbol, formatCurrency } from '@/utils/currency';
 import { 
   Package, 
   Plus, 
@@ -35,6 +37,7 @@ export default function SaaSPackages() {
   const [successMessage, setSuccessMessage] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currency } = useCurrency();
 
   // Fetch packages
   const { data: packages, isLoading } = useQuery({
@@ -141,7 +144,7 @@ export default function SaaSPackages() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="price">Price (£)</Label>
+            <Label htmlFor="price">Price ({getCurrencySymbol(currency)})</Label>
             <Input
               id="price"
               type="number"
@@ -360,7 +363,7 @@ export default function SaaSPackages() {
                     </div>
                   </div>
                   <p className="text-2xl font-bold">
-                    £{pkg.price}
+                    {formatCurrency(parseFloat(pkg.price))}
                     <span className="text-sm font-normal text-gray-500">
                       /{pkg.billingCycle}
                     </span>
