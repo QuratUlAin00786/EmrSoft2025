@@ -80,6 +80,27 @@ export default function Subscription() {
     queryKey: ["/api/subscription"],
   });
 
+  // Fetch current user's organization data
+  const { data: organizationData } = useQuery<any>({
+    queryKey: ["/api/organization/current"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || 'demo';
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': subdomain
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch("/api/organization/current", {
+        credentials: "include",
+        headers
+      });
+      if (!res.ok) throw new Error('Failed to fetch organization');
+      return res.json();
+    }
+  });
+
   const { data: dbPackages = [], isLoading: packagesLoading } = useQuery<SaaSPackage[]>({
     queryKey: ["/api/website/packages"],
     queryFn: async () => {
@@ -184,94 +205,213 @@ export default function Subscription() {
     }
   };
 
-  // Generate invoice PDF
+  // Generate invoice PDF matching SaaS billing format
   const generateInvoicePDF = (payment: any, viewOnly: boolean = false) => {
     const pdf = new jsPDF();
     const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
     const marginLeft = 15;
+    const marginRight = 15;
     let yPosition = 20;
 
-    // Header
-    pdf.setFontSize(22);
+    // Company header with logo placeholder and name
+    pdf.setFontSize(18);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('INVOICE', pageWidth / 2, yPosition, { align: 'center' });
-    
-    yPosition += 15;
-    
-    // Invoice details
+    pdf.text('EMRSoft Software Limited', marginLeft, yPosition);
+    yPosition += 6;
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Invoice Number: ${payment.invoiceNumber}`, marginLeft, yPosition);
-    yPosition += 7;
-    pdf.text(`Date: ${payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Pending'}`, marginLeft, yPosition);
-    yPosition += 7;
-    pdf.text(`Status: ${payment.paymentStatus.toUpperCase()}`, marginLeft, yPosition);
-    
-    yPosition += 15;
-    
-    // Light grey background for billing period
-    pdf.setFillColor(240, 240, 240);
-    pdf.rect(marginLeft - 5, yPosition - 5, pageWidth - 2 * marginLeft + 10, 25, 'F');
-    
-    // Billing period
-    pdf.setFontSize(12);
+    pdf.text('Healthcare Management Solutions', marginLeft, yPosition);
+
+    // Invoice title (top right)
+    pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Billing Period', marginLeft, yPosition);
-    yPosition += 7;
-    pdf.setFontSize(10);
+    pdf.text('INVOICE', pageWidth - marginRight, 20, { align: 'right' });
+    
+    // Invoice details (top right)
+    yPosition = 28;
+    pdf.setFontSize(9);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`${new Date(payment.periodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${new Date(payment.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`, marginLeft, yPosition);
-    
-    yPosition += 20;
-    
-    // Amount details
-    pdf.setFontSize(12);
+    pdf.text(`Invoice #${payment.invoiceNumber}`, pageWidth - marginRight, yPosition, { align: 'right' });
+    yPosition += 5;
+    const invoiceDate = payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    pdf.text(`Date: ${invoiceDate}`, pageWidth - marginRight, yPosition, { align: 'right' });
+    yPosition += 5;
+    const dueDate = new Date(payment.periodEnd).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    pdf.text(`Due: ${dueDate}`, pageWidth - marginRight, yPosition, { align: 'right' });
+
+    yPosition = 45;
+
+    // From section
+    pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Amount Details', marginLeft, yPosition);
+    pdf.text('From:', marginLeft, yPosition);
+    yPosition += 6;
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('EMRSoft Software Limited', marginLeft, yPosition);
+    yPosition += 5;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Company Registration: 16556912', marginLeft, yPosition);
+    yPosition += 5;
+    pdf.text('Ground Floor Unit 2', marginLeft, yPosition);
+    yPosition += 5;
+    pdf.text('Drayton Court, Drayton Road', marginLeft, yPosition);
+    yPosition += 5;
+    pdf.text('Solihull, England B90 4NG', marginLeft, yPosition);
+    yPosition += 5;
+    pdf.text('United Kingdom', marginLeft, yPosition);
+    yPosition += 7;
+    pdf.text('Email: billing@curaemr.ai', marginLeft, yPosition);
+    yPosition += 5;
+    pdf.text('Phone: +44 (0) 121 456 7890', marginLeft, yPosition);
+
+    // Bill To section (right side)
+    const billToX = pageWidth / 2 + 5;
+    yPosition = 45;
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Bill To:', billToX, yPosition);
+    yPosition += 6;
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    const orgName = organizationData?.name || 'Healthcare Organization';
+    pdf.text(orgName, billToX, yPosition);
+    yPosition += 5;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`${orgName}`, billToX, yPosition);
+    yPosition += 5;
+    pdf.text('Healthcare Organization', billToX, yPosition);
+    yPosition += 5;
+    pdf.text('United Kingdom', billToX, yPosition);
+
+    // Payment Status and Method box
+    yPosition += 7;
+    pdf.setFillColor(249, 250, 251);
+    pdf.rect(billToX - 2, yPosition - 3, pageWidth - billToX - marginRight + 2, 18, 'F');
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Payment Status:', billToX, yPosition);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(payment.paymentStatus.charAt(0).toUpperCase() + payment.paymentStatus.slice(1), billToX + 35, yPosition);
+    yPosition += 6;
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Payment Method:', billToX, yPosition);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(payment.paymentMethod.replace('_', ' ').charAt(0).toUpperCase() + payment.paymentMethod.replace('_', ' ').slice(1), billToX + 35, yPosition);
+
+    // Line separator
+    yPosition = 110;
+    pdf.setDrawColor(229, 231, 235);
+    pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
+
+    // Invoice items table
     yPosition += 10;
-    
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text('Description', marginLeft, yPosition);
-    pdf.text('Amount', pageWidth - marginLeft - 30, yPosition);
-    yPosition += 7;
-    
-    pdf.text('Subscription Fee', marginLeft, yPosition);
-    pdf.text(`${payment.currency} ${parseFloat(payment.amount).toFixed(2)}`, pageWidth - marginLeft - 30, yPosition);
-    
-    yPosition += 15;
-    
-    // Total
-    pdf.setFontSize(14);
+    pdf.setFontSize(9);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Total:', marginLeft, yPosition);
-    pdf.text(`${payment.currency} ${parseFloat(payment.amount).toFixed(2)}`, pageWidth - marginLeft - 30, yPosition);
+    pdf.text('Description', marginLeft, yPosition);
+    pdf.text('Qty', pageWidth - 110, yPosition, { align: 'right' });
+    pdf.text('Unit Price', pageWidth - 70, yPosition, { align: 'right' });
+    pdf.text('Total', pageWidth - marginRight, yPosition, { align: 'right' });
     
-    yPosition += 15;
-    
-    // Payment method
-    if (payment.paymentMethod) {
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`Payment Method: ${payment.paymentMethod.replace('_', ' ').toUpperCase()}`, marginLeft, yPosition);
-    }
+    yPosition += 2;
+    pdf.setDrawColor(229, 231, 235);
+    pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
     
     yPosition += 7;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Payment for Cura EMR Services', marginLeft, yPosition);
+    pdf.text('1', pageWidth - 110, yPosition, { align: 'right' });
+    const subtotal = parseFloat(payment.amount);
+    pdf.text(`£${subtotal.toFixed(2)}`, pageWidth - 70, yPosition, { align: 'right' });
+    pdf.text(`£${subtotal.toFixed(2)}`, pageWidth - marginRight, yPosition, { align: 'right' });
+
+    yPosition += 3;
+    pdf.setDrawColor(243, 244, 246);
+    pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
+
+    // Totals section with grey background
+    yPosition += 10;
+    const totalsX = pageWidth - 95;
+    const totalsBoxHeight = 35;
+    pdf.setFillColor(249, 250, 251);
+    pdf.rect(totalsX - 5, yPosition - 5, 80, totalsBoxHeight, 'F');
     
-    // Transaction ID
-    if (payment.providerTransactionId) {
-      pdf.text(`Transaction ID: ${payment.providerTransactionId}`, marginLeft, yPosition);
-    }
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Subtotal:', totalsX, yPosition);
+    pdf.text(`£${subtotal.toFixed(2)}`, pageWidth - marginRight, yPosition, { align: 'right' });
     
+    yPosition += 6;
+    const vatAmount = subtotal * 0.20;
+    pdf.text('VAT (20%):', totalsX, yPosition);
+    pdf.text(`£${vatAmount.toFixed(2)}`, pageWidth - marginRight, yPosition, { align: 'right' });
+    
+    yPosition += 3;
+    pdf.setDrawColor(229, 231, 235);
+    pdf.line(totalsX, yPosition, pageWidth - marginRight, yPosition);
+    
+    yPosition += 7;
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    const totalAmount = subtotal + vatAmount;
+    pdf.text('Total Amount:', totalsX, yPosition);
+    pdf.text(`£${totalAmount.toFixed(2)}`, pageWidth - marginRight, yPosition, { align: 'right' });
+
+    // Payment Information section
+    yPosition += 15;
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Payment Information', marginLeft, yPosition);
+    yPosition += 6;
+    
+    pdf.setFillColor(239, 246, 255);
+    pdf.rect(marginLeft - 2, yPosition - 3, 85, 28, 'F');
+    
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Bank Transfer Details:', marginLeft, yPosition);
+    yPosition += 5;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Account Name: EMRSoft Software Limited', marginLeft, yPosition);
+    yPosition += 5;
+    pdf.text('Sort Code: 12-34-56', marginLeft, yPosition);
+    yPosition += 5;
+    pdf.text('Account Number: 12345678', marginLeft, yPosition);
+    yPosition += 5;
+    pdf.text(`Reference: ${payment.invoiceNumber}`, marginLeft, yPosition);
+
+    // Payment Terms section (right side)
+    const termsX = billToX;
+    yPosition -= 20;
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Payment Terms', termsX, yPosition);
+    yPosition += 6;
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('• Payment is due within 30 days of invoice date', termsX, yPosition);
+    yPosition += 5;
+    pdf.text('• Late payment charges may apply', termsX, yPosition);
+    yPosition += 5;
+    pdf.text('• For questions, contact billing@curaemr.ai', termsX, yPosition);
+    yPosition += 5;
+    pdf.text('• Online payments available via customer portal', termsX, yPosition);
+
+    // Line separator before footer
+    yPosition = pageHeight - 35;
+    pdf.setDrawColor(229, 231, 235);
+    pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
+
     // Footer
-    yPosition = pdf.internal.pageSize.getHeight() - 30;
+    yPosition += 7;
     pdf.setFontSize(8);
-    pdf.setFont('helvetica', 'italic');
-    pdf.text('Thank you for your business!', pageWidth / 2, yPosition, { align: 'center' });
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('EMRSoft Software Limited • Registered in England & Wales • Company No. 16556912', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 5;
-    pdf.text('Cura Software Limited', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 5;
-    pdf.text('Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG', pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text('VAT Registration Number: GB123 4567 89 • www.curaemr.ai', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 7;
+    pdf.text('Thank you for choosing EMRSoft for your healthcare management needs.', pageWidth / 2, yPosition, { align: 'center' });
 
     if (viewOnly) {
       // Open PDF in new window for viewing
