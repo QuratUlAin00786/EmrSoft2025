@@ -35,6 +35,7 @@ import {
   BookOpen,
   PoundSterling,
 } from "lucide-react";
+import nightLogo from "@/assets/emrsoft-night.png";
 import { useTenant } from "@/hooks/use-tenant";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -312,7 +313,7 @@ export function Sidebar() {
           <div className="flex flex-col items-center text-center">
             <img
               key={theme}
-              src={theme === "dark" ? "/emrsoft-night.png" : "/emr-logo.png"}
+              src={theme === "dark" ? nightLogo : "/emr-logo.png"}
               alt="EMR Soft"
               className="h-30 w-auto mb-2"
               onError={(e) => {
