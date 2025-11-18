@@ -2102,6 +2102,7 @@ function PricingManagementDashboard() {
 
 export default function BillingPage() {
   const { user } = useAuth();
+  const { currency } = useCurrency();
   const isDoctor = isDoctorLike(user?.role);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
