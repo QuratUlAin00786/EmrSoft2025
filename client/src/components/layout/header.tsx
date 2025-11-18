@@ -27,8 +27,8 @@ export function Header({ title, subtitle }: HeaderProps) {
   return (
     <header className="bg-white dark:bg-card shadow-sm border-b border-neutral-100 dark:border-border p-4 lg:p-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 lg:space-x-4 min-w-0 flex-1">
-          <div className="min-w-0 flex-1">
+        <div className="flex items-center space-x-2 lg:space-x-4 min-w-0">
+          <div className="min-w-0">
             <h2 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-foreground truncate">{title}</h2>
             {subtitle && (
               <p className="text-neutral-600 dark:text-muted-foreground mt-1 text-sm lg:text-base truncate">{subtitle}</p>
@@ -36,7 +36,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           </div>
         </div>
         
-        <div className="flex items-center space-x-2 lg:space-x-4 shrink-0">
+        <div className="flex items-center space-x-2 lg:space-x-4 ml-auto">
           {/* AI Status Indicator */}
           {tenant?.settings?.features?.aiEnabled && (
             <div className="hidden md:flex items-center space-x-2 bg-green-50 dark:bg-green-900 px-2 lg:px-3 py-1 lg:py-2 rounded-lg">
