@@ -939,7 +939,15 @@ function PricingManagementDashboard() {
                       <td className="p-3">{fee.doctorName || '-'}</td>
                       <td className="p-3">{fee.serviceCode || '-'}</td>
                       <td className="p-3">{fee.category || '-'}</td>
-                      <td className="p-3 font-semibold">{fee.currency} {fee.basePrice}</td>
+                      <td className="p-3 font-semibold">
+                        <span className="inline-flex items-center gap-1">
+                          {(() => {
+                            const CurrencyIcon = getCurrencyIcon(fee.currency);
+                            return <CurrencyIcon className="h-4 w-4" />;
+                          })()}
+                          {fee.basePrice}
+                        </span>
+                      </td>
                       <td className="p-3">
                         <Badge variant={fee.isActive ? "default" : "secondary"}>
                           {fee.isActive ? "Active" : "Inactive"}
@@ -1052,7 +1060,15 @@ function PricingManagementDashboard() {
                       <td className="p-3 font-medium">{test.testName}</td>
                       <td className="p-3">{test.testCode || '-'}</td>
                       <td className="p-3">{test.category || '-'}</td>
-                      <td className="p-3 font-semibold">{test.currency} {test.basePrice}</td>
+                      <td className="p-3 font-semibold">
+                        <span className="inline-flex items-center gap-1">
+                          {(() => {
+                            const CurrencyIcon = getCurrencyIcon(test.currency);
+                            return <CurrencyIcon className="h-4 w-4" />;
+                          })()}
+                          {test.basePrice}
+                        </span>
+                      </td>
                       <td className="p-3">
                         <Badge variant={test.isActive ? "default" : "secondary"}>
                           {test.isActive ? "Active" : "Inactive"}
@@ -1126,7 +1142,15 @@ function PricingManagementDashboard() {
                     <td className="p-3">{img.imagingCode || '-'}</td>
                     <td className="p-3">{img.modality || '-'}</td>
                     <td className="p-3">{img.bodyPart || '-'}</td>
-                    <td className="p-3 font-semibold">{img.currency} {img.basePrice}</td>
+                    <td className="p-3 font-semibold">
+                      <span className="inline-flex items-center gap-1">
+                        {(() => {
+                          const CurrencyIcon = getCurrencyIcon(img.currency);
+                          return <CurrencyIcon className="h-4 w-4" />;
+                        })()}
+                        {img.basePrice}
+                      </span>
+                    </td>
                     <td className="p-3">
                       <Badge variant={img.isActive ? "default" : "secondary"}>
                         {img.isActive ? "Active" : "Inactive"}
