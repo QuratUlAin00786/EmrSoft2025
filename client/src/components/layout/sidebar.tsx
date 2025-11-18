@@ -42,7 +42,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRolePermissions } from "@/hooks/use-role-permissions";
 import { useTheme } from "@/hooks/use-theme";
 import { useCurrency } from "@/context/currency-context";
-import { getCurrencyIcon } from "@/utils/currency";
+import { DollarSign } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -337,7 +337,7 @@ export function Sidebar() {
                 location === prefixedHref || location === item.href;
               
               // Use dynamic currency icon for Billing menu item
-              const Icon = item.name === "Billing" ? getCurrencyIcon(currency) : item.icon;
+              const Icon = item.name === "Billing" ? (currency === 'GBP' ? PoundSterling : DollarSign) : item.icon;
               
               return (
                 <Link
