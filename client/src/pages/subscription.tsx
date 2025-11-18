@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck, TrendingUp, Download, CreditCard, CheckCircle2, Eye } from "lucide-react";
 import { PaymentMethodDialog } from "@/components/payment-method-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/context/currency-context";
+import { formatCurrency } from "@/utils/currency";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Subscription } from "@/types";
 import type { SaaSPackage } from "@shared/schema";
@@ -75,6 +77,7 @@ export default function Subscription() {
     cardholderName: ''
   });
   const { toast } = useToast();
+  const { currency, symbol } = useCurrency();
   
   const { data: subscription, isLoading, error } = useQuery<Subscription>({
     queryKey: ["/api/subscription"],
@@ -317,8 +320,8 @@ export default function Subscription() {
     pdf.text('Payment for EMRSoft Services', marginLeft, yPosition);
     pdf.text('1', pageWidth - 110, yPosition, { align: 'right' });
     const subtotal = parseFloat(payment.amount);
-    pdf.text(`£${subtotal.toFixed(2)}`, pageWidth - 70, yPosition, { align: 'right' });
-    pdf.text(`£${subtotal.toFixed(2)}`, pageWidth - marginRight, yPosition, { align: 'right' });
+    pdf.text(formatCurrency(subtotal, currency), pageWidth - 70, yPosition, { align: 'right' });
+    pdf.text(formatCurrency(subtotal, currency), pageWidth - marginRight, yPosition, { align: 'right' });
 
     yPosition += 3;
     pdf.setDrawColor(243, 244, 246);
@@ -334,12 +337,12 @@ export default function Subscription() {
     pdf.setFontSize(9);
     pdf.setFont('helvetica', 'normal');
     pdf.text('Subtotal:', totalsX, yPosition);
-    pdf.text(`£${subtotal.toFixed(2)}`, pageWidth - marginRight, yPosition, { align: 'right' });
+    pdf.text(formatCurrency(subtotal, currency), pageWidth - marginRight, yPosition, { align: 'right' });
     
     yPosition += 6;
     const vatAmount = subtotal * 0.20;
     pdf.text('VAT (20%):', totalsX, yPosition);
-    pdf.text(`£${vatAmount.toFixed(2)}`, pageWidth - marginRight, yPosition, { align: 'right' });
+    pdf.text(formatCurrency(vatAmount, currency), pageWidth - marginRight, yPosition, { align: 'right' });
     
     yPosition += 3;
     pdf.setDrawColor(229, 231, 235);
@@ -350,7 +353,7 @@ export default function Subscription() {
     pdf.setFont('helvetica', 'bold');
     const totalAmount = subtotal + vatAmount;
     pdf.text('Total Amount:', totalsX, yPosition);
-    pdf.text(`£${totalAmount.toFixed(2)}`, pageWidth - marginRight, yPosition, { align: 'right' });
+    pdf.text(formatCurrency(totalAmount, currency), pageWidth - marginRight, yPosition, { align: 'right' });
 
     // Payment Information section
     yPosition += 15;
@@ -533,7 +536,7 @@ export default function Subscription() {
                     </p>
                     {subscription.monthlyPrice && (
                       <p className="text-sm text-muted-foreground">
-                        <span className="text-xl font-bold text-primary">£{subscription.monthlyPrice}</span>/month
+                        <span className="text-xl font-bold text-primary">{formatCurrency(subscription.monthlyPrice, currency)}</span>/month
                       </p>
                     )}
                   </div>
@@ -570,7 +573,7 @@ export default function Subscription() {
                     <div className="space-y-2">
                       <div>
                         <span className="text-4xl font-bold text-primary">
-                          £{plan.price}
+                          {formatCurrency(plan.price, currency)}
                         </span>
                         <span className="text-sm text-muted-foreground ml-2">/month</span>
                       </div>
@@ -648,7 +651,7 @@ export default function Subscription() {
                           </div>
                           <div className="text-right">
                             <div className="flex items-baseline justify-end gap-1">
-                              <span className="text-2xl font-bold text-primary">£{pkg.price}</span>
+                              <span className="text-2xl font-bold text-primary">{formatCurrency(pkg.price, currency)}</span>
                               <span className="text-xs text-muted-foreground">/mo</span>
                             </div>
                           </div>
@@ -821,7 +824,7 @@ export default function Subscription() {
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{currentPlanData.name}</h3>
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">£{currentPlanData.price}</div>
+                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(currentPlanData.price, currency)}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">/month</div>
                   </div>
                 </div>
@@ -872,7 +875,7 @@ export default function Subscription() {
                     className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
                     data-testid="button-pay-ryft"
                   >
-                    Pay £{currentPlanData.price}/month with Ryft
+                    Pay {formatCurrency(currentPlanData.price, currency)}/month with Ryft
                   </Button>
                 </TabsContent>
                 
@@ -903,7 +906,7 @@ export default function Subscription() {
                     className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
                     data-testid="button-pay-paypal"
                   >
-                    Pay £{currentPlanData.price}/month with PayPal
+                    Pay {formatCurrency(currentPlanData.price, currency)}/month with PayPal
                   </Button>
                 </TabsContent>
                 
@@ -934,7 +937,7 @@ export default function Subscription() {
                     className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
                     data-testid="button-pay-stripe"
                   >
-                    Pay £{currentPlanData.price}/month with Stripe
+                    Pay {formatCurrency(currentPlanData.price, currency)}/month with Stripe
                   </Button>
                 </TabsContent>
               </Tabs>

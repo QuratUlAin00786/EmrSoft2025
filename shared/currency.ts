@@ -48,7 +48,7 @@ export interface CurrencyMetadata {
 export const CURRENCY_MAP: Record<CurrencyCode, CurrencyMetadata> = {
   GBP: { code: "GBP", symbol: "£", name: "British Pound", locale: "en-GB", decimals: 2 },
   USD: { code: "USD", symbol: "$", name: "US Dollar", locale: "en-US", decimals: 2 },
-  EUR: { code: "EUR", symbol: "€", name: "Euro", locale: "en-EU", decimals: 2 },
+  EUR: { code: "EUR", symbol: "€", name: "Euro", locale: "de-DE", decimals: 2 },
   JPY: { code: "JPY", symbol: "¥", name: "Japanese Yen", locale: "ja-JP", decimals: 0 },
   CNY: { code: "CNY", symbol: "¥", name: "Chinese Yuan", locale: "zh-CN", decimals: 2 },
   INR: { code: "INR", symbol: "₹", name: "Indian Rupee", locale: "en-IN", decimals: 2 },

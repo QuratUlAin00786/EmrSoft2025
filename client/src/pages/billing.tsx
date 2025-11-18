@@ -4,6 +4,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useCurrency } from "@/context/currency-context";
+import { formatCurrency } from "@/utils/currency";
 import { isDoctorLike } from "@/lib/role-utils";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
