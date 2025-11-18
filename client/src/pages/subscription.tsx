@@ -61,6 +61,12 @@ export default function Subscription() {
   const [selectedBillingPayment, setSelectedBillingPayment] = useState<any>(null);
   const [paymentCardType, setPaymentCardType] = useState<'debit' | 'credit' | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successPaymentDetails, setSuccessPaymentDetails] = useState<{
+    amount: string;
+    currency: string;
+    transactionId: string;
+  } | null>(null);
   const [cardDetails, setCardDetails] = useState({
     cardNumber: '',
     expiryDate: '',
@@ -144,17 +150,17 @@ export default function Subscription() {
         { providerTransactionId }
       );
 
-      // Show success toast with green tick
-      toast({
-        title: "✓ Payment Successful!",
-        description: `Your payment of ${selectedBillingPayment.currency} ${parseFloat(selectedBillingPayment.amount).toFixed(2)} is deducted. Transaction ID: ${providerTransactionId}`,
-        className: "border-green-500 bg-green-50 dark:bg-green-950/20 text-green-900 dark:text-green-100",
+      // Store payment details for success modal
+      setSuccessPaymentDetails({
+        amount: parseFloat(selectedBillingPayment.amount).toFixed(2),
+        currency: selectedBillingPayment.currency,
+        transactionId: providerTransactionId
       });
 
       // Invalidate billing history to refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/billing-history"] });
 
-      // Close dialog and reset state
+      // Close payment dialog and show success modal
       setShowBillingPaymentDialog(false);
       setPaymentCardType(null);
       setCardDetails({
@@ -163,6 +169,9 @@ export default function Subscription() {
         cvv: '',
         cardholderName: ''
       });
+      
+      // Show success modal
+      setShowSuccessModal(true);
     } catch (error: any) {
       toast({
         title: "Payment Failed",
@@ -866,6 +875,47 @@ export default function Subscription() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center justify-center space-y-6 py-8">
+            {/* Green Success Checkmark */}
+            <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-500" />
+            </div>
+
+            {/* Success Message */}
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Payment Successful!
+              </h3>
+              {successPaymentDetails && (
+                <div className="space-y-3 mt-4">
+                  <p className="text-base text-gray-700 dark:text-gray-300">
+                    Your payment of <span className="font-semibold">{successPaymentDetails.currency} {successPaymentDetails.amount}</span> is deducted.
+                  </p>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Transaction ID</p>
+                    <p className="text-sm font-mono text-gray-900 dark:text-gray-100 break-all">
+                      {successPaymentDetails.transactionId}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <Button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              data-testid="button-close-success"
+            >
+              Done
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>
