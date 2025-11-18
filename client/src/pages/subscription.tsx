@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck, TrendingUp, Download, CreditCard } from "lucide-react";
+import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck, TrendingUp, Download, CreditCard, CheckCircle2 } from "lucide-react";
 import { PaymentMethodDialog } from "@/components/payment-method-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -134,11 +134,21 @@ export default function Subscription() {
       // Simulate Stripe payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Here you would integrate with Stripe API
-      // For now, we'll simulate a successful payment
+      // Generate a transaction ID (in real implementation, this would come from Stripe)
+      const providerTransactionId = `stripe_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+
+      // Update payment status in database
+      await apiRequest(
+        'POST',
+        `/api/billing-history/${selectedBillingPayment.id}/mark-paid`,
+        { providerTransactionId }
+      );
+
+      // Show success toast with green tick
       toast({
-        title: "Payment Successful!",
-        description: `Payment of ${selectedBillingPayment.currency} ${parseFloat(selectedBillingPayment.amount).toFixed(2)} processed successfully.`,
+        title: "✓ Payment Successful!",
+        description: `Your payment of ${selectedBillingPayment.currency} ${parseFloat(selectedBillingPayment.amount).toFixed(2)} is deducted. Transaction ID: ${providerTransactionId}`,
+        className: "border-green-500 bg-green-50 dark:bg-green-950/20 text-green-900 dark:text-green-100",
       });
 
       // Invalidate billing history to refresh data

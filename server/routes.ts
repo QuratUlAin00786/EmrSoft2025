@@ -2079,6 +2079,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update payment status to paid
+  app.post("/api/billing-history/:paymentId/mark-paid", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const paymentId = parseInt(req.params.paymentId);
+      const organizationId = req.tenant!.id;
+      const { providerTransactionId } = req.body;
+      const { saasPayments } = await import("../shared/schema");
+      
+      // Verify payment belongs to this organization
+      const existingPayment = await db
+        .select()
+        .from(saasPayments)
+        .where(and(
+          eq(saasPayments.id, paymentId),
+          eq(saasPayments.organizationId, organizationId)
+        ))
+        .limit(1);
+      
+      if (existingPayment.length === 0) {
+        return res.status(404).json({ error: "Payment not found" });
+      }
+      
+      // Update payment status to paid
+      const updatedPayment = await db
+        .update(saasPayments)
+        .set({
+          paymentStatus: "paid",
+          paymentDate: new Date(),
+          providerTransactionId: providerTransactionId || `txn_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`,
+          updatedAt: new Date()
+        })
+        .where(eq(saasPayments.id, paymentId))
+        .returning();
+      
+      res.json(updatedPayment[0]);
+    } catch (error) {
+      console.error("Payment update error:", error);
+      res.status(500).json({ error: "Failed to update payment status" });
+    }
+  });
+
   // Get search suggestions for billing search
   app.get("/api/billing/search-suggestions", authMiddleware, async (req: TenantRequest, res) => {
     try {
