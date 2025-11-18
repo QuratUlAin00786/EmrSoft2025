@@ -1,4 +1,4 @@
-import { Globe, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
 import { NotificationBell } from "@/components/layout/notification-bell";
@@ -48,14 +48,6 @@ export function Header({ title, subtitle }: HeaderProps) {
           {/* Currency Selector */}
           <div className="hidden sm:block">
             <CurrencySelector />
-          </div>
-          
-          {/* Regional Settings */}
-          <div className="hidden sm:flex items-center space-x-1 lg:space-x-2 bg-neutral-50 dark:bg-neutral-800 px-2 lg:px-3 py-1 lg:py-2 rounded-lg">
-            <Globe className="h-3 lg:h-4 w-3 lg:w-4 text-neutral-600 dark:text-neutral-400" />
-            <span className="text-xs lg:text-sm text-neutral-700 dark:text-neutral-300">
-              {tenant?.region?.substring(0, 2)}/{tenant?.settings?.compliance?.gdprEnabled ? "GDPR" : "Std"}
-            </span>
           </div>
           
           {/* Notifications */}
