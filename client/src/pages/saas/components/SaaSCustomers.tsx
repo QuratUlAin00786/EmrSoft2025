@@ -22,6 +22,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { saasApiRequest } from '@/lib/saasQueryClient';
 import { useToast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/utils/currency';
 import { 
   Search, 
   Building2, 
@@ -374,7 +375,7 @@ export default function SaaSCustomers() {
                           <option value="">Select a billing package (optional)</option>
                           {Array.isArray(billingPackages) && billingPackages.map((pkg: any) => (
                             <option key={pkg.id} value={pkg.id}>
-                              {pkg.name} - £{pkg.price}/{pkg.billingCycle}
+                              {pkg.name} - {formatCurrency(parseFloat(pkg.price))}/{pkg.billingCycle}
                             </option>
                           ))}
                         </select>
@@ -754,7 +755,7 @@ export default function SaaSCustomers() {
                                       <option value="">No Package (Manual Billing)</option>
                                       {Array.isArray(billingPackages) && billingPackages.map((pkg: any) => (
                                         <option key={pkg.id} value={pkg.id}>
-                                          {pkg.name} - £{pkg.price}/{pkg.billingCycle}
+                                          {pkg.name} - {formatCurrency(parseFloat(pkg.price))}/{pkg.billingCycle}
                                         </option>
                                       ))}
                                     </select>
