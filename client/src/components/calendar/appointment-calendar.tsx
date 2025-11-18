@@ -12,7 +12,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Calendar, Clock, MapPin, User, Users, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square, Edit, Trash2 } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Users, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square, Edit, Trash2, DollarSign, PoundSterling } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
 
 const anatomicalDiagramImage = "/anatomical-diagram-clean.svg";
@@ -30,6 +30,7 @@ import { FullConsultationInterface } from "@/components/consultation/full-consul
 import { useAuth } from "@/hooks/use-auth";
 import { useTenant } from "@/hooks/use-tenant";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/context/currency-context";
 
 const statusColors = {
   scheduled: "text-white",
@@ -56,6 +57,44 @@ const typeBgColors = {
   follow_up: "#C073FF",     // Electric Violet
   procedure: "#4A7DFF"      // Bluewave
 };
+
+// Helper function to get the appropriate currency icon
+function getCurrencyIcon(currencyCode: string) {
+  const currencyIcons: { [key: string]: any } = {
+    'GBP': PoundSterling,
+    'USD': DollarSign,
+    'EUR': DollarSign,
+    'JPY': DollarSign,
+    'CNY': DollarSign,
+    'INR': DollarSign,
+    'AUD': DollarSign,
+    'CAD': DollarSign,
+    'CHF': DollarSign,
+    'HKD': DollarSign,
+    'SGD': DollarSign,
+    'SEK': DollarSign,
+    'NZD': DollarSign,
+    'KRW': DollarSign,
+    'MXN': DollarSign,
+    'BRL': DollarSign,
+    'ZAR': DollarSign,
+    'TRY': DollarSign,
+    'RUB': DollarSign,
+    'AED': DollarSign,
+    'SAR': DollarSign,
+    'PLN': DollarSign,
+    'THB': DollarSign,
+    'IDR': DollarSign,
+    'MYR': DollarSign,
+    'PHP': DollarSign,
+    'PKR': DollarSign,
+    'BDT': DollarSign,
+    'VND': DollarSign,
+    'NGN': DollarSign,
+  };
+  
+  return currencyIcons[currencyCode] || DollarSign;
+}
 
 // Wrapper component to fetch patient data and pass to FullConsultationInterface
 function FullConsultationWrapper({ patientId, show, onOpenChange }: { patientId: number; show: boolean; onOpenChange: (open: boolean) => void }) {
@@ -89,6 +128,7 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const { tenant } = useTenant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currency } = useCurrency();
 
   // Real-time appointment updates via Server-Sent Events
   useEffect(() => {
@@ -2888,7 +2928,15 @@ Medical License: [License Number]
                 <div key={index} className="grid grid-cols-3 gap-2 mb-2">
                   <Input value={service.code} disabled className="bg-gray-100" />
                   <Input value={service.description} disabled className="bg-gray-100" />
-                  <Input value={service.amount.toFixed(2)} disabled className="bg-gray-100" />
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      {(() => {
+                        const CurrencyIcon = getCurrencyIcon(currency);
+                        return <CurrencyIcon className="h-4 w-4 text-gray-500" />;
+                      })()}
+                    </div>
+                    <Input value={service.amount.toFixed(2)} disabled className="bg-gray-100 pl-8" />
+                  </div>
                 </div>
               ))}
             </div>
@@ -2923,11 +2971,19 @@ Medical License: [License Number]
 
             <div>
               <Label>Total Amount</Label>
-              <Input 
-                value={invoiceData.totalAmount}
-                disabled
-                className="bg-gray-100 font-bold text-lg"
-              />
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  {(() => {
+                    const CurrencyIcon = getCurrencyIcon(currency);
+                    return <CurrencyIcon className="h-5 w-5 text-gray-500" />;
+                  })()}
+                </div>
+                <Input 
+                  value={invoiceData.totalAmount}
+                  disabled
+                  className="bg-gray-100 font-bold text-lg pl-10"
+                />
+              </div>
             </div>
 
             {/* Invoice Type Display */}
@@ -3030,7 +3086,13 @@ Medical License: [License Number]
                   </div>
                   <div>
                     <p className="text-blue-600 text-xs">Total Amount</p>
-                    <p className="font-medium text-blue-900 text-lg">£{invoiceData.totalAmount}</p>
+                    <p className="font-medium text-blue-900 text-lg flex items-center gap-1">
+                      {(() => {
+                        const CurrencyIcon = getCurrencyIcon(currency);
+                        return <CurrencyIcon className="h-5 w-5" />;
+                      })()}
+                      {invoiceData.totalAmount}
+                    </p>
                   </div>
                 </div>
               </div>
