@@ -651,13 +651,10 @@ ${
 
       const addSectionBox = (title: string, contentCallback: () => void) => {
         yPosition += 8;
-        const boxStartY = yPosition;
         
-        // Add title with light grey background
+        // Add title with light grey background (no border)
         pdf.setFillColor(245, 245, 245);
-        pdf.setDrawColor(200, 200, 200);
-        pdf.setLineWidth(0.3);
-        pdf.roundedRect(marginLeft, yPosition, maxWidth, 10, 1, 1, 'FD');
+        pdf.rect(marginLeft, yPosition, maxWidth, 10, 'F');
         
         pdf.setFontSize(13);
         pdf.setFont('helvetica', 'bold');
@@ -665,23 +662,22 @@ ${
         pdf.text(title, marginLeft + 5, yPosition + 7);
         yPosition += 14;
         
-        // Store position before content
+        // Store position before content to calculate height
         const contentStartY = yPosition;
         
-        // Add content
-        contentCallback();
-        
-        // Draw border around content area
-        const contentHeight = yPosition - contentStartY + 4;
-        pdf.setFillColor(250, 250, 250);
-        pdf.setDrawColor(220, 220, 220);
-        pdf.roundedRect(marginLeft, contentStartY - 2, maxWidth, contentHeight, 1, 1, 'FD');
-        
-        // Re-add content on top of background
+        // Temporarily execute content to calculate height
         const tempY = yPosition;
-        yPosition = contentStartY;
         contentCallback();
-        yPosition = tempY + 2;
+        const contentHeight = yPosition - contentStartY + 4;
+        
+        // Reset position and draw content background (no border)
+        yPosition = contentStartY;
+        pdf.setFillColor(250, 250, 250);
+        pdf.rect(marginLeft, contentStartY - 2, maxWidth, contentHeight, 'F');
+        
+        // Now add actual content on top of background
+        contentCallback();
+        yPosition += 2;
       };
 
       addHeader();
