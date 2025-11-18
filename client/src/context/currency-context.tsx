@@ -45,19 +45,17 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
   // Mutation to update currency on backend
   const updateCurrencyMutation = useMutation({
     mutationFn: async (newCurrency: CurrencyCode) => {
-      return await apiRequest("/api/organization/settings", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      return await apiRequest(
+        "PATCH",
+        "/api/organization/settings",
+        {
           settings: {
             billing: {
               currency: newCurrency,
             },
           },
-        }),
-      });
+        }
+      );
     },
     onSuccess: () => {
       // Invalidate organization query to refetch with new currency
