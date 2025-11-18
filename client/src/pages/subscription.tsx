@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck, TrendingUp, Download, CreditCard } from "lucide-react";
 import { PaymentMethodDialog } from "@/components/payment-method-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Subscription } from "@/types";
 import type { SaaSPackage } from "@shared/schema";
 
@@ -58,6 +60,14 @@ export default function Subscription() {
   const [showBillingPaymentDialog, setShowBillingPaymentDialog] = useState(false);
   const [selectedBillingPayment, setSelectedBillingPayment] = useState<any>(null);
   const [paymentCardType, setPaymentCardType] = useState<'debit' | 'credit' | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    cardholderName: ''
+  });
+  const { toast } = useToast();
   
   const { data: subscription, isLoading, error } = useQuery<Subscription>({
     queryKey: ["/api/subscription"],
@@ -103,6 +113,56 @@ export default function Subscription() {
       return res.json();
     }
   });
+
+  // Handle payment processing
+  const handleProcessPayment = async () => {
+    if (!selectedBillingPayment) return;
+
+    // Validate card details
+    if (!cardDetails.cardNumber || !cardDetails.expiryDate || !cardDetails.cvv || !cardDetails.cardholderName) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all card details.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    try {
+      // Simulate Stripe payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Here you would integrate with Stripe API
+      // For now, we'll simulate a successful payment
+      toast({
+        title: "Payment Successful!",
+        description: `Payment of ${selectedBillingPayment.currency} ${parseFloat(selectedBillingPayment.amount).toFixed(2)} processed successfully.`,
+      });
+
+      // Invalidate billing history to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/billing-history"] });
+
+      // Close dialog and reset state
+      setShowBillingPaymentDialog(false);
+      setPaymentCardType(null);
+      setCardDetails({
+        cardNumber: '',
+        expiryDate: '',
+        cvv: '',
+        cardholderName: ''
+      });
+    } catch (error: any) {
+      toast({
+        title: "Payment Failed",
+        description: error.message || "An error occurred during payment processing.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
 
   // Split packages into subscription plans (have maxUsers) and add-ons (don't have maxUsers)
   const dbPlans = dbPackages.filter(pkg => pkg.features?.maxUsers);
@@ -732,6 +792,8 @@ export default function Subscription() {
                       <input
                         type="text"
                         placeholder="1234 5678 9012 3456"
+                        value={cardDetails.cardNumber}
+                        onChange={(e) => setCardDetails({ ...cardDetails, cardNumber: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
                         maxLength={19}
                         data-testid="input-card-number"
@@ -744,6 +806,8 @@ export default function Subscription() {
                         <input
                           type="text"
                           placeholder="MM/YY"
+                          value={cardDetails.expiryDate}
+                          onChange={(e) => setCardDetails({ ...cardDetails, expiryDate: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
                           maxLength={5}
                           data-testid="input-expiry"
@@ -754,6 +818,8 @@ export default function Subscription() {
                         <input
                           type="text"
                           placeholder="123"
+                          value={cardDetails.cvv}
+                          onChange={(e) => setCardDetails({ ...cardDetails, cvv: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
                           maxLength={4}
                           data-testid="input-cvv"
@@ -766,6 +832,8 @@ export default function Subscription() {
                       <input
                         type="text"
                         placeholder="John Doe"
+                        value={cardDetails.cardholderName}
+                        onChange={(e) => setCardDetails({ ...cardDetails, cardholderName: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
                         data-testid="input-cardholder-name"
                       />
@@ -773,10 +841,12 @@ export default function Subscription() {
                   </div>
 
                   <Button 
+                    onClick={handleProcessPayment}
+                    disabled={isProcessingPayment}
                     className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold"
                     data-testid="button-process-payment"
                   >
-                    Pay {selectedBillingPayment.currency} {parseFloat(selectedBillingPayment.amount).toFixed(2)}
+                    {isProcessingPayment ? 'Processing...' : `Pay ${selectedBillingPayment.currency} ${parseFloat(selectedBillingPayment.amount).toFixed(2)}`}
                   </Button>
 
                   <p className="text-xs text-center text-gray-500 dark:text-gray-400">
