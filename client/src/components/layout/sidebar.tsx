@@ -312,9 +312,12 @@ export function Sidebar() {
           <div className="flex flex-col items-center text-center">
             <img
               key={theme}
-              src={organizationData?.settings?.theme?.logoUrl || tenant?.settings?.theme?.logoUrl || (theme === "dark" ? "/emrsoft-night.png" : "/emr-logo.png")}
-              alt={organizationData?.name || tenant?.name || "EMR Soft"}
+              src={theme === "dark" ? "/emrsoft-night.png" : "/emr-logo.png"}
+              alt="EMR Soft"
               className="h-30 w-auto mb-2"
+              onError={(e) => {
+                console.error('Logo failed to load:', (e.target as HTMLImageElement).src);
+              }}
             />
           </div>
         </div>
