@@ -27,6 +27,7 @@ import SaaSBilling from './components/SaaSBilling';
 import SaaSPackages from './components/SaaSPackages';
 import SaaSSettings from './components/SaaSSettings';
 import CreateUser from './CreateUser';
+import { formatCurrency } from '@/utils/currency';
 
 interface SaaSDashboardProps {
   onLogout: () => void;
@@ -218,7 +219,7 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
               />
               <StatCard
                 title="Monthly Revenue"
-                value={`£${stats?.monthlyRevenue || 0}`}
+                value={formatCurrency(stats?.monthlyRevenue || 0)}
                 icon={CreditCard}
                 trend={false}
               />
