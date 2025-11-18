@@ -7,6 +7,7 @@ import { TenantProvider } from "@/hooks/use-tenant";
 import { AuthProvider } from "@/hooks/use-auth";
 import { LocaleProvider } from "@/hooks/use-locale";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { CurrencyProvider } from "@/context/currency-context";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
 import { AIChatWidget } from "@/components/ai-chat-widget";
@@ -596,9 +597,11 @@ function App() {
           <div className="min-h-screen">
             <TenantProvider>
               <AuthProvider>
-                <LocaleProvider>
-                  <AppRouter />
-                </LocaleProvider>
+                <CurrencyProvider>
+                  <LocaleProvider>
+                    <AppRouter />
+                  </LocaleProvider>
+                </CurrencyProvider>
               </AuthProvider>
             </TenantProvider>
           </div>

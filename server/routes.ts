@@ -1636,6 +1636,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           features: z.object({
             aiEnabled: z.boolean().optional(),
             billingEnabled: z.boolean().optional()
+          }).optional(),
+          billing: z.object({
+            currency: z.string().optional()
           }).optional()
         }).optional()
       }).parse(req.body);

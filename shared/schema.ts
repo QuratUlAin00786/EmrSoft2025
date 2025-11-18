@@ -2,6 +2,7 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, dec
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { type CurrencyCode } from "./currency";
 
 // SaaS Owners (Platform Administrators)
 export const saasOwners = pgTable("saas_owners", {
@@ -142,6 +143,7 @@ export const organizations = pgTable("organizations", {
     theme?: { primaryColor?: string; logoUrl?: string };
     compliance?: { gdprEnabled?: boolean; dataResidency?: string };
     features?: { aiEnabled?: boolean; billingEnabled?: boolean };
+    billing?: { currency?: CurrencyCode };
   }>().default({}),
   features: jsonb("features").$type<{
     maxUsers?: number;
