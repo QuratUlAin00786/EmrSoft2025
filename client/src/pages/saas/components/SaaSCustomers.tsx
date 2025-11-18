@@ -688,7 +688,8 @@ export default function SaaSCustomers() {
                                 analyticsEnabled: true,
                               }
                             })}>
-                              <Settings className="h-4 w-4" />
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
