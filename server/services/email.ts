@@ -106,7 +106,7 @@ class EmailService {
         secure: true,
         auth: {
           user: "noreply@emrsoft.ai",
-          pass: "wxndhigmfhgjjklr",
+          pass: process.env.EMRSOFT_EMAIL_PASSWORD || "wxndhigmfhgjjklr",
         },
         debug: false,
         logger: false,
