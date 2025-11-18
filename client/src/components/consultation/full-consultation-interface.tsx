@@ -527,7 +527,7 @@ ${
 
       const pdf = new jsPDF();
       let yPosition = 15;
-      const lineHeight = 6;
+      const lineHeight = 7;
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const marginLeft = 15;
@@ -633,8 +633,8 @@ ${
         }
       };
 
-      const addText = (text: string, fontSize: number = 10, isBold: boolean = false) => {
-        const footerSpace = clinicFooter ? 20 : 15;
+      const addText = (text: string, fontSize: number = 12, isBold: boolean = false) => {
+        const footerSpace = clinicFooter ? 25 : 20;
         if (yPosition > pageHeight - footerSpace) {
           addFooter(pdf.getCurrentPageInfo().pageNumber);
           pdf.addPage();
@@ -650,16 +650,16 @@ ${
       };
 
       const addSection = (title: string) => {
-        yPosition += 5;
+        yPosition += 6;
         pdf.setDrawColor(200, 200, 200);
         pdf.setLineWidth(0.5);
         pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
-        yPosition += 7;
-        pdf.setFontSize(13);
+        yPosition += 8;
+        pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(0, 0, 0);
         pdf.text(title, marginLeft, yPosition);
-        yPosition += 8;
+        yPosition += 9;
       };
 
       addHeader();
@@ -668,11 +668,12 @@ ${
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(0, 0, 0);
       pdf.text('FULL CONSULTATION REPORT', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 12;
+      yPosition += 14;
 
-      addText(`Patient: ${currentPatientName}`, 11, true);
-      addText(`Date: ${format(new Date(), 'MMMM dd, yyyy - HH:mm')}`, 9);
-      addText(`Consultation ID: ${currentPatientId}-${Date.now()}`, 9);
+      addText(`Patient: ${currentPatientName}`, 12, true);
+      addText(`Date: ${format(new Date(), 'MMMM dd, yyyy - HH:mm')}`, 11);
+      addText(`Consultation ID: ${currentPatientId}-${Date.now()}`, 10);
+      yPosition += 3;
 
       addSection('VITALS');
       addText(`Blood Pressure: ${finalVitals.bloodPressure}`);
@@ -685,13 +686,13 @@ ${
       addText(`BMI: ${finalVitals.bmi}`);
 
       addSection('HISTORY');
-      addText('Chief Complaint:', 10, true);
+      addText('Chief Complaint:', 12, true);
       addText(consultationData.chiefComplaint || 'Not recorded');
-      yPosition += 2;
-      addText('History of Presenting Complaint:', 10, true);
+      yPosition += 3;
+      addText('History of Presenting Complaint:', 12, true);
       addText(consultationData.historyPresentingComplaint || 'Not recorded');
-      yPosition += 2;
-      addText('Review of Systems:', 10, true);
+      yPosition += 3;
+      addText('Review of Systems:', 12, true);
       addText(`• Cardiovascular: ${consultationData.reviewOfSystems?.cardiovascular || 'Not recorded'}`);
       addText(`• Respiratory: ${consultationData.reviewOfSystems?.respiratory || 'Not recorded'}`);
       addText(`• Gastrointestinal: ${consultationData.reviewOfSystems?.gastrointestinal || 'Not recorded'}`);
@@ -704,7 +705,7 @@ ${
       addSection('EXAMINATION');
       addText(clinicalNotes || 'Not recorded');
       if (transcript) {
-        addText(`[Live Transcript: ${transcript}]`, 9);
+        addText(`[Live Transcript: ${transcript}]`, 11);
       }
 
       addSection('ASSESSMENT');
@@ -726,36 +727,36 @@ ${
       }
 
       addSection('PLAN');
-      addText('Management Plan:', 10, true);
+      addText('Management Plan:', 12, true);
       addText(consultationData.plan || 'Not recorded');
 
       if (consultationData.prescriptions.length > 0) {
-        yPosition += 2;
-        addText(`Prescriptions (${consultationData.prescriptions.length}):`, 10, true);
+        yPosition += 3;
+        addText(`Prescriptions (${consultationData.prescriptions.length}):`, 12, true);
         consultationData.prescriptions.forEach((rx, idx) => {
           addText(`${idx + 1}. ${rx.medication} ${rx.dosage}`);
-          addText(`   ${rx.frequency} for ${rx.duration}`, 9);
+          addText(`   ${rx.frequency} for ${rx.duration}`, 11);
           if (rx.instructions) {
-            addText(`   Instructions: ${rx.instructions}`, 9);
+            addText(`   Instructions: ${rx.instructions}`, 11);
           }
         });
       }
 
       if (consultationData.referrals.length > 0) {
-        yPosition += 2;
-        addText(`Referrals (${consultationData.referrals.length}):`, 10, true);
+        yPosition += 3;
+        addText(`Referrals (${consultationData.referrals.length}):`, 12, true);
         consultationData.referrals.forEach((ref, idx) => {
-          addText(`${idx + 1}. ${ref.specialty} - ${ref.urgency.toUpperCase()}`, 9);
-          addText(`   Reason: ${ref.reason}`, 9);
+          addText(`${idx + 1}. ${ref.specialty} - ${ref.urgency.toUpperCase()}`, 11);
+          addText(`   Reason: ${ref.reason}`, 11);
         });
       }
 
       if (consultationData.investigations.length > 0) {
-        yPosition += 2;
-        addText(`Investigations (${consultationData.investigations.length}):`, 10, true);
+        yPosition += 3;
+        addText(`Investigations (${consultationData.investigations.length}):`, 12, true);
         consultationData.investigations.forEach((inv, idx) => {
-          addText(`${idx + 1}. ${inv.type} - ${inv.urgency.toUpperCase()}`, 9);
-          addText(`   Reason: ${inv.reason}`, 9);
+          addText(`${idx + 1}. ${inv.type} - ${inv.urgency.toUpperCase()}`, 11);
+          addText(`   Reason: ${inv.reason}`, 11);
         });
       }
 
