@@ -633,7 +633,7 @@ ${
         }
       };
 
-      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, color: string = 'black') => {
+      const addText = (text: string, fontSize: number = 10, isBold: boolean = false) => {
         const footerSpace = clinicFooter ? 20 : 15;
         if (yPosition > pageHeight - footerSpace) {
           addFooter(pdf.getCurrentPageInfo().pageNumber);
@@ -642,8 +642,7 @@ ${
         }
         pdf.setFontSize(fontSize);
         pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
-        if (color === 'blue') pdf.setTextColor(74, 125, 255);
-        else pdf.setTextColor(0, 0, 0);
+        pdf.setTextColor(0, 0, 0);
         
         const lines = pdf.splitTextToSize(text, maxWidth);
         pdf.text(lines, marginLeft, yPosition);
@@ -651,23 +650,25 @@ ${
       };
 
       const addSection = (title: string) => {
-        yPosition += 4;
-        pdf.setDrawColor(74, 125, 255);
+        yPosition += 5;
+        pdf.setDrawColor(200, 200, 200);
         pdf.setLineWidth(0.5);
         pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
-        yPosition += 6;
-        addText(title, 12, true, 'blue');
-        yPosition += 2;
+        yPosition += 7;
+        pdf.setFontSize(13);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(title, marginLeft, yPosition);
+        yPosition += 8;
       };
 
       addHeader();
 
-      pdf.setFontSize(16);
+      pdf.setFontSize(18);
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(74, 125, 255);
+      pdf.setTextColor(0, 0, 0);
       pdf.text('FULL CONSULTATION REPORT', pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 12;
-      pdf.setTextColor(0, 0, 0);
 
       addText(`Patient: ${currentPatientName}`, 11, true);
       addText(`Date: ${format(new Date(), 'MMMM dd, yyyy - HH:mm')}`, 9);
