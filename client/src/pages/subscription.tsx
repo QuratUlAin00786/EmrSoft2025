@@ -177,7 +177,7 @@ export default function Subscription() {
 
       // Store payment details for success modal
       setSuccessPaymentDetails({
-        amount: parseFloat(selectedBillingPayment.amount).toFixed(2),
+        amount: formatCurrency(parseFloat(selectedBillingPayment.amount), currency),
         currency: selectedBillingPayment.currency,
         transactionId: providerTransactionId
       });
