@@ -39,6 +39,7 @@ import { useTenant } from "@/hooks/use-tenant";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useRolePermissions } from "@/hooks/use-role-permissions";
+import { useTheme } from "@/hooks/use-theme";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -171,6 +172,7 @@ export function Sidebar() {
   const { tenant } = useTenant();
   const { user, logout } = useAuth();
   const { canAccess, getUserRole, isLoading } = useRolePermissions();
+  const { theme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -309,7 +311,7 @@ export function Sidebar() {
         <div className="p-6 border-b border-neutral-100 dark:border-border">
           <div className="flex flex-col items-center text-center">
             <img
-              src={organizationData?.settings?.theme?.logoUrl || tenant?.settings?.theme?.logoUrl || "/emr-logo.png"}
+              src={organizationData?.settings?.theme?.logoUrl || tenant?.settings?.theme?.logoUrl || (theme === "dark" ? "/Emrsoft-night.png" : "/emr-logo.png")}
               alt={organizationData?.name || tenant?.name || "EMR Soft"}
               className="h-30 w-auto mb-2"
             />
