@@ -633,7 +633,7 @@ ${
         }
       };
 
-      const addText = (text: string, fontSize: number = 12, isBold: boolean = false) => {
+      const addText = (text: string, fontSize: number = 12, isBold: boolean = false, inBox: boolean = false) => {
         const footerSpace = clinicFooter ? 25 : 20;
         if (yPosition > pageHeight - footerSpace) {
           addFooter(pdf.getCurrentPageInfo().pageNumber);
@@ -644,22 +644,44 @@ ${
         pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
         pdf.setTextColor(0, 0, 0);
         
-        const lines = pdf.splitTextToSize(text, maxWidth);
-        pdf.text(lines, marginLeft, yPosition);
+        const lines = pdf.splitTextToSize(text, inBox ? maxWidth - 12 : maxWidth);
+        pdf.text(lines, inBox ? marginLeft + 6 : marginLeft, yPosition);
         yPosition += lines.length * lineHeight;
       };
 
-      const addSection = (title: string) => {
-        yPosition += 6;
-        pdf.setDrawColor(200, 200, 200);
-        pdf.setLineWidth(0.5);
-        pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
+      const addSectionBox = (title: string, contentCallback: () => void) => {
         yPosition += 8;
-        pdf.setFontSize(14);
+        const boxStartY = yPosition;
+        
+        // Add title with light grey background
+        pdf.setFillColor(245, 245, 245);
+        pdf.setDrawColor(200, 200, 200);
+        pdf.setLineWidth(0.3);
+        pdf.roundedRect(marginLeft, yPosition, maxWidth, 10, 1, 1, 'FD');
+        
+        pdf.setFontSize(13);
         pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(0, 0, 0);
-        pdf.text(title, marginLeft, yPosition);
-        yPosition += 9;
+        pdf.setTextColor(50, 50, 50);
+        pdf.text(title, marginLeft + 5, yPosition + 7);
+        yPosition += 14;
+        
+        // Store position before content
+        const contentStartY = yPosition;
+        
+        // Add content
+        contentCallback();
+        
+        // Draw border around content area
+        const contentHeight = yPosition - contentStartY + 4;
+        pdf.setFillColor(250, 250, 250);
+        pdf.setDrawColor(220, 220, 220);
+        pdf.roundedRect(marginLeft, contentStartY - 2, maxWidth, contentHeight, 1, 1, 'FD');
+        
+        // Re-add content on top of background
+        const tempY = yPosition;
+        yPosition = contentStartY;
+        contentCallback();
+        yPosition = tempY + 2;
       };
 
       addHeader();
@@ -675,90 +697,97 @@ ${
       addText(`Consultation ID: ${currentPatientId}-${Date.now()}`, 10);
       yPosition += 3;
 
-      addSection('VITALS');
-      addText(`Blood Pressure: ${finalVitals.bloodPressure}`);
-      addText(`Heart Rate: ${finalVitals.heartRate} ${finalVitals.heartRate !== 'Not recorded' ? 'bpm' : ''}`);
-      addText(`Temperature: ${finalVitals.temperature} ${finalVitals.temperature !== 'Not recorded' ? '°C' : ''}`);
-      addText(`Respiratory Rate: ${finalVitals.respiratoryRate} ${finalVitals.respiratoryRate !== 'Not recorded' ? '/min' : ''}`);
-      addText(`Oxygen Saturation: ${finalVitals.oxygenSaturation} ${finalVitals.oxygenSaturation !== 'Not recorded' ? '%' : ''}`);
-      addText(`Weight: ${finalVitals.weight} ${finalVitals.weight !== 'Not recorded' ? 'kg' : ''}`);
-      addText(`Height: ${finalVitals.height} ${finalVitals.height !== 'Not recorded' ? 'cm' : ''}`);
-      addText(`BMI: ${finalVitals.bmi}`);
+      addSectionBox('VITALS', () => {
+        addText(`Blood Pressure: ${finalVitals.bloodPressure}`, 12, false, true);
+        addText(`Heart Rate: ${finalVitals.heartRate} ${finalVitals.heartRate !== 'Not recorded' ? 'bpm' : ''}`, 12, false, true);
+        addText(`Temperature: ${finalVitals.temperature} ${finalVitals.temperature !== 'Not recorded' ? '°C' : ''}`, 12, false, true);
+        addText(`Respiratory Rate: ${finalVitals.respiratoryRate} ${finalVitals.respiratoryRate !== 'Not recorded' ? '/min' : ''}`, 12, false, true);
+        addText(`Oxygen Saturation: ${finalVitals.oxygenSaturation} ${finalVitals.oxygenSaturation !== 'Not recorded' ? '%' : ''}`, 12, false, true);
+        addText(`Weight: ${finalVitals.weight} ${finalVitals.weight !== 'Not recorded' ? 'kg' : ''}`, 12, false, true);
+        addText(`Height: ${finalVitals.height} ${finalVitals.height !== 'Not recorded' ? 'cm' : ''}`, 12, false, true);
+        addText(`BMI: ${finalVitals.bmi}`, 12, false, true);
+      });
 
-      addSection('HISTORY');
-      addText('Chief Complaint:', 12, true);
-      addText(consultationData.chiefComplaint || 'Not recorded');
-      yPosition += 3;
-      addText('History of Presenting Complaint:', 12, true);
-      addText(consultationData.historyPresentingComplaint || 'Not recorded');
-      yPosition += 3;
-      addText('Review of Systems:', 12, true);
-      addText(`• Cardiovascular: ${consultationData.reviewOfSystems?.cardiovascular || 'Not recorded'}`);
-      addText(`• Respiratory: ${consultationData.reviewOfSystems?.respiratory || 'Not recorded'}`);
-      addText(`• Gastrointestinal: ${consultationData.reviewOfSystems?.gastrointestinal || 'Not recorded'}`);
-      addText(`• Genitourinary: ${consultationData.reviewOfSystems?.genitourinary || 'Not recorded'}`);
-      addText(`• Neurological: ${consultationData.reviewOfSystems?.neurological || 'Not recorded'}`);
-      addText(`• Musculoskeletal: ${consultationData.reviewOfSystems?.musculoskeletal || 'Not recorded'}`);
-      addText(`• Skin: ${consultationData.reviewOfSystems?.skin || 'Not recorded'}`);
-      addText(`• Psychiatric: ${consultationData.reviewOfSystems?.psychiatric || 'Not recorded'}`);
+      addSectionBox('HISTORY', () => {
+        addText('Chief Complaint:', 12, true, true);
+        addText(consultationData.chiefComplaint || 'Not recorded', 12, false, true);
+        yPosition += 2;
+        addText('History of Presenting Complaint:', 12, true, true);
+        addText(consultationData.historyPresentingComplaint || 'Not recorded', 12, false, true);
+        yPosition += 2;
+        addText('Review of Systems:', 12, true, true);
+        addText(`• Cardiovascular: ${consultationData.reviewOfSystems?.cardiovascular || 'Not recorded'}`, 12, false, true);
+        addText(`• Respiratory: ${consultationData.reviewOfSystems?.respiratory || 'Not recorded'}`, 12, false, true);
+        addText(`• Gastrointestinal: ${consultationData.reviewOfSystems?.gastrointestinal || 'Not recorded'}`, 12, false, true);
+        addText(`• Genitourinary: ${consultationData.reviewOfSystems?.genitourinary || 'Not recorded'}`, 12, false, true);
+        addText(`• Neurological: ${consultationData.reviewOfSystems?.neurological || 'Not recorded'}`, 12, false, true);
+        addText(`• Musculoskeletal: ${consultationData.reviewOfSystems?.musculoskeletal || 'Not recorded'}`, 12, false, true);
+        addText(`• Skin: ${consultationData.reviewOfSystems?.skin || 'Not recorded'}`, 12, false, true);
+        addText(`• Psychiatric: ${consultationData.reviewOfSystems?.psychiatric || 'Not recorded'}`, 12, false, true);
+      });
 
-      addSection('EXAMINATION');
-      addText(clinicalNotes || 'Not recorded');
-      if (transcript) {
-        addText(`[Live Transcript: ${transcript}]`, 11);
-      }
+      addSectionBox('EXAMINATION', () => {
+        addText(clinicalNotes || 'Not recorded', 12, false, true);
+        if (transcript) {
+          addText(`[Live Transcript: ${transcript}]`, 11, false, true);
+        }
+      });
 
-      addSection('ASSESSMENT');
-      addText(consultationData.assessment || 'Not recorded');
+      addSectionBox('ASSESSMENT', () => {
+        addText(consultationData.assessment || 'Not recorded', 12, false, true);
+      });
 
-      addSection('PROFESSIONAL ANATOMICAL ANALYSIS');
-      if (selectedMuscleGroup || selectedAnalysisType) {
-        addText(`Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}`);
-        addText(`Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}`);
-      } else {
-        addText('No anatomical analysis performed during this consultation.');
-      }
+      addSectionBox('PROFESSIONAL ANATOMICAL ANALYSIS', () => {
+        if (selectedMuscleGroup || selectedAnalysisType) {
+          addText(`Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}`, 12, false, true);
+          addText(`Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}`, 12, false, true);
+        } else {
+          addText('No anatomical analysis performed during this consultation.', 12, false, true);
+        }
+      });
 
-      addSection('GENERATED TREATMENT PLAN');
-      if (generatedTreatmentPlan) {
-        addText(generatedTreatmentPlan);
-      } else {
-        addText('No treatment plan generated during this consultation.');
-      }
+      addSectionBox('GENERATED TREATMENT PLAN', () => {
+        if (generatedTreatmentPlan) {
+          addText(generatedTreatmentPlan, 12, false, true);
+        } else {
+          addText('No treatment plan generated during this consultation.', 12, false, true);
+        }
+      });
 
-      addSection('PLAN');
-      addText('Management Plan:', 12, true);
-      addText(consultationData.plan || 'Not recorded');
+      addSectionBox('PLAN', () => {
+        addText('Management Plan:', 12, true, true);
+        addText(consultationData.plan || 'Not recorded', 12, false, true);
 
-      if (consultationData.prescriptions.length > 0) {
-        yPosition += 3;
-        addText(`Prescriptions (${consultationData.prescriptions.length}):`, 12, true);
-        consultationData.prescriptions.forEach((rx, idx) => {
-          addText(`${idx + 1}. ${rx.medication} ${rx.dosage}`);
-          addText(`   ${rx.frequency} for ${rx.duration}`, 11);
-          if (rx.instructions) {
-            addText(`   Instructions: ${rx.instructions}`, 11);
-          }
-        });
-      }
+        if (consultationData.prescriptions.length > 0) {
+          yPosition += 2;
+          addText(`Prescriptions (${consultationData.prescriptions.length}):`, 12, true, true);
+          consultationData.prescriptions.forEach((rx, idx) => {
+            addText(`${idx + 1}. ${rx.medication} ${rx.dosage}`, 12, false, true);
+            addText(`   ${rx.frequency} for ${rx.duration}`, 11, false, true);
+            if (rx.instructions) {
+              addText(`   Instructions: ${rx.instructions}`, 11, false, true);
+            }
+          });
+        }
 
-      if (consultationData.referrals.length > 0) {
-        yPosition += 3;
-        addText(`Referrals (${consultationData.referrals.length}):`, 12, true);
-        consultationData.referrals.forEach((ref, idx) => {
-          addText(`${idx + 1}. ${ref.specialty} - ${ref.urgency.toUpperCase()}`, 11);
-          addText(`   Reason: ${ref.reason}`, 11);
-        });
-      }
+        if (consultationData.referrals.length > 0) {
+          yPosition += 2;
+          addText(`Referrals (${consultationData.referrals.length}):`, 12, true, true);
+          consultationData.referrals.forEach((ref, idx) => {
+            addText(`${idx + 1}. ${ref.specialty} - ${ref.urgency.toUpperCase()}`, 11, false, true);
+            addText(`   Reason: ${ref.reason}`, 11, false, true);
+          });
+        }
 
-      if (consultationData.investigations.length > 0) {
-        yPosition += 3;
-        addText(`Investigations (${consultationData.investigations.length}):`, 12, true);
-        consultationData.investigations.forEach((inv, idx) => {
-          addText(`${idx + 1}. ${inv.type} - ${inv.urgency.toUpperCase()}`, 11);
-          addText(`   Reason: ${inv.reason}`, 11);
-        });
-      }
+        if (consultationData.investigations.length > 0) {
+          yPosition += 2;
+          addText(`Investigations (${consultationData.investigations.length}):`, 12, true, true);
+          consultationData.investigations.forEach((inv, idx) => {
+            addText(`${idx + 1}. ${inv.type} - ${inv.urgency.toUpperCase()}`, 11, false, true);
+            addText(`   Reason: ${inv.reason}`, 11, false, true);
+          });
+        }
+      });
 
       addFooter(pdf.getCurrentPageInfo().pageNumber);
 
