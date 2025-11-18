@@ -254,17 +254,11 @@ export default function Subscription() {
     pdf.setFont('helvetica', 'normal');
     pdf.text('Company Registration: 16556912', marginLeft, yPosition);
     yPosition += 5;
-    pdf.text('Ground Floor Unit 2', marginLeft, yPosition);
-    yPosition += 5;
-    pdf.text('Drayton Court, Drayton Road', marginLeft, yPosition);
-    yPosition += 5;
-    pdf.text('Solihull, England B90 4NG', marginLeft, yPosition);
-    yPosition += 5;
-    pdf.text('United Kingdom', marginLeft, yPosition);
+    pdf.text('45 Blue Area, G-6/3, Islamabad, Pakistan', marginLeft, yPosition);
     yPosition += 7;
-    pdf.text('Email: billing@curaemr.ai', marginLeft, yPosition);
+    pdf.text('Email: billing@emrsoft.ai', marginLeft, yPosition);
     yPosition += 5;
-    pdf.text('Phone: +44 (0) 121 456 7890', marginLeft, yPosition);
+    pdf.text('Phone: +92 51 2345 6789', marginLeft, yPosition);
 
     // Bill To section (right side)
     const billToX = pageWidth / 2 + 5;
@@ -394,7 +388,7 @@ export default function Subscription() {
     yPosition += 5;
     pdf.text('• Late payment charges may apply', termsX, yPosition);
     yPosition += 5;
-    pdf.text('• For questions, contact billing@curaemr.ai', termsX, yPosition);
+    pdf.text('• For questions, contact billing@emrsoft.ai', termsX, yPosition);
     yPosition += 5;
     pdf.text('• Online payments available via customer portal', termsX, yPosition);
 
@@ -407,9 +401,9 @@ export default function Subscription() {
     yPosition += 7;
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
-    pdf.text('EMRSoft Software Limited • Registered in England & Wales • Company No. 16556912', pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text('EMRSoft Software Limited • Company Registration: 16556912', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 5;
-    pdf.text('VAT Registration Number: GB123 4567 89 • www.curaemr.ai', pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text('VAT Registration Number: GB123 4567 89 • www.emrsoft.ai', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 7;
     pdf.text('Thank you for choosing EMRSoft for your healthcare management needs.', pageWidth / 2, yPosition, { align: 'center' });
 

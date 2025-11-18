@@ -97,13 +97,10 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
           <div className="text-gray-700">
             <p className="font-medium">EMRSoft Software Limited</p>
             <p>Company Registration: 16556912</p>
-            <p>Ground Floor Unit 2</p>
-            <p>Drayton Court, Drayton Road</p>
-            <p>Solihull, England B90 4NG</p>
-            <p>United Kingdom</p>
+            <p>45 Blue Area, G-6/3, Islamabad, Pakistan</p>
             <p className="mt-2">
-              Email: billing@curaemr.ai<br />
-              Phone: +44 (0) 121 456 7890
+              Email: billing@emrsoft.ai<br />
+              Phone: +92 51 2345 6789
             </p>
           </div>
         </div>
@@ -204,7 +201,7 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
           <div className="text-sm text-gray-700">
             <p>• Payment is due within 30 days of invoice date</p>
             <p>• Late payment charges may apply</p>
-            <p>• For questions, contact billing@curaemr.ai</p>
+            <p>• For questions, contact billing@emrsoft.ai</p>
             <p>• Online payments available via customer portal</p>
           </div>
         </div>
@@ -215,10 +212,10 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
       {/* Footer */}
       <div className="text-center text-sm text-gray-500">
         <p>
-          EMRSoft Software Limited • Registered in England & Wales • Company No. 16556912
+          EMRSoft Software Limited • Company Registration: 16556912
         </p>
         <p>
-          VAT Registration Number: GB123 4567 89 • www.curaemr.ai
+          VAT Registration Number: GB123 4567 89 • www.emrsoft.ai
         </p>
         <p className="mt-2">
           Thank you for choosing EMRSoft for your healthcare management needs.
