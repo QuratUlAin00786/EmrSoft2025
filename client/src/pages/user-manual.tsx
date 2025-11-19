@@ -30,7 +30,7 @@ import {
 import roleScreenshot from "@assets/image_1762015503569.png";
 import shiftsScreenshot from "@assets/image_1762015503569.png";
 import billingScreenshot from "@assets/image_1762015541888.png";
-import documentScreenshot1 from "@assets/image_1763461618075.png";
+import documentScreenshot1 from "@assets/image_1762015503569.png";
 import documentScreenshot2 from "@assets/image_1762015622239.png";
 import documentScreenshot3 from "@assets/image_1762015666990.png";
 
