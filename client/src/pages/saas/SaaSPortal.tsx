@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { QueryClientProvider } from "@tanstack/react-query";
 import { saasQueryClient } from "@/lib/saasQueryClient";
+import { CurrencyProvider } from "@/context/currency-context";
 import SaaSLogin from './SaaSLogin';
 import SaaSDashboard from './SaaSDashboard';
 
@@ -36,13 +37,15 @@ export function SaaSPortal() {
 
   return (
     <QueryClientProvider client={saasQueryClient}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {!isAuthenticated ? (
-          <SaaSLogin onLoginSuccess={handleLoginSuccess} />
-        ) : (
-          <SaaSDashboard onLogout={handleLogout} />
-        )}
-      </div>
+      <CurrencyProvider>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          {!isAuthenticated ? (
+            <SaaSLogin onLoginSuccess={handleLoginSuccess} />
+          ) : (
+            <SaaSDashboard onLogout={handleLogout} />
+          )}
+        </div>
+      </CurrencyProvider>
     </QueryClientProvider>
   );
 }
