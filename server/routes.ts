@@ -762,6 +762,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Averox API key endpoint - securely provides API key to authenticated users
+  app.get('/api/averox/api-key', authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const apiKey = process.env.AVEROX_API_KEY;
+      
+      if (!apiKey) {
+        return res.status(500).json({ 
+          error: 'Averox API key not configured' 
+        });
+      }
+
+      res.json({ apiKey });
+    } catch (error: any) {
+      console.error('Error fetching Averox API key:', error);
+      res.status(500).json({ 
+        error: 'Failed to retrieve Averox API key' 
+      });
+    }
+  });
+
   // Serve uploaded files (clinical photos, imaging reports, etc.)
   // Configure headers to allow PDF viewing in iframes with no restrictions
   app.use('/uploads', (req, res, next) => {

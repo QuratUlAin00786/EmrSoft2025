@@ -5,12 +5,17 @@
 
 const AVEROX_SOCKET_URL = 'wss://mk1.averox.com/';
 const AVEROX_ROOM_API = 'https://mk1.averox.com/api/create-room';
+const AVEROX_API_KEY_ENDPOINT = '/api/averox/api-key';
 
 export interface AudioCallConfig {
   userId: string;
   userName: string;
   targetUserId: string;
   targetUserName: string;
+}
+
+interface AveroxApiKeyResponse {
+  apiKey: string;
 }
 
 export interface AudioCallCallbacks {
@@ -33,6 +38,7 @@ export class AveroxAudioCallManager {
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
   private isIntentionalDisconnect: boolean = false;
+  private apiKey: string | null = null;
 
   // WebRTC configuration with STUN servers for NAT traversal
   private readonly rtcConfiguration: RTCConfiguration = {
@@ -48,16 +54,48 @@ export class AveroxAudioCallManager {
   }
 
   /**
+   * Fetch Averox API key from backend
+   */
+  private async fetchApiKey(): Promise<string> {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(AVEROX_API_KEY_ENDPOINT, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch Averox API key');
+      }
+
+      const data: AveroxApiKeyResponse = await response.json();
+      return data.apiKey;
+    } catch (error) {
+      console.error('❌ Failed to fetch Averox API key:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Initialize and connect to Averox WebSocket signaling server
    */
   async connect(config: AudioCallConfig): Promise<void> {
     this.config = config;
     
+    // Fetch API key if not already cached
+    if (!this.apiKey) {
+      this.apiKey = await this.fetchApiKey();
+    }
+    
     return new Promise((resolve, reject) => {
       try {
         console.log('🔌 Connecting to Averox signaling server:', AVEROX_SOCKET_URL);
         
-        this.socket = new WebSocket(AVEROX_SOCKET_URL);
+        // Include API key as token query parameter
+        const socketUrl = `${AVEROX_SOCKET_URL}?token=${this.apiKey}`;
+        this.socket = new WebSocket(socketUrl);
 
         this.socket.onopen = () => {
           console.log('✅ WebSocket connected to Averox');
@@ -104,9 +142,17 @@ export class AveroxAudioCallManager {
     try {
       console.log('🏠 Creating Averox room...');
       
+      // Ensure API key is available
+      if (!this.apiKey) {
+        this.apiKey = await this.fetchApiKey();
+      }
+      
       const response = await fetch(AVEROX_ROOM_API, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
         body: JSON.stringify({
           roomName: `audio-call-${this.config?.userId}-${this.config?.targetUserId}-${Date.now()}`,
           participants: [this.config?.userId, this.config?.targetUserId],
