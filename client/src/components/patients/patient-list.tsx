@@ -2574,8 +2574,11 @@ export function PatientList({ onSelectPatient, genderFilter = null, viewMode = "
         console.log("Patients data received:", data);
         
         // If logged in user is a patient, filter to show only their own record
-        if (user?.role === "patient" && user?.email) {
-          const filteredData = data.filter((patient: any) => patient.email === user.email);
+        if (user?.role === "patient") {
+          // Filter by userId (primary) or email (fallback)
+          const filteredData = data.filter((patient: any) => 
+            patient.userId === user.id || patient.email === user.email
+          );
           console.log("Filtered patient data for patient role:", filteredData);
           return filteredData;
         }
