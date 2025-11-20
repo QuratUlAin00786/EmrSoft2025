@@ -91,10 +91,10 @@ export class AveroxAudioCallManager {
     
     return new Promise((resolve, reject) => {
       try {
-        console.log('🔌 Connecting to Averox signaling server:', AVEROX_SOCKET_URL);
-        
         // Include API key as token query parameter
         const socketUrl = `${AVEROX_SOCKET_URL}?token=${this.apiKey}`;
+        console.log('🔌 Connecting to Averox signaling server:', socketUrl);
+        
         this.socket = new WebSocket(socketUrl);
 
         this.socket.onopen = () => {
