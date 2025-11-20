@@ -91,18 +91,23 @@ export class AveroxAudioCallManager {
     
     return new Promise((resolve, reject) => {
       try {
-        // Include API key as token query parameter
-        const socketUrl = `${AVEROX_SOCKET_URL}?token=${this.apiKey}`;
-        console.log('🔌 Connecting to Averox signaling server:', socketUrl);
+        // Try connecting without token in URL - will send auth after connection
+        console.log('🔌 Connecting to Averox signaling server:', AVEROX_SOCKET_URL);
         
-        this.socket = new WebSocket(socketUrl);
+        this.socket = new WebSocket(AVEROX_SOCKET_URL);
 
         this.socket.onopen = () => {
-          console.log('✅ WebSocket connected to Averox');
+          console.log('✅ WebSocket connected to Averox - sending authentication...');
           this.isConnected = true;
           this.reconnectAttempts = 0;
 
-          // Register user with signaling server
+          // Send authentication message first
+          this.sendSignal({
+            type: 'auth',
+            apiKey: this.apiKey
+          });
+          
+          // Then register user with signaling server
           this.sendSignal({
             type: 'login',
             userId: config.userId,
