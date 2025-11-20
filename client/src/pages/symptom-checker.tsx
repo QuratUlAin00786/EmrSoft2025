@@ -52,6 +52,48 @@ const symptomFormSchema = insertSymptomCheckSchema.omit({
 
 type SymptomFormValues = z.infer<typeof symptomFormSchema>;
 
+const PREDEFINED_SYMPTOMS = [
+  "Headache",
+  "Dizziness / Vertigo",
+  "Fever / Chills",
+  "Fatigue / Tiredness",
+  "Cough",
+  "Shortness of Breath",
+  "Chest Pain / Tightness",
+  "Palpitations / Irregular Heartbeat",
+  "Nausea / Vomiting",
+  "Abdominal Pain",
+  "Diarrhea",
+  "Constipation",
+  "Heartburn / Acid Reflux",
+  "Loss of Appetite",
+  "Increased Thirst",
+  "Frequent Urination",
+  "Back Pain",
+  "Joint Pain / Swelling",
+  "Muscle Weakness",
+  "Numbness / Tingling",
+  "Insomnia / Sleep Problems",
+  "Anxiety / Nervousness",
+  "Depression / Low Mood",
+  "Rash / Skin Itching",
+  "Itchy Eyes / Watery Eyes",
+  "Runny / Stuffy Nose",
+  "Sore Throat / Hoarseness",
+  "Sneezing",
+  "Ear Pain / Ear Infection",
+  "Blurred Vision",
+  "Ringing in Ears (Tinnitus)",
+  "Weight Loss",
+  "Weight Gain",
+  "Memory Problems / Confusion",
+  "Mood Swings",
+  "Swollen Lymph Nodes",
+  "Sweats / Night Sweats",
+  "Dizziness on Standing",
+  "Hair Loss"
+];
+
 interface SymptomAnalysis {
   potentialDiagnoses: Array<{
     condition: string;
@@ -77,6 +119,8 @@ export default function SymptomCheckerPage() {
   
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [currentSymptom, setCurrentSymptom] = useState("");
+  const [symptomSearchOpen, setSymptomSearchOpen] = useState(false);
+  const [customSymptomInput, setCustomSymptomInput] = useState("");
   const [analysis, setAnalysis] = useState<SymptomAnalysis | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
@@ -93,12 +137,21 @@ export default function SymptomCheckerPage() {
     },
   });
 
-  const addSymptom = () => {
-    if (currentSymptom.trim() && !symptoms.includes(currentSymptom.trim())) {
-      const updatedSymptoms = [...symptoms, currentSymptom.trim()];
+  const addSymptom = (symptom?: string) => {
+    const symptomToAdd = symptom || currentSymptom;
+    if (symptomToAdd.trim() && !symptoms.includes(symptomToAdd.trim())) {
+      const updatedSymptoms = [...symptoms, symptomToAdd.trim()];
       setSymptoms(updatedSymptoms);
       form.setValue("symptoms", updatedSymptoms);
       setCurrentSymptom("");
+      setCustomSymptomInput("");
+      setSymptomSearchOpen(false);
+    }
+  };
+
+  const addCustomSymptom = () => {
+    if (customSymptomInput.trim() && !symptoms.includes(customSymptomInput.trim())) {
+      addSymptom(customSymptomInput);
     }
   };
 
@@ -270,23 +323,69 @@ export default function SymptomCheckerPage() {
 
                       <div className="space-y-2">
                         <FormLabel htmlFor="symptoms" data-testid="label-symptoms">List Your Symptoms</FormLabel>
-                        <div className="flex gap-2">
-                          <Input
-                            id="symptoms"
-                            data-testid="input-symptom"
-                            placeholder="e.g., Headache, Fever, Cough"
-                            value={currentSymptom}
-                            onChange={(e) => setCurrentSymptom(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSymptom())}
-                          />
-                          <Button 
-                            type="button" 
-                            onClick={addSymptom}
-                            data-testid="button-add-symptom"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Popover open={symptomSearchOpen} onOpenChange={setSymptomSearchOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={symptomSearchOpen}
+                              className="w-full justify-between"
+                              data-testid="button-select-symptom"
+                              type="button"
+                            >
+                              {currentSymptom || "Select or type a symptom..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search or type symptom..." 
+                                data-testid="input-search-symptom"
+                                value={customSymptomInput}
+                                onValueChange={setCustomSymptomInput}
+                              />
+                              <CommandList>
+                                <CommandEmpty>
+                                  <div className="p-2">
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      No matching symptom found.
+                                    </p>
+                                    {customSymptomInput && (
+                                      <Button
+                                        size="sm"
+                                        onClick={addCustomSymptom}
+                                        className="w-full"
+                                        type="button"
+                                        data-testid="button-add-custom-symptom"
+                                      >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add "{customSymptomInput}"
+                                      </Button>
+                                    )}
+                                  </div>
+                                </CommandEmpty>
+                                <CommandGroup>
+                                  {PREDEFINED_SYMPTOMS.filter(symptom => 
+                                    !symptoms.includes(symptom)
+                                  ).map((symptom) => (
+                                    <CommandItem
+                                      key={symptom}
+                                      value={symptom}
+                                      onSelect={() => {
+                                        addSymptom(symptom);
+                                      }}
+                                      data-testid={`option-symptom-${symptom.toLowerCase().replace(/\s+/g, '-')}`}
+                                    >
+                                      <Plus className="mr-2 h-4 w-4" />
+                                      {symptom}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <div className="flex flex-wrap gap-2 mt-3">
                           {symptoms.map((symptom) => (
                             <Badge 
