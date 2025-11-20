@@ -2439,7 +2439,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
   });
 
   // Patient routes
-  app.get("/api/patients", async (req: TenantRequest, res) => {
+  app.get("/api/patients", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
       const isActiveParam = req.query.isActive as string;
@@ -2450,7 +2450,15 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         isActive = isActiveParam === 'true';
       }
       
-      const patients = await storage.getPatientsByOrganization(req.tenant!.id, limit, isActive);
+      let patients = await storage.getPatientsByOrganization(req.tenant!.id, limit, isActive);
+      
+      // If user has patient role, filter to show only their own record
+      if (req.user?.role === "patient") {
+        patients = patients.filter(p => 
+          p.userId === req.user!.id || p.email === req.user!.email
+        );
+      }
+      
       res.json(patients);
     } catch (error) {
       console.error("Patients fetch error:", error);
