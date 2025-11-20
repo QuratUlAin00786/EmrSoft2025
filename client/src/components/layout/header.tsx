@@ -3,7 +3,6 @@ import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { CurrencySelector } from "@/components/currency-selector";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 
@@ -50,12 +49,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           <NotificationBell />
           
           {/* Currency Selector */}
-          <div className="hidden sm:block">
-            <CurrencySelector />
-          </div>
-          
-          {/* Theme Toggle */}
-          <ThemeToggle />
+          <CurrencySelector />
         </div>
       </div>
     </header>
