@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { useAuth } from "@/hooks/use-auth";
+import { AveroxAudioCallManager } from "@/lib/averox-audio-call";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,6 +97,12 @@ interface WaitingRoom {
 function PatientList() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [audioCallManager, setAudioCallManager] = useState<AveroxAudioCallManager | null>(null);
+  const [isAudioCallActive, setIsAudioCallActive] = useState(false);
+  const [audioCallPatient, setAudioCallPatient] = useState<any>(null);
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const callTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch users for telemedicine - filtered based on role
   // Admin users see all users, non-admin users see only non-patient users
@@ -203,6 +210,159 @@ function PatientList() {
         variant: "default",
       });
     }
+  };
+
+  // Averox audio call function
+  const startAveroxAudioCall = async (patient: any) => {
+    try {
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to start an audio call",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Connecting...",
+        description: `Initializing audio call with ${patient.firstName} ${patient.lastName}`,
+      });
+
+      // Create Averox call manager instance
+      const callManager = new AveroxAudioCallManager({
+        onConnected: () => {
+          console.log('✅ Audio call connected');
+          setIsAudioCallActive(true);
+          setAudioCallPatient(patient);
+          
+          // Start call duration timer
+          setCallDuration(0);
+          callTimerRef.current = setInterval(() => {
+            setCallDuration(prev => prev + 1);
+          }, 1000);
+
+          toast({
+            title: "Call Connected",
+            description: `Audio call with ${patient.firstName} ${patient.lastName} is now active`,
+          });
+        },
+        onDisconnected: () => {
+          console.log('📵 Audio call disconnected');
+          handleEndAudioCall();
+        },
+        onError: (error) => {
+          console.error('❌ Audio call error:', error);
+          toast({
+            title: "Call Error",
+            description: error,
+            variant: "destructive",
+          });
+          handleEndAudioCall();
+        },
+        onCallEnded: () => {
+          console.log('📵 Call ended by remote user');
+          handleEndAudioCall();
+        }
+      });
+
+      // Connect to Averox signaling server
+      await callManager.connect({
+        userId: user.id.toString(),
+        userName: `${user.firstName} ${user.lastName}`,
+        targetUserId: patient.id.toString(),
+        targetUserName: `${patient.firstName} ${patient.lastName}`
+      });
+
+      // Create room
+      await callManager.createRoom();
+
+      // Start the audio call
+      await callManager.startCall();
+
+      // Store call manager in state
+      setAudioCallManager(callManager);
+
+      // Create consultation record
+      await fetch("/api/telemedicine/consultations", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": getActiveSubdomain()
+        },
+        body: JSON.stringify({
+          patientId: patient.id,
+          type: "audio",
+          scheduledTime: new Date().toISOString(),
+          duration: 30,
+          meetingId: `averox-${Date.now()}`
+        }),
+        credentials: "include"
+      });
+
+    } catch (error: any) {
+      console.error('💥 Averox audio call failed:', error);
+      toast({
+        title: "Call Failed",
+        description: error.message || "Unable to start audio call. Please check microphone permissions and try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle ending audio call
+  const handleEndAudioCall = () => {
+    if (audioCallManager) {
+      audioCallManager.endCall();
+      setAudioCallManager(null);
+    }
+    
+    if (callTimerRef.current) {
+      clearInterval(callTimerRef.current);
+      callTimerRef.current = null;
+    }
+    
+    setIsAudioCallActive(false);
+    setAudioCallPatient(null);
+    setIsAudioMuted(false);
+    setCallDuration(0);
+    
+    toast({
+      title: "Call Ended",
+      description: "Audio call has been terminated",
+    });
+  };
+
+  // Toggle mute
+  const toggleAudioMute = () => {
+    if (audioCallManager) {
+      const muted = audioCallManager.toggleMute();
+      setIsAudioMuted(muted);
+      toast({
+        title: muted ? "Microphone Muted" : "Microphone Unmuted",
+        description: muted ? "Your microphone is now muted" : "Your microphone is now active",
+      });
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioCallManager) {
+        audioCallManager.endCall();
+      }
+      if (callTimerRef.current) {
+        clearInterval(callTimerRef.current);
+      }
+    };
+  }, [audioCallManager]);
+
+  // Format call duration
+  const formatCallDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   // BigBlueButton audio call function
@@ -327,6 +487,7 @@ function PatientList() {
   }
 
   return (
+    <>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {patients.map((patient: any) => (
         <Card key={patient.id} className="hover:shadow-md transition-shadow cursor-pointer">
@@ -373,8 +534,9 @@ function PatientList() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => startBigBlueButtonAudioCall(patient)}
+                onClick={() => startAveroxAudioCall(patient)}
                 data-testid={`button-audio-call-${patient.id}`}
+                disabled={isAudioCallActive}
               >
                 <Phone className="w-4 h-4" />
               </Button>
@@ -383,6 +545,75 @@ function PatientList() {
         </Card>
       ))}
     </div>
+
+    {/* Active Audio Call UI Controls */}
+    {isAudioCallActive && audioCallPatient && (
+      <Card className="fixed bottom-4 right-4 w-96 shadow-2xl border-2 border-primary z-50">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-ping absolute top-0 left-0" />
+              </div>
+              <div>
+                <p className="font-semibold text-lg">Audio Call Active</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {audioCallPatient.firstName} {audioCallPatient.lastName}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-mono font-bold text-primary">
+                {formatCallDuration(callDuration)}
+              </p>
+              <p className="text-xs text-gray-500">Duration</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              variant={isAudioMuted ? "destructive" : "outline"}
+              size="lg"
+              onClick={toggleAudioMute}
+              className="flex-1"
+              data-testid="button-toggle-mute"
+            >
+              {isAudioMuted ? (
+                <>
+                  <MicOff className="w-5 h-5 mr-2" />
+                  Unmute
+                </>
+              ) : (
+                <>
+                  <Mic className="w-5 h-5 mr-2" />
+                  Mute
+                </>
+              )}
+            </Button>
+
+            <Button
+              variant="destructive"
+              size="lg"
+              onClick={handleEndAudioCall}
+              className="flex-1"
+              data-testid="button-end-call"
+            >
+              <PhoneOff className="w-5 h-5 mr-2" />
+              End Call
+            </Button>
+          </div>
+
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+            <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+              <Activity className="w-4 h-4" />
+              <span>WebRTC Audio Call via Averox</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )}
+  </>
   );
 }
 

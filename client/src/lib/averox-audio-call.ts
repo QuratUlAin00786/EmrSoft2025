@@ -121,7 +121,7 @@ export class AveroxAudioCallManager {
       this.roomId = data.roomId || `room-${Date.now()}`;
       
       console.log('✅ Room created:', this.roomId);
-      return { roomId: this.roomId };
+      return { roomId: this.roomId as string };
 
     } catch (error) {
       console.error('💥 Failed to create room:', error);
