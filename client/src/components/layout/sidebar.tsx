@@ -227,7 +227,7 @@ export function Sidebar() {
   const patientOnlyItems = ["Patient Portal"];
 
   // Items to hide from all users
-  const hiddenItems = ["Automation", "Telemedicine"];
+  const hiddenItems = ["Automation"];
 
   const filteredNavigation = ALL_NAVIGATION.filter((item) => {
     // Hide specific items from all users
