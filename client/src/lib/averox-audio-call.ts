@@ -32,6 +32,7 @@ export class AveroxAudioCallManager {
   private isConnected: boolean = false;
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
+  private isIntentionalDisconnect: boolean = false;
 
   // WebRTC configuration with STUN servers for NAT traversal
   private readonly rtcConfiguration: RTCConfiguration = {
@@ -172,10 +173,9 @@ export class AveroxAudioCallManager {
         type: 'offer',
         offer: offer,
         roomId: this.roomId,
-        to: this.config?.targetUserId
+        to: this.config?.targetUserId,
+        from: this.config?.userId
       });
-
-      this.callbacks.onConnected?.();
 
     } catch (error) {
       console.error('💥 Failed to start call:', error);
@@ -221,10 +221,10 @@ export class AveroxAudioCallManager {
       this.sendSignal({
         type: 'answer',
         answer: answer,
-        roomId: this.roomId
+        roomId: this.roomId,
+        to: this.config?.targetUserId,
+        from: this.config?.userId
       });
-
-      this.callbacks.onConnected?.();
 
     } catch (error) {
       console.error('💥 Failed to answer call:', error);
@@ -246,7 +246,9 @@ export class AveroxAudioCallManager {
         this.sendSignal({
           type: 'candidate',
           candidate: event.candidate,
-          roomId: this.roomId
+          roomId: this.roomId,
+          to: this.config?.targetUserId,
+          from: this.config?.userId
         });
       }
     };
@@ -274,6 +276,8 @@ export class AveroxAudioCallManager {
       
       if (this.peerConnection?.connectionState === 'connected') {
         console.log('✅ Peer connection established');
+        // Only trigger onConnected when actual peer connection is established
+        this.callbacks.onConnected?.();
       } else if (this.peerConnection?.connectionState === 'failed') {
         console.log('❌ Peer connection failed, attempting ICE restart...');
         this.peerConnection?.restartIce();
@@ -376,11 +380,16 @@ export class AveroxAudioCallManager {
   endCall(): void {
     console.log('📵 Ending call...');
 
+    // Set flag to prevent reconnection attempts
+    this.isIntentionalDisconnect = true;
+
     // Notify remote peer
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.sendSignal({
         type: 'leave',
-        roomId: this.roomId
+        roomId: this.roomId,
+        to: this.config?.targetUserId,
+        from: this.config?.userId
       });
     }
 
@@ -423,6 +432,12 @@ export class AveroxAudioCallManager {
    * Handle disconnect and attempt reconnection
    */
   private handleDisconnect(): void {
+    // Don't reconnect if this was an intentional disconnect
+    if (this.isIntentionalDisconnect) {
+      console.log('📵 Call ended intentionally - skipping reconnection');
+      return;
+    }
+
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       console.log(`🔄 Attempting reconnection (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
