@@ -13,7 +13,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
+  connectionString: 'postgresql://neondb_owner:npg_3UN6KpBRPGcJ@ep-aged-block-a4jyny94.us-east-1.aws.neon.tech/neondb?sslmode=require',
   max: 10, // Maximum number of connections in pool
   idleTimeoutMillis: 10000, // 10 seconds idle timeout
   maxUses: 7500, // Maximum uses per connection before renewal

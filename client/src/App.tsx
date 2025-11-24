@@ -11,6 +11,7 @@ import { CurrencyProvider } from "@/context/currency-context";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
 import { AIChatWidget } from "@/components/ai-chat-widget";
+import { SocketProvider } from "@/components/socket-provider";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -597,11 +598,13 @@ function App() {
           <div className="min-h-screen">
             <TenantProvider>
               <AuthProvider>
-                <CurrencyProvider>
-                  <LocaleProvider>
-                    <AppRouter />
-                  </LocaleProvider>
-                </CurrencyProvider>
+                <SocketProvider>
+                  <CurrencyProvider>
+                    <LocaleProvider>
+                      <AppRouter />
+                    </LocaleProvider>
+                  </CurrencyProvider>
+                </SocketProvider>
               </AuthProvider>
             </TenantProvider>
           </div>

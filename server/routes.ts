@@ -14911,6 +14911,49 @@ EMRSoft Team
     }
   });
 
+  // LiveKit Token Service
+  app.post("/api/livekit/token", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { generateLiveKitToken } = await import("./services/livekit-token");
+      const { roomName, participantName, canPublish, canSubscribe, canPublishData } = req.body;
+      const user = req.user!;
+      const organizationId = req.organizationId!;
+
+      if (!roomName || !participantName) {
+        return res.status(400).json({ error: "roomName and participantName are required" });
+      }
+
+      const participantIdentity = `user-${user.id}-org-${organizationId}`;
+      const userFullName = (user as any).firstName && (user as any).lastName 
+        ? `${(user as any).firstName} ${(user as any).lastName}` 
+        : user.email;
+      const token = generateLiveKitToken({
+        roomName,
+        participantName: participantName || userFullName,
+        participantIdentity,
+        organizationId,
+        canPublish: canPublish !== false,
+        canSubscribe: canSubscribe !== false,
+        canPublishData: canPublishData !== false,
+      });
+
+      const livekitUrl = process.env.LIVEKIT_URL || "wss://your-livekit-server.com";
+
+      res.json({
+        token,
+        url: livekitUrl,
+        roomName,
+        participantIdentity,
+      });
+    } catch (error: any) {
+      console.error("Error generating LiveKit token:", error);
+      res.status(500).json({ 
+        error: "Failed to generate LiveKit token",
+        message: error.message 
+      });
+    }
+  });
+
   // Email Service API endpoints
   app.post("/api/email/appointment-reminder", authMiddleware, async (req: TenantRequest, res) => {
     try {
@@ -19577,7 +19620,7 @@ EMRSoft Team
       });
       
       // Generate PDF bytes
-      const pdfBytes = await pdfDoc.save();
+      let pdfBytes = await pdfDoc.save();
       
       // Save PDF to disk
       const outputPath = path.join(reportsDir, `${reportId}.pdf`);
@@ -20234,7 +20277,7 @@ EMRSoft Team
       });
       
       // Generate PDF bytes
-      const pdfBytes = await pdfDoc.save();
+      let pdfBytes = await pdfDoc.save();
       
       // Save PDF to disk
       const fileName = `prescription-${imageId}.pdf`;
@@ -20945,7 +20988,7 @@ EMRSoft Team
       });
       
       // Save the PDF
-      const pdfBytes = await pdfDoc.save();
+      let pdfBytes = await pdfDoc.save();
       const fileName = `${study.imageId}.pdf`;
       const filePath = path.join(prescriptionsDir, fileName);
       
@@ -21210,7 +21253,7 @@ EMRSoft Team
 
       console.log('[EMAIL-SHARE] Loading imaging report PDF:', reportPath);
       const buffer = await fs.promises.readFile(reportPath);
-      const pdfBytes = new Uint8Array(buffer);
+      let pdfBytes = new Uint8Array(buffer);
       
       // Extract filename from path for email attachment
       const fileName = path.basename(reportPath);

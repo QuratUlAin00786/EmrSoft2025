@@ -5,6 +5,14 @@ import { queryClient } from "@/lib/queryClient";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { useAuth } from "@/hooks/use-auth";
 import { AveroxAudioCallManager } from "@/lib/averox-audio-call";
+import { createRemoteLiveKitRoom } from "@/lib/livekit-room-service";
+import { buildSocketUserIdentifier } from "@/lib/socket-manager";
+import { LiveKitVideoCall } from "@/components/telemedicine/livekit-video-call";
+import { LiveKitAudioCall } from "@/components/telemedicine/livekit-audio-call";
+import { IncomingCallModal, type IncomingCallData } from "@/components/telemedicine/incoming-call-modal";
+import { useIncomingCall } from "@/hooks/use-incoming-call";
+import { useSocket } from "@/hooks/use-socket";
+import { isUserOnline } from "@/lib/socket-user-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,6 +111,16 @@ function PatientList() {
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // LiveKit call state
+const [liveKitVideoCall, setLiveKitVideoCall] = useState<{ roomName: string; patient: any; token?: string; serverUrl?: string; e2eeKey?: string } | null>(null);
+const [liveKitAudioCall, setLiveKitAudioCall] = useState<{ roomName: string; patient: any; token?: string; serverUrl?: string; e2eeKey?: string } | null>(null);
+
+  // Incoming call handling
+  const { incomingCall, acceptCall, declineCall, clearIncomingCall } = useIncomingCall();
+
+  // Socket.IO online users
+  const { onlineUsers } = useSocket();
 
   // Fetch users for telemedicine - filtered based on role
   // Admin users see all users, non-admin users see only non-patient users
@@ -346,6 +364,244 @@ function PatientList() {
     }
   };
 
+  // LiveKit Video Call
+  const buildParticipantIdentifier = (entity: any, defaultRole = "participant") => {
+    return buildSocketUserIdentifier({
+      id: entity?.id,
+      firstName: entity?.firstName,
+      lastName: entity?.lastName,
+      email: entity?.email,
+      role: entity?.role || defaultRole,
+    });
+  };
+
+  const getDisplayName = (entity: any) => {
+    const name = [entity?.firstName, entity?.lastName].filter(Boolean).join(" ").trim();
+    return name || entity?.email || `user-${entity?.id}`;
+  };
+
+  const startLiveKitVideoCall = async (patient: any) => {
+    try {
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to start a video call",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const fromIdentifier = buildParticipantIdentifier(user, user.role);
+      const toIdentifier = buildParticipantIdentifier(patient, patient.role);
+
+      if (!fromIdentifier || !toIdentifier) {
+        toast({
+          title: "Call Failed",
+          description: "Unable to determine participant identifiers",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const roomName = `telemedicine-video-${user.id}-${patient.id}-${Date.now()}`;
+
+      toast({
+        title: "Video Call Starting",
+        description: `Connecting to video call with ${patient.firstName} ${patient.lastName}`,
+      });
+
+      const liveKitRoom = await createRemoteLiveKitRoom({
+        roomId: roomName,
+        fromUsername: fromIdentifier,
+        toUsers: [
+          {
+            identifier: toIdentifier,
+            displayName: getDisplayName(patient),
+          },
+        ],
+        isVideo: true,
+        groupName: "Telemedicine Video Consultation",
+      });
+
+      const finalRoomId = liveKitRoom.roomId || roomName;
+
+      setLiveKitVideoCall({
+        roomName: finalRoomId,
+        patient,
+        token: liveKitRoom.token,
+        serverUrl: liveKitRoom.serverUrl,
+        e2eeKey: liveKitRoom.e2eeKey,
+      });
+
+      // Create consultation record
+      await fetch("/api/telemedicine/consultations", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": getActiveSubdomain()
+        },
+        body: JSON.stringify({
+          patientId: patient.id,
+          type: "video",
+          scheduledTime: new Date().toISOString(),
+          duration: 30,
+          meetingId: finalRoomId
+        }),
+        credentials: "include"
+      });
+    } catch (error: any) {
+      console.error('LiveKit video call failed:', error);
+      toast({
+        title: "Call Failed",
+        description: error.message || "Unable to start video call",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // LiveKit Audio Call
+  const startLiveKitAudioCall = async (patient: any) => {
+    try {
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to start an audio call",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const fromIdentifier = buildParticipantIdentifier(user, user.role);
+      const toIdentifier = buildParticipantIdentifier(patient, patient.role);
+
+      if (!fromIdentifier || !toIdentifier) {
+        toast({
+          title: "Call Failed",
+          description: "Unable to determine participant identifiers",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const roomName = `telemedicine-audio-${user.id}-${patient.id}-${Date.now()}`;
+
+      toast({
+        title: "Audio Call Starting",
+        description: `Connecting to audio call with ${patient.firstName} ${patient.lastName}`,
+      });
+
+      const liveKitRoom = await createRemoteLiveKitRoom({
+        roomId: roomName,
+        fromUsername: fromIdentifier,
+        toUsers: [
+          {
+            identifier: toIdentifier,
+            displayName: getDisplayName(patient),
+          },
+        ],
+        isVideo: false,
+        groupName: "Telemedicine Audio Consultation",
+      });
+
+      const finalRoomId = liveKitRoom.roomId || roomName;
+
+      setLiveKitAudioCall({
+        roomName: finalRoomId,
+        patient,
+        token: liveKitRoom.token,
+        serverUrl: liveKitRoom.serverUrl,
+        e2eeKey: liveKitRoom.e2eeKey,
+      });
+
+      // Create consultation record
+      await fetch("/api/telemedicine/consultations", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": getActiveSubdomain()
+        },
+        body: JSON.stringify({
+          patientId: patient.id,
+          type: "audio",
+          scheduledTime: new Date().toISOString(),
+          duration: 30,
+          meetingId: finalRoomId
+        }),
+        credentials: "include"
+      });
+    } catch (error: any) {
+      console.error('LiveKit audio call failed:', error);
+      toast({
+        title: "Call Failed",
+        description: error.message || "Unable to start audio call",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLiveKitVideoCallEnd = () => {
+    setLiveKitVideoCall(null);
+    toast({
+      title: "Call Ended",
+      description: "Video call has been terminated",
+    });
+  };
+
+  const handleLiveKitAudioCallEnd = () => {
+    setLiveKitAudioCall(null);
+    toast({
+      title: "Call Ended",
+      description: "Audio call has been terminated",
+    });
+  };
+
+  // Handle incoming call accept
+  const handleAcceptIncomingCall = (callData: IncomingCallData) => {
+    console.log('✅ Accepting incoming call:', callData);
+    
+    // Create a patient-like object from call data for compatibility
+    const patientData = {
+      id: callData.fromUserId,
+      firstName: callData.fromUsername.split('_')[1] || callData.fromUsername,
+      lastName: '',
+      email: '',
+    };
+
+    if (callData.isVideo) {
+      setLiveKitVideoCall({
+        roomName: callData.roomId,
+        patient: patientData,
+        token: callData.token,
+        serverUrl: callData.serverUrl,
+        e2eeKey: callData.e2eeKey,
+      });
+    } else {
+      setLiveKitAudioCall({
+        roomName: callData.roomId,
+        patient: patientData,
+        token: callData.token,
+        serverUrl: callData.serverUrl,
+        e2eeKey: callData.e2eeKey,
+      });
+    }
+
+    acceptCall(callData);
+  };
+
+  // Handle incoming call decline
+  const handleDeclineIncomingCall = () => {
+    console.log('❌ Declining incoming call');
+    declineCall();
+  };
+
+  // Handle incoming call timeout
+  const handleIncomingCallTimeout = () => {
+    console.log('⏰ Incoming call timed out');
+    clearIncomingCall();
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -493,19 +749,31 @@ function PatientList() {
         <Card key={patient.id} className="hover:shadow-md transition-shadow cursor-pointer">
           <CardContent className="p-4">
             <div className="flex items-center gap-3 mb-3">
-              <Avatar className="w-12 h-12">
-                <AvatarFallback>
-                  {patient.firstName?.[0] || patient.email?.[0]}{patient.lastName?.[0] || patient.email?.[1]}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="w-12 h-12">
+                  <AvatarFallback>
+                    {patient.firstName?.[0] || patient.email?.[0]}{patient.lastName?.[0] || patient.email?.[1]}
+                  </AvatarFallback>
+                </Avatar>
+                {/* Online Status Indicator */}
+                {isUserOnline(patient.id, onlineUsers) && (
+                  <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                )}
+              </div>
               <div className="flex-1">
                 <h3 className="font-medium text-lg text-gray-900 dark:text-gray-100">
                   {patient.firstName && patient.lastName 
                     ? `${patient.firstName} ${patient.lastName}` 
                     : patient.email}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {patient.role ? patient.role.charAt(0).toUpperCase() + patient.role.slice(1) : 'User'} • ID: {patient.id}
+                <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                  <span>{patient.role ? patient.role.charAt(0).toUpperCase() + patient.role.slice(1) : 'User'} • ID: {patient.id}</span>
+                  {isUserOnline(patient.id, onlineUsers) && (
+                    <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
+                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                      Online
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
@@ -521,25 +789,49 @@ function PatientList() {
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button
-                onClick={() => startBigBlueButtonCall(patient)}
-                className="flex-1"
-                size="sm"
-                data-testid={`button-video-call-${patient.id}`}
-              >
-                <Video className="w-4 h-4 mr-2" />
-                Start Video Call
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => startAveroxAudioCall(patient)}
-                data-testid={`button-audio-call-${patient.id}`}
-                disabled={isAudioCallActive}
-              >
-                <Phone className="w-4 h-4" />
-              </Button>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => startLiveKitVideoCall(patient)}
+                  className="flex-1"
+                  size="sm"
+                  variant="default"
+                  data-testid={`button-livekit-video-call-${patient.id}`}
+                >
+                  <Video className="w-4 h-4 mr-2" />
+                  LiveKit Video
+                </Button>
+                {/* <Button
+                  onClick={() => startBigBlueButtonCall(patient)}
+                  variant="outline"
+                  size="sm"
+                  data-testid={`button-video-call-${patient.id}`}
+                >
+                  <Video className="w-4 h-4 mr-2" />
+                  BBB Video
+                </Button> */}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => startLiveKitAudioCall(patient)}
+                  data-testid={`button-livekit-audio-call-${patient.id}`}
+                  disabled={isAudioCallActive || liveKitAudioCall !== null}
+                >
+                  <Phone className="w-4 h-4 mr-2" />
+                  LiveKit Audio
+                </Button>
+                {/* <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => startAveroxAudioCall(patient)}
+                  data-testid={`button-audio-call-${patient.id}`}
+                  disabled={isAudioCallActive || liveKitAudioCall !== null}
+                >
+                  <Phone className="w-4 h-4" />
+                </Button> */}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -613,7 +905,59 @@ function PatientList() {
         </CardContent>
       </Card>
     )}
-  </>
+
+    {/* LiveKit Video Call Modal */}
+    {liveKitVideoCall && (
+      <Dialog open={!!liveKitVideoCall} onOpenChange={() => setLiveKitVideoCall(null)}>
+        <DialogContent className="max-w-6xl w-full h-[90vh] p-0">
+          <DialogHeader className="p-4 border-b">
+            <DialogTitle>
+              Video Call - {liveKitVideoCall.patient.firstName} {liveKitVideoCall.patient.lastName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 p-4">
+            <LiveKitVideoCall
+              roomName={liveKitVideoCall.roomName}
+              participantName={user ? `${user.firstName} ${user.lastName}` : 'Provider'}
+              token={liveKitVideoCall.token}
+              serverUrl={liveKitVideoCall.serverUrl}
+              onDisconnect={handleLiveKitVideoCallEnd}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )}
+
+    {/* LiveKit Audio Call Modal */}
+    {liveKitAudioCall && (
+      <Dialog open={!!liveKitAudioCall} onOpenChange={() => setLiveKitAudioCall(null)}>
+        <DialogContent className="max-w-2xl w-full">
+          <DialogHeader>
+            <DialogTitle>
+              Audio Call - {liveKitAudioCall.patient.firstName} {liveKitAudioCall.patient.lastName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4">
+            <LiveKitAudioCall
+              roomName={liveKitAudioCall.roomName}
+              participantName={user ? `${user.firstName} ${user.lastName}` : 'Provider'}
+              token={liveKitAudioCall.token}
+              serverUrl={liveKitAudioCall.serverUrl}
+              onDisconnect={handleLiveKitAudioCallEnd}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )}
+
+    {/* Incoming Call Modal */}
+    <IncomingCallModal
+      callData={incomingCall}
+      onAccept={handleAcceptIncomingCall}
+      onDecline={handleDeclineIncomingCall}
+      onTimeout={handleIncomingCallTimeout}
+    />
+    </>
   );
 }
 

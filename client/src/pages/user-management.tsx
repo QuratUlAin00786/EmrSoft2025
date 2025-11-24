@@ -1464,6 +1464,7 @@ export default function UserManagement() {
     queryKey: ["/api/roles"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/roles");
+      console.log("Roles response:", response);
       return response.json();
     },
     retry: false,
